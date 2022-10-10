@@ -2,6 +2,8 @@
 // Licensed under the MIT license.
 
 using Microsoft.AspNetCore.Mvc;
+using Snap.Hutao.Server.Controller.Filter;
+using Snap.Hutao.Server.Model.Upload;
 
 namespace Snap.Hutao.Server.Controller;
 
@@ -10,14 +12,16 @@ namespace Snap.Hutao.Server.Controller;
 /// </summary>
 [Route("[controller]")]
 [ApiController]
+[ServiceFilter(typeof(RequestFilter))]
 public class RecordController : ControllerBase
 {
     /// <summary>
     /// 上传记录
     /// </summary>
+    /// <param name="record">记录</param>
     /// <returns>上传结果</returns>
     [HttpPost("[Action]")]
-    public async Task<IActionResult> Upload()
+    public async Task<IActionResult> Upload([FromBody] SimpleRecord record)
     {
         return null!;
     }

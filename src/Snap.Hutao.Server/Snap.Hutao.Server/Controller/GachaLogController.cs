@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 
 using Microsoft.AspNetCore.Mvc;
+using Snap.Hutao.Server.Controller.Filter;
 
 namespace Snap.Hutao.Server.Controller;
 
@@ -10,6 +11,7 @@ namespace Snap.Hutao.Server.Controller;
 /// </summary>
 [Route("[controller]")]
 [ApiController]
+[ServiceFilter(typeof(RequestFilter))]
 public class GachaLogController : ControllerBase
 {
     /// <summary>

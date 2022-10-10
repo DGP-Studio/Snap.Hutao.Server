@@ -1,7 +1,7 @@
 ﻿﻿[*.cs]
 
 # SA1101: Prefix local calls with this
-dotnet_diagnostic.SA1101.severity = none
+dotnet_diagnostic.SA1101.severity = silent
 csharp_using_directive_placement = outside_namespace:silent
 csharp_style_expression_bodied_methods = false:silent
 csharp_style_expression_bodied_constructors = false:silent
@@ -160,6 +160,9 @@ dotnet_diagnostic.CA1805.severity = suggestion
 # VSTHRD111: Use ConfigureAwait(bool)
 dotnet_diagnostic.VSTHRD111.severity = suggestion
 csharp_style_prefer_top_level_statements = true:silent
+
+# Default severity for analyzer diagnostics with category 'StyleCop.CSharp.ReadabilityRules'
+dotnet_analyzer_diagnostic.category-StyleCop.CSharp.ReadabilityRules.severity = none
 
 [*.vb]
 #### 命名样式 ####
