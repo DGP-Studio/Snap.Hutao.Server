@@ -2,7 +2,10 @@
 // Licensed under the MIT license.
 
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Snap.Hutao.Server.Model.Entity;
 
@@ -10,8 +13,16 @@ namespace Snap.Hutao.Server.Model.Entity;
 /// 请求统计
 /// </summary>
 [Table("request_statistics")]
+[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)]
 public class RequestStatistics
 {
+    /// <summary>
+    /// EF用
+    /// </summary>
+    public RequestStatistics()
+    {
+    }
+
     /// <summary>
     /// 构造一个新的请求统计
     /// </summary>
@@ -24,6 +35,13 @@ public class RequestStatistics
         Path = request.Path;
         Count = 0;
     }
+
+    /// <summary>
+    /// 主键
+    /// </summary>
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public int PrimaryId { get; set; }
 
     /// <summary>
     /// UA头

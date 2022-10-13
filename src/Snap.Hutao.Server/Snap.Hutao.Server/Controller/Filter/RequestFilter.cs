@@ -30,7 +30,7 @@ public class RequestFilter : IAsyncActionFilter
         string path = context.HttpContext.Request.Path;
         string ua = context.HttpContext.Request.Headers.UserAgent;
 
-        using (await appDbContext.OperationLock.EnterAsync())
+        using (await appDbContext.OperationLock.EnterAsync().ConfigureAwait(false))
         {
             RequestStatistics? statistics = appDbContext.RequestStatistics
                 .Where(req => req.Path == path)
@@ -47,6 +47,6 @@ public class RequestFilter : IAsyncActionFilter
         }
 
         // Execute next filter.
-        ActionExecutedContext result = await next();
+        ActionExecutedContext result = await next().ConfigureAwait(false);
     }
 }

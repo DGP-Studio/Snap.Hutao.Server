@@ -25,9 +25,19 @@ public class EntityRecord
     public string Uid { get; set; } = null!;
 
     /// <summary>
+    /// 上传方
+    /// </summary>
+    public string Uploader { get; set; } = null!;
+
+    /// <summary>
+    /// 上传时间戳
+    /// </summary>
+    public long UploadTime { get; set; }
+
+    /// <summary>
     /// 深渊数据
     /// </summary>
-    public EntitySpiralAbyss SpiralAbyss { get; set; } = null!;
+    public EntitySpiralAbyss? SpiralAbyss { get; set; }
 
     /// <summary>
     /// 角色列表

@@ -17,4 +17,9 @@ public class SimpleLevel
     /// 星数
     /// </summary>
     public int Star { get; set; }
+
+    /// <summary>
+    /// 上下半信息
+    /// </summary>
+    public List<SimpleBattle> Battles { get; set; } = default!;
 }

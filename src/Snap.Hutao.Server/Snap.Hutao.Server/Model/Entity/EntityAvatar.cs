@@ -43,7 +43,7 @@ public class EntityAvatar
     /// <summary>
     /// 圣遗物套装Id
     /// </summary>
-    public List<int> ReliquarySetIds { get; set; } = default!;
+    public string ReliquarySet { get; set; } = default!;
 
     /// <summary>
     /// 命座

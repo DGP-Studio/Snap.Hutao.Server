@@ -1,6 +1,7 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -10,6 +11,7 @@ namespace Snap.Hutao.Server.Model.Entity;
 /// 受到伤害排行
 /// </summary>
 [Table("take_damage_ranks")]
+[Index(nameof(Value))]
 public class EntityTakeDamageRank
 {
     /// <summary>
@@ -39,4 +41,9 @@ public class EntityTakeDamageRank
     /// 值
     /// </summary>
     public int Value { get; set; }
+
+    /// <summary>
+    /// Uid
+    /// </summary>
+    public string Uid { get; set; } = default!;
 }

@@ -1,8 +1,13 @@
 // Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Quartz;
+using Snap.Hutao.Server.Job;
+using Snap.Hutao.Server.Model.Context;
+using Snap.Hutao.Server.Service.Legacy;
 using System.Text.Encodings.Web;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -23,7 +28,10 @@ public class Program
 
         IServiceCollection services = builder.Services;
 
-        // Add services to the container.
+        services
+            .AddMemoryCache()
+            .AddTransient<StatisticsService>();
+
         services
             .AddControllers()
             .AddJsonOptions(o =>
@@ -36,14 +44,59 @@ public class Program
                 options.WriteIndented = true;
             });
 
+        services
+            .AddQuartz(config =>
+            {
+                config
+                    .UseMicrosoftDependencyInjectionJobFactory();
+                config
+                    .ScheduleJob<SpialAbyssRecordClearJob>(t => t.StartNow().WithCronSchedule("0 0 4 1,16 * ?"))
+                    .ScheduleJob<LegacyStatisticsRefreshJob>(t => t.StartNow().WithCronSchedule("0 5 */1 * * ?"));
+            })
+            .AddTransient<SpialAbyssRecordClearJob>()
+            .AddTransient<LegacyStatisticsRefreshJob>()
+            .AddQuartzServer(config => config.WaitForJobsToComplete = true);
+
+        services.AddCors(options => options.AddPolicy("CorsPolicy", builder =>
+        {
+            builder.AllowAnyMethod().AllowAnyHeader().AllowAnyOrigin().AllowCredentials();
+        }));
+
+        services.AddDbContextPool<AppDbContext>(optionsBuilder =>
+        {
+            string connectionString = builder.Configuration.GetConnectionString("LocalDb");
+            optionsBuilder
+                .UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
+                .ConfigureWarnings(c => c.Log((RelationalEventId.CommandExecuted, LogLevel.Debug)));
+        });
+
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         services.AddEndpointsApiExplorer();
-        services.AddSwaggerGen();
+        services.AddSwaggerGen(c =>
+        {
+            c.SwaggerDoc("v1", new() { Version = "1.0.0.0", Title = "记录操作", Description = "提交记录，查询提交状态" });
+            c.SwaggerDoc("v2", new() { Version = "1.0.0.0", Title = "统计数据", Description = "获取详细的深渊纵深数据" });
+
+            // c.SwaggerDoc("v3", new() { Version = "1.0.0.0", Title = "记录操作", Description = "提交记录，查询提交状态" });
+            // c.SwaggerDoc("v4", new() { Version = "1.0.0.0", Title = "记录操作", Description = "提交记录，查询提交状态" });
+            // c.SwaggerDoc("v5", new() { Version = "1.0.0.0", Title = "记录操作", Description = "提交记录，查询提交状态" });
+            string xmlFile = $"Snap.Hutao.Server.xml";
+            string xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+            c.IncludeXmlComments(xmlPath);
+        });
 
         WebApplication app = builder.Build();
 
         app.UseSwagger();
-        app.UseSwaggerUI();
+        app.UseSwaggerUI(option =>
+        {
+            option.SwaggerEndpoint("/swagger/v1/swagger.json", "记录交互 API");
+            option.SwaggerEndpoint("/swagger/v2/swagger.json", "数据详情 API");
+
+            // option.SwaggerEndpoint("/swagger/v4/swagger.json", "数据详情2 API");
+            // option.SwaggerEndpoint("/swagger/v3/swagger.json", "物品信息 API");
+            // option.SwaggerEndpoint("/swagger/v5/swagger.json", "角色展柜 API");
+        });
 
         app.UseHttpsRedirection();
         app.UseAuthorization();
