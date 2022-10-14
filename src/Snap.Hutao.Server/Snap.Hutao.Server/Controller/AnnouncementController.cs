@@ -21,6 +21,6 @@ public class AnnouncementController : ControllerBase
     [HttpGet("~/")]
     public IActionResult Index()
     {
-        return null!;
+        return Model.Response.Response.Success("testing");
     }
 }

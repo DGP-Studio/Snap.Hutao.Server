@@ -3,6 +3,7 @@
 
 using Microsoft.AspNetCore.Mvc;
 using Snap.Hutao.Server.Controller.Filter;
+using Snap.Hutao.Server.Model.Response;
 
 namespace Snap.Hutao.Server.Controller;
 
@@ -22,7 +23,7 @@ public class GachaLogController : ControllerBase
     [HttpGet("[Action]")]
     public async Task<IActionResult> Retrive([FromQuery(Name = "uid")]string uid)
     {
-        return null!;
+        return Model.Response.Response.Success("testing");
     }
 
     /// <summary>
@@ -32,6 +33,6 @@ public class GachaLogController : ControllerBase
     [HttpPost("[Action]")]
     public async Task<IActionResult> Upload()
     {
-        return null!;
+        return Model.Response.Response.Success("testing");
     }
 }
