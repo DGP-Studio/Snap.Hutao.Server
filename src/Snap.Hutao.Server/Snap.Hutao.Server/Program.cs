@@ -111,10 +111,13 @@ public class Program
     /// <param name="app">app</param>
     public static void MigrateDatabase(WebApplication app)
     {
-        AppDbContext context = app.Services.GetRequiredService<AppDbContext>();
-        if (context.Database.GetPendingMigrations().Any())
+        using (IServiceScope scope = app.Services.CreateScope())
         {
-            context.Database.Migrate();
+            AppDbContext context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            if (context.Database.GetPendingMigrations().Any())
+            {
+                context.Database.Migrate();
+            }
         }
     }
 }
