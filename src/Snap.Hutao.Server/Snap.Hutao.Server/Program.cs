@@ -62,9 +62,13 @@ public class Program
             builder.AllowAnyMethod().AllowAnyHeader().AllowAnyOrigin().AllowCredentials();
         }));
 
+        builder.Configuration.AddEnvironmentVariables();
         services.AddDbContextPool<AppDbContext>(optionsBuilder =>
         {
-            string connectionString = builder.Configuration.GetConnectionString("LocalDb");
+            string connectionString = builder.Configuration.GetConnectionString("Snap_DB");
+            // for debug 
+            Console.WriteLine(connectionString);
+
             optionsBuilder
                 .UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
                 .ConfigureWarnings(c => c.Log((RelationalEventId.CommandExecuted, LogLevel.Debug)));
