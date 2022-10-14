@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 
 using Microsoft.EntityFrameworkCore;
+using Snap.Hutao.Server.Extension;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity;
 using Snap.Hutao.Server.Model.Upload;
@@ -64,12 +65,34 @@ public static class RecordHelper
 
     private static EntityAvatar ToEntity(SimpleAvatar simpleAvatar, int recordId)
     {
+        Dictionary<int, int> relicSetCounter = new();
+        foreach (int id in simpleAvatar.ReliquarySetIds)
+        {
+            relicSetCounter.Increase(id);
+        }
+
+        foreach (int id in relicSetCounter.Keys.ToList())
+        {
+            if (relicSetCounter[id] >= 4)
+            {
+                relicSetCounter[id] = 4;
+            }
+            else if (relicSetCounter[id] >= 2)
+            {
+                relicSetCounter[id] = 2;
+            }
+            else
+            {
+                relicSetCounter.Remove(id);
+            }
+        }
+
         return new()
         {
             RecordId = recordId,
             AvatarId = simpleAvatar.AvatarId,
             WeaponId = simpleAvatar.WeaponId,
-            ReliquarySet = string.Join(',', simpleAvatar.ReliquarySetIds.OrderBy(id => id)),
+            ReliquarySet = string.Join(',', relicSetCounter.OrderBy(kvp => kvp.Key).Select(x => $"{x.Key}-{x.Value}")),
             ActivedConstellationNumber = simpleAvatar.ActivedConstellationNumber,
         };
     }

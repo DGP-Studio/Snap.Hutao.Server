@@ -86,6 +86,7 @@ public class Program
         });
 
         WebApplication app = builder.Build();
+        MigrateDatabase(app);
 
         app.UseSwagger();
         app.UseSwaggerUI(option =>
@@ -102,5 +103,18 @@ public class Program
         app.UseAuthorization();
         app.MapControllers();
         app.Run();
+    }
+
+    /// <summary>
+    /// Ç¨ÒÆÊý¾Ý¿â
+    /// </summary>
+    /// <param name="app">app</param>
+    public static void MigrateDatabase(WebApplication app)
+    {
+        AppDbContext context = app.Services.GetRequiredService<AppDbContext>();
+        if (context.Database.GetPendingMigrations().Any())
+        {
+            context.Database.Migrate();
+        }
     }
 }
