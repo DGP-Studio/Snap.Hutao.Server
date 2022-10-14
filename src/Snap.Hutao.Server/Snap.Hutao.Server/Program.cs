@@ -1,9 +1,10 @@
-// Copyright (c) DGP Studio. All rights reserved.
+﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Quartz;
+using Snap.Hutao.Server.Controller.Filter;
 using Snap.Hutao.Server.Job;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Service.Legacy;
@@ -14,14 +15,14 @@ using System.Text.Json.Serialization;
 namespace Snap.Hutao.Server;
 
 /// <summary>
-/// ��ڵ�
+/// 主程序
 /// </summary>
 public class Program
 {
     /// <summary>
-    /// ������
+    /// 入口
     /// </summary>
-    /// <param name="args">����</param>
+    /// <param name="args">参数</param>
     public static void Main(string[] args)
     {
         WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -30,7 +31,8 @@ public class Program
 
         services
             .AddMemoryCache()
-            .AddTransient<StatisticsService>();
+            .AddTransient<StatisticsService>()
+            .AddTransient<RequestFilter>();
 
         services
             .AddControllers()
@@ -76,12 +78,11 @@ public class Program
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen(c =>
         {
-            c.SwaggerDoc("v1", new() { Version = "1.0.0.0", Title = "��¼����", Description = "�ύ��¼����ѯ�ύ״̬" });
-            c.SwaggerDoc("v2", new() { Version = "1.0.0.0", Title = "ͳ������", Description = "��ȡ��ϸ����Ԩ��������" });
+            c.SwaggerDoc("v1", new() { Version = "1.0.0.0", Title = "数据", Description = "数据状态" });
 
-            // c.SwaggerDoc("v3", new() { Version = "1.0.0.0", Title = "��¼����", Description = "�ύ��¼����ѯ�ύ״̬" });
-            // c.SwaggerDoc("v4", new() { Version = "1.0.0.0", Title = "��¼����", Description = "�ύ��¼����ѯ�ύ״̬" });
-            // c.SwaggerDoc("v5", new() { Version = "1.0.0.0", Title = "��¼����", Description = "�ύ��¼����ѯ�ύ״̬" });
+            // c.SwaggerDoc("v3", new() { Version = "1.0.0.0", Title = "锟斤拷录锟斤拷锟斤拷", Description = "锟结交锟斤拷录锟斤拷锟斤拷询锟结交状态" });
+            // c.SwaggerDoc("v4", new() { Version = "1.0.0.0", Title = "锟斤拷录锟斤拷锟斤拷", Description = "锟结交锟斤拷录锟斤拷锟斤拷询锟结交状态" });
+            // c.SwaggerDoc("v5", new() { Version = "1.0.0.0", Title = "锟斤拷录锟斤拷锟斤拷", Description = "锟结交锟斤拷录锟斤拷锟斤拷询锟结交状态" });
             string xmlFile = $"Snap.Hutao.Server.xml";
             string xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
             c.IncludeXmlComments(xmlPath);
@@ -93,12 +94,11 @@ public class Program
         app.UseSwagger();
         app.UseSwaggerUI(option =>
         {
-            option.SwaggerEndpoint("/swagger/v1/swagger.json", "��¼���� API");
-            option.SwaggerEndpoint("/swagger/v2/swagger.json", "�������� API");
+            option.SwaggerEndpoint("/swagger/v1/swagger.json", "数据 API");
 
-            // option.SwaggerEndpoint("/swagger/v4/swagger.json", "��������2 API");
-            // option.SwaggerEndpoint("/swagger/v3/swagger.json", "��Ʒ��Ϣ API");
-            // option.SwaggerEndpoint("/swagger/v5/swagger.json", "��ɫչ�� API");
+            // option.SwaggerEndpoint("/swagger/v4/swagger.json", "锟斤拷锟斤拷锟斤拷锟斤拷2 API");
+            // option.SwaggerEndpoint("/swagger/v3/swagger.json", "锟斤拷品锟斤拷息 API");
+            // option.SwaggerEndpoint("/swagger/v5/swagger.json", "锟斤拷色展锟斤拷 API");
         });
 
         app.UseHttpsRedirection();
@@ -108,7 +108,7 @@ public class Program
     }
 
     /// <summary>
-    /// Ǩ�����ݿ�
+    /// 迁移数据库
     /// </summary>
     /// <param name="app">app</param>
     public static void MigrateDatabase(WebApplication app)
