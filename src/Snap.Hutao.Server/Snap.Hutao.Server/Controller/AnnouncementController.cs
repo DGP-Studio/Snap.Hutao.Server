@@ -18,8 +18,8 @@ public class AnnouncementController : ControllerBase
     /// 获取公告
     /// </summary>
     /// <returns>公告信息</returns>
-    [HttpGet("~/")]
-    public IActionResult Index()
+    [HttpGet("list")]
+    public IActionResult List()
     {
         return Model.Response.Response.Success("testing");
     }
