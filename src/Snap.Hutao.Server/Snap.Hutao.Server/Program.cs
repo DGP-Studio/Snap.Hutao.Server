@@ -90,6 +90,8 @@ public class Program
         });
 
         WebApplication app = builder.Build();
+        Console.WriteLine("==================");
+        Console.WriteLine(builder.Configuration.GetConnectionString("Snap_DB"));
         MigrateDatabase(app);
 
         app.UseSwagger();
@@ -115,6 +117,7 @@ public class Program
     /// <param name="app">app</param>
     public static void MigrateDatabase(WebApplication app)
     {
+
         using (IServiceScope scope = app.Services.CreateScope())
         {
             AppDbContext context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
