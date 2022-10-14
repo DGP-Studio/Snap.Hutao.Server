@@ -3,6 +3,7 @@ WORKDIR /app
 EXPOSE 80
 EXPOSE 443
 
+ENV ConnectionStrings:Snap_DB="server=172.17.0.1;port=3306;user=xxxx;password=xxx; database=xxxxx;"
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src

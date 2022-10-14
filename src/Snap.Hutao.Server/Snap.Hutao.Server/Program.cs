@@ -14,14 +14,14 @@ using System.Text.Json.Serialization;
 namespace Snap.Hutao.Server;
 
 /// <summary>
-/// Èë¿Úµã
+/// ï¿½ï¿½Úµï¿½
 /// </summary>
 public class Program
 {
     /// <summary>
-    /// Ö÷·½·¨
+    /// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     /// </summary>
-    /// <param name="args">²ÎÊý</param>
+    /// <param name="args">ï¿½ï¿½ï¿½ï¿½</param>
     public static void Main(string[] args)
     {
         WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -66,8 +66,6 @@ public class Program
         services.AddDbContextPool<AppDbContext>(optionsBuilder =>
         {
             string connectionString = builder.Configuration.GetConnectionString("Snap_DB");
-            // for debug 
-            Console.WriteLine(connectionString);
 
             optionsBuilder
                 .UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
@@ -78,12 +76,12 @@ public class Program
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen(c =>
         {
-            c.SwaggerDoc("v1", new() { Version = "1.0.0.0", Title = "¼ÇÂ¼²Ù×÷", Description = "Ìá½»¼ÇÂ¼£¬²éÑ¯Ìá½»×´Ì¬" });
-            c.SwaggerDoc("v2", new() { Version = "1.0.0.0", Title = "Í³¼ÆÊý¾Ý", Description = "»ñÈ¡ÏêÏ¸µÄÉîÔ¨×ÝÉîÊý¾Ý" });
+            c.SwaggerDoc("v1", new() { Version = "1.0.0.0", Title = "ï¿½ï¿½Â¼ï¿½ï¿½ï¿½ï¿½", Description = "ï¿½á½»ï¿½ï¿½Â¼ï¿½ï¿½ï¿½ï¿½Ñ¯ï¿½á½»×´Ì¬" });
+            c.SwaggerDoc("v2", new() { Version = "1.0.0.0", Title = "Í³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½", Description = "ï¿½ï¿½È¡ï¿½ï¿½Ï¸ï¿½ï¿½ï¿½ï¿½Ô¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" });
 
-            // c.SwaggerDoc("v3", new() { Version = "1.0.0.0", Title = "¼ÇÂ¼²Ù×÷", Description = "Ìá½»¼ÇÂ¼£¬²éÑ¯Ìá½»×´Ì¬" });
-            // c.SwaggerDoc("v4", new() { Version = "1.0.0.0", Title = "¼ÇÂ¼²Ù×÷", Description = "Ìá½»¼ÇÂ¼£¬²éÑ¯Ìá½»×´Ì¬" });
-            // c.SwaggerDoc("v5", new() { Version = "1.0.0.0", Title = "¼ÇÂ¼²Ù×÷", Description = "Ìá½»¼ÇÂ¼£¬²éÑ¯Ìá½»×´Ì¬" });
+            // c.SwaggerDoc("v3", new() { Version = "1.0.0.0", Title = "ï¿½ï¿½Â¼ï¿½ï¿½ï¿½ï¿½", Description = "ï¿½á½»ï¿½ï¿½Â¼ï¿½ï¿½ï¿½ï¿½Ñ¯ï¿½á½»×´Ì¬" });
+            // c.SwaggerDoc("v4", new() { Version = "1.0.0.0", Title = "ï¿½ï¿½Â¼ï¿½ï¿½ï¿½ï¿½", Description = "ï¿½á½»ï¿½ï¿½Â¼ï¿½ï¿½ï¿½ï¿½Ñ¯ï¿½á½»×´Ì¬" });
+            // c.SwaggerDoc("v5", new() { Version = "1.0.0.0", Title = "ï¿½ï¿½Â¼ï¿½ï¿½ï¿½ï¿½", Description = "ï¿½á½»ï¿½ï¿½Â¼ï¿½ï¿½ï¿½ï¿½Ñ¯ï¿½á½»×´Ì¬" });
             string xmlFile = $"Snap.Hutao.Server.xml";
             string xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
             c.IncludeXmlComments(xmlPath);
@@ -94,12 +92,12 @@ public class Program
         app.UseSwagger();
         app.UseSwaggerUI(option =>
         {
-            option.SwaggerEndpoint("/swagger/v1/swagger.json", "¼ÇÂ¼½»»¥ API");
-            option.SwaggerEndpoint("/swagger/v2/swagger.json", "Êý¾ÝÏêÇé API");
+            option.SwaggerEndpoint("/swagger/v1/swagger.json", "ï¿½ï¿½Â¼ï¿½ï¿½ï¿½ï¿½ API");
+            option.SwaggerEndpoint("/swagger/v2/swagger.json", "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ API");
 
-            // option.SwaggerEndpoint("/swagger/v4/swagger.json", "Êý¾ÝÏêÇé2 API");
-            // option.SwaggerEndpoint("/swagger/v3/swagger.json", "ÎïÆ·ÐÅÏ¢ API");
-            // option.SwaggerEndpoint("/swagger/v5/swagger.json", "½ÇÉ«Õ¹¹ñ API");
+            // option.SwaggerEndpoint("/swagger/v4/swagger.json", "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½2 API");
+            // option.SwaggerEndpoint("/swagger/v3/swagger.json", "ï¿½ï¿½Æ·ï¿½ï¿½Ï¢ API");
+            // option.SwaggerEndpoint("/swagger/v5/swagger.json", "ï¿½ï¿½É«Õ¹ï¿½ï¿½ API");
         });
 
         app.UseHttpsRedirection();
