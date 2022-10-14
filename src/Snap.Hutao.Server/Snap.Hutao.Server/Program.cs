@@ -22,7 +22,7 @@ public class Program
     /// <summary>
     /// 入口
     /// </summary>
-    /// <param name="args">参数</param>
+    /// <param name="args">����</param>
     public static void Main(string[] args)
     {
         WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
