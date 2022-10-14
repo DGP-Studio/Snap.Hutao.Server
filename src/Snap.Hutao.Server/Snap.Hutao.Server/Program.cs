@@ -80,25 +80,29 @@ public class Program
         {
             c.SwaggerDoc("v1", new() { Version = "1.0.0.0", Title = "数据", Description = "数据状态" });
 
-            // c.SwaggerDoc("v3", new() { Version = "1.0.0.0", Title = "锟斤拷录锟斤拷锟斤拷", Description = "锟结交锟斤拷录锟斤拷锟斤拷询锟结交状态" });
-            // c.SwaggerDoc("v4", new() { Version = "1.0.0.0", Title = "锟斤拷录锟斤拷锟斤拷", Description = "锟结交锟斤拷录锟斤拷锟斤拷询锟结交状态" });
-            // c.SwaggerDoc("v5", new() { Version = "1.0.0.0", Title = "锟斤拷录锟斤拷锟斤拷", Description = "锟结交锟斤拷录锟斤拷锟斤拷询锟结交状态" });
+            // c.SwaggerDoc("v2", new() { Version = "1.0.0.0", Title = "统计数据", Description = "获取详细的深渊纵深数据" });
+            // c.SwaggerDoc("v3", new() { Version = "1.0.0.0", Title = "记录操作", Description = "提交记录，查询提交状态" });
+            // c.SwaggerDoc("v4", new() { Version = "1.0.0.0", Title = "记录操作", Description = "提交记录，查询提交状态" });
+            // c.SwaggerDoc("v5", new() { Version = "1.0.0.0", Title = "记录操作", Description = "提交记录，查询提交状态" });
             string xmlFile = $"Snap.Hutao.Server.xml";
             string xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
             c.IncludeXmlComments(xmlPath);
         });
 
         WebApplication app = builder.Build();
+        Console.WriteLine("==================");
+        Console.WriteLine(builder.Configuration.GetConnectionString("Snap_DB"));
         MigrateDatabase(app);
 
         app.UseSwagger();
         app.UseSwaggerUI(option =>
         {
             option.SwaggerEndpoint("/swagger/v1/swagger.json", "数据 API");
-
-            // option.SwaggerEndpoint("/swagger/v4/swagger.json", "锟斤拷锟斤拷锟斤拷锟斤拷2 API");
-            // option.SwaggerEndpoint("/swagger/v3/swagger.json", "锟斤拷品锟斤拷息 API");
-            // option.SwaggerEndpoint("/swagger/v5/swagger.json", "锟斤拷色展锟斤拷 API");
+            option.SwaggerEndpoint("/swagger/v2/swagger.json", "数据详情 API");
+            
+            // option.SwaggerEndpoint("/swagger/v4/swagger.json", "数据详情2 API");
+            // option.SwaggerEndpoint("/swagger/v3/swagger.json", "物品信息 API");
+            // option.SwaggerEndpoint("/swagger/v5/swagger.json", "角色展柜 API");
         });
 
         app.UseHttpsRedirection();
@@ -113,6 +117,7 @@ public class Program
     /// <param name="app">app</param>
     public static void MigrateDatabase(WebApplication app)
     {
+
         using (IServiceScope scope = app.Services.CreateScope())
         {
             AppDbContext context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
