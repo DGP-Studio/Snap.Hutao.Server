@@ -67,7 +67,7 @@ public class Program
         builder.Configuration.AddEnvironmentVariables();
         services.AddDbContextPool<AppDbContext>(optionsBuilder =>
         {
-            string connectionString = builder.Configuration.GetConnectionString("Snap_DB");
+            string connectionString = builder.Configuration.GetConnectionString("LocalDb");
 
             optionsBuilder
                 .UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
