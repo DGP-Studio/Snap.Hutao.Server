@@ -5,6 +5,8 @@ EXPOSE 443
 
 ENV ConnectionStrings:Snap_DB="server=172.17.0.1;port=3306;user=xxxx;password=xxx; database=xxxxx;"
 
+ENV TZ="Asia/Shanghai"
+
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
 COPY ["Snap.Hutao.Server/Snap.Hutao.Server.csproj", "Snap.Hutao.Server/"]
