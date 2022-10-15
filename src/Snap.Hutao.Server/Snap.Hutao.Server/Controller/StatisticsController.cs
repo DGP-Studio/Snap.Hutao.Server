@@ -51,7 +51,7 @@ public class StatisticsController : ControllerBase
     [HttpGet("Avatar/AttendanceRate")]
     public IActionResult AttendanceRate()
     {
-        return GetStatistics<AvatarAppearanceRank>(LegacyStatistics.AvatarAppearanceRank);
+        return GetStatistics<List<AvatarAppearanceRank>>(LegacyStatistics.AvatarAppearanceRank);
     }
 
     /// <summary>
@@ -61,7 +61,7 @@ public class StatisticsController : ControllerBase
     [HttpGet("Avatar/UtilizationRate")]
     public IActionResult UtilizationRate()
     {
-        return GetStatistics<AvatarUsageRank>(LegacyStatistics.AvatarUsageRank);
+        return GetStatistics<List<AvatarUsageRank>>(LegacyStatistics.AvatarUsageRank);
     }
 
     /// <summary>
@@ -71,7 +71,7 @@ public class StatisticsController : ControllerBase
     [HttpGet("Avatar/HoldingRate")]
     public IActionResult HoldingRate()
     {
-        return GetStatistics<AvatarConstellationInfo>(LegacyStatistics.AvatarConstellationInfo);
+        return GetStatistics<List<AvatarConstellationInfo>>(LegacyStatistics.AvatarConstellationInfo);
     }
 
     /// <summary>
@@ -81,7 +81,7 @@ public class StatisticsController : ControllerBase
     [HttpGet("Avatar/AvatarCollocation")]
     public IActionResult AvatarCollocation()
     {
-        return GetStatistics<AvatarCollocation>(LegacyStatistics.AvatarCollocation);
+        return GetStatistics<List<AvatarCollocation>>(LegacyStatistics.AvatarCollocation);
     }
 
     /// <summary>
@@ -91,7 +91,7 @@ public class StatisticsController : ControllerBase
     [HttpGet("Team/Combination")]
     public IActionResult Combination()
     {
-        return GetStatistics<TeamAppearance>(LegacyStatistics.TeamAppearance);
+        return GetStatistics<List<TeamAppearance>>(LegacyStatistics.TeamAppearance);
     }
 
     private IActionResult GetStatistics<T>(string name)
