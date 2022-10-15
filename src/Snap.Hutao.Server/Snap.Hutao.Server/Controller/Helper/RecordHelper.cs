@@ -48,7 +48,7 @@ public static class RecordHelper
         int spiralAbyssId = entitySpiralAbyss.PrimaryId;
 
         // EntityFloors
-        List<EntityFloor> entityFloors = record.SpiralAbyss.Floors.Select(f => ToEntity(f, spiralAbyssId)).ToList();
+        List<EntityFloor> entityFloors = record.SpiralAbyss.Floors.Where(f => f.Index >= 9).Select(f => ToEntity(f, spiralAbyssId)).ToList();
         await appDbContext.SpiralAbyssFloors.AddRangeAsync(entityFloors).ConfigureAwait(false);
         await appDbContext.SaveChangesAsync().ConfigureAwait(false);
 
