@@ -90,8 +90,6 @@ public class Program
         });
 
         WebApplication app = builder.Build();
-        Console.WriteLine("==================");
-        Console.WriteLine(builder.Configuration.GetConnectionString("Snap_DB"));
         MigrateDatabase(app);
 
         app.UseSwagger();
@@ -99,7 +97,7 @@ public class Program
         {
             option.SwaggerEndpoint("/swagger/v1/swagger.json", "数据 API");
             option.SwaggerEndpoint("/swagger/v2/swagger.json", "数据详情 API");
-            
+
             // option.SwaggerEndpoint("/swagger/v4/swagger.json", "数据详情2 API");
             // option.SwaggerEndpoint("/swagger/v3/swagger.json", "物品信息 API");
             // option.SwaggerEndpoint("/swagger/v5/swagger.json", "角色展柜 API");
