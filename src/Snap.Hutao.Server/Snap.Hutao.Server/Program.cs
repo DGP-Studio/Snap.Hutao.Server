@@ -96,8 +96,8 @@ public class Program
         app.UseSwaggerUI(option =>
         {
             option.SwaggerEndpoint("/swagger/v1/swagger.json", "数据 API");
-            option.SwaggerEndpoint("/swagger/v2/swagger.json", "数据详情 API");
 
+            // option.SwaggerEndpoint("/swagger/v2/swagger.json", "数据详情 API");
             // option.SwaggerEndpoint("/swagger/v4/swagger.json", "数据详情2 API");
             // option.SwaggerEndpoint("/swagger/v3/swagger.json", "物品信息 API");
             // option.SwaggerEndpoint("/swagger/v5/swagger.json", "角色展柜 API");
@@ -115,7 +115,6 @@ public class Program
     /// <param name="app">app</param>
     public static void MigrateDatabase(WebApplication app)
     {
-
         using (IServiceScope scope = app.Services.CreateScope())
         {
             AppDbContext context = scope.ServiceProvider.GetRequiredService<AppDbContext>();

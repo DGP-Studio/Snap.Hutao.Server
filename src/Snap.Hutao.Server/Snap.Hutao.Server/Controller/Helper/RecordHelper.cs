@@ -23,17 +23,22 @@ public static class RecordHelper
     public static async Task SaveRecordAsync(AppDbContext appDbContext, SimpleRecord record)
     {
         EntityRecord? entityRecord = await appDbContext.Records.SingleOrDefaultAsync(r => r.Uid == record.Uid).ConfigureAwait(false);
-        if (entityRecord == null)
+
+        if (entityRecord != null)
         {
-            entityRecord = new();
-            appDbContext.Records.Add(entityRecord);
+            appDbContext.Records.Remove(entityRecord);
+            await appDbContext.SaveChangesAsync().ConfigureAwait(false);
         }
+
+        entityRecord = new();
+        appDbContext.Records.Add(entityRecord);
 
         // EntityRecord
         entityRecord.Uid = record.Uid;
         entityRecord.Uploader = record.Identity;
         entityRecord.UploadTime = DateTimeOffset.Now.ToUnixTimeSeconds();
         await appDbContext.SaveChangesAsync().ConfigureAwait(false);
+
         int recordId = entityRecord.PrimaryId;
 
         // EntityAvatars
@@ -45,6 +50,7 @@ public static class RecordHelper
         EntitySpiralAbyss entitySpiralAbyss = new() { RecordId = entityRecord.PrimaryId };
         await appDbContext.SpiralAbysses.AddAsync(entitySpiralAbyss).ConfigureAwait(false);
         await appDbContext.SaveChangesAsync().ConfigureAwait(false);
+
         int spiralAbyssId = entitySpiralAbyss.PrimaryId;
 
         // EntityFloors

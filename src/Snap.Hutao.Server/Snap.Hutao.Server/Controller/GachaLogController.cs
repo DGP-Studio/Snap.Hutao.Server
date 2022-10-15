@@ -3,7 +3,6 @@
 
 using Microsoft.AspNetCore.Mvc;
 using Snap.Hutao.Server.Controller.Filter;
-using Snap.Hutao.Server.Model.Response;
 
 namespace Snap.Hutao.Server.Controller;
 
