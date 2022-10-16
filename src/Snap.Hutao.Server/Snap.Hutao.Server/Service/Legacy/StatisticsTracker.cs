@@ -8,6 +8,7 @@ using Snap.Hutao.Server.Model.Entity;
 using Snap.Hutao.Server.Model.Legacy;
 using Snap.Hutao.Server.Model.Upload;
 using Snap.Hutao.Server.Service.Legacy.Primitive;
+using System.Reflection.Emit;
 
 namespace Snap.Hutao.Server.Service.Legacy;
 
@@ -77,7 +78,6 @@ public class StatisticsTracker
         LastId = record.PrimaryId;
 
         ++totalRecordCounter;
-
         Map<AvatarId, EntityAvatar> holdingAvatars = new();
 
         // 遍历角色
@@ -132,41 +132,24 @@ public class StatisticsTracker
                 }
             }
 
-            // 统合该层的所有角色，不重复
-            HashSet<AvatarId> levelPresentAvatarIds = new();
-
-            foreach (SimpleLevel level in floor.Levels)
+            foreach (SimpleBattle battle in floor.Levels.SelectMany(l => l.Battles))
             {
-                foreach (SimpleBattle battle in level.Battles)
+                // 递增队伍出现次数
+                Team team = StatisticsHelper.AsTeam(battle.Avatars);
+                switch ((floor.Index, battle.Index))
                 {
-                    // 递增队伍出现次数
-                    Team team = StatisticsHelper.AsTeam(battle.Avatars);
-                    switch ((floor.Index, battle.Index))
-                    {
-                        case (09, 1): level09Battle1TeamCounter.Increase(team); break;
-                        case (09, 2): level09Battle2TeamCounter.Increase(team); break;
-                        case (10, 1): level10Battle1TeamCounter.Increase(team); break;
-                        case (10, 2): level10Battle2TeamCounter.Increase(team); break;
-                        case (11, 1): level11Battle1TeamCounter.Increase(team); break;
-                        case (11, 2): level11Battle2TeamCounter.Increase(team); break;
-                        case (12, 1): level12Battle1TeamCounter.Increase(team); break;
-                        case (12, 2): level12Battle2TeamCounter.Increase(team); break;
-                    }
-
-                    foreach (int avatar in battle.Avatars)
-                    {
-                        levelPresentAvatarIds.Add(avatar);
-
-                        // 递增角色搭配
-                        foreach (int coAvatar in battle.Avatars.SkipWhile(a => a != avatar))
-                        {
-                            avatarAvatarBuildCounter.GetOrAdd(avatar, key => new()).Increase(coAvatar);
-                        }
-                    }
+                    case (09, 1): level09Battle1TeamCounter.Increase(team); break;
+                    case (09, 2): level09Battle2TeamCounter.Increase(team); break;
+                    case (10, 1): level10Battle1TeamCounter.Increase(team); break;
+                    case (10, 2): level10Battle2TeamCounter.Increase(team); break;
+                    case (11, 1): level11Battle1TeamCounter.Increase(team); break;
+                    case (11, 2): level11Battle2TeamCounter.Increase(team); break;
+                    case (12, 1): level12Battle1TeamCounter.Increase(team); break;
+                    case (12, 2): level12Battle2TeamCounter.Increase(team); break;
                 }
             }
 
-            foreach (AvatarId avatarId in levelPresentAvatarIds)
+            foreach (AvatarId avatarId in floor.Levels.SelectMany(l => l.Battles).SelectMany(b => b.Avatars).Distinct())
             {
                 recordPresentAvatars.Add(avatarId);
 
@@ -180,9 +163,22 @@ public class StatisticsTracker
             }
         }
 
+        // 某些内容仅在满星的条件下统计
         if (totalStar != 36)
         {
             return;
+        }
+
+        foreach (SimpleBattle battle in record.SpiralAbyss.Floors.SelectMany(f => f.Levels).SelectMany(l => l.Battles))
+        {
+            foreach (int avatar in battle.Avatars)
+            {
+                // 递增角色搭配
+                foreach (int coAvatar in battle.Avatars.SkipWhile(a => a != avatar))
+                {
+                    avatarAvatarBuildCounter.GetOrAdd(avatar, key => new()).Increase(coAvatar);
+                }
+            }
         }
 
         foreach (AvatarId recordAvatarId in recordPresentAvatars)
