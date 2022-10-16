@@ -10,8 +10,8 @@ using Snap.Hutao.Server.Model.Context;
 namespace Snap.Hutao.Server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20221016111027_ChangeKeyType")]
-    partial class ChangeKeyType
+    [Migration("20221016112458_LegacyModel")]
+    partial class LegacyModel
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
