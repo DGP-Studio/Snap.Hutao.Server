@@ -17,12 +17,12 @@ public class EntitySpiralAbyss
     /// </summary>
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public int PrimaryId { get; set; }
+    public long PrimaryId { get; set; }
 
     /// <summary>
     /// 外键
     /// </summary>
-    public int RecordId { get; set; }
+    public long RecordId { get; set; }
 
     /// <summary>
     /// 引用记录

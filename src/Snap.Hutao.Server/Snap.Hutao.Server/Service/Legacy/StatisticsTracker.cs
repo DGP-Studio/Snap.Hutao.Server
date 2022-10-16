@@ -16,23 +16,34 @@ namespace Snap.Hutao.Server.Service.Legacy;
 /// </summary>
 public class StatisticsTracker
 {
+    // 对应层满星 | 出场
     private readonly Map<AvatarId, int> level09PresentCounter = new();
     private readonly Map<AvatarId, int> level10PresentCounter = new();
     private readonly Map<AvatarId, int> level11PresentCounter = new();
     private readonly Map<AvatarId, int> level12PresentCounter = new();
 
+    // 对应层满星 | 持有
     private readonly Map<AvatarId, int> level09RecordwithAvatarCounter = new();
     private readonly Map<AvatarId, int> level10RecordwithAvatarCounter = new();
     private readonly Map<AvatarId, int> level11RecordwithAvatarCounter = new();
     private readonly Map<AvatarId, int> level12RecordwithAvatarCounter = new();
 
+    // 角色命座
     private readonly Map<AvatarId, Map<Constellation, int>> avatarConstellationCounter = new();
+
+    // 角色持有
     private readonly Map<AvatarId, int> avatarHoldingCounter = new();
 
+    // 角色 | 角色搭配
     private readonly Map<AvatarId, Map<AvatarId, int>> avatarAvatarBuildCounter = new();
+
+    // 角色 | 武器搭配
     private readonly Map<AvatarId, Map<WeaponId, int>> avatarWeaponBuildCounter = new();
+
+    // 角色 | 圣遗物搭配
     private readonly Map<AvatarId, Map<ReliquarySets, int>> avatarReliquaryBuildCounter = new();
 
+    // 对应层满星 | 队伍出场
     private readonly Map<Team, int> level09Battle1TeamCounter = new();
     private readonly Map<Team, int> level09Battle2TeamCounter = new();
     private readonly Map<Team, int> level10Battle1TeamCounter = new();
@@ -46,6 +57,7 @@ public class StatisticsTracker
     private int totalRecordCounter;
     private int totalSpiralAbyssCounter;
 
+    // 对应层总记录数
     private int level09TotalRecordCounter;
     private int level10TotalRecordCounter;
     private int level11TotalRecordCounter;
@@ -54,7 +66,7 @@ public class StatisticsTracker
     /// <summary>
     /// 最后处理的Id
     /// </summary>
-    public int LastId { get; private set; } = -1;
+    public long LastId { get; private set; } = -1;
 
     /// <summary>
     /// 追踪记录
@@ -66,93 +78,119 @@ public class StatisticsTracker
 
         ++totalRecordCounter;
 
-        HashSet<AvatarId> holdingAvatars = new();
+        Map<AvatarId, EntityAvatar> holdingAvatars = new();
 
         // 遍历角色
         foreach (EntityAvatar avatar in record.Avatars)
         {
-            holdingAvatars.Add(avatar.AvatarId);
+            holdingAvatars.Add(avatar.AvatarId, avatar);
             avatarHoldingCounter.Increase(avatar.AvatarId);
             avatarConstellationCounter.GetOrAdd(avatar.AvatarId, key => new()).Increase(avatar.ActivedConstellationNumber);
-            avatarWeaponBuildCounter.GetOrAdd(avatar.AvatarId, key => new()).Increase(avatar.WeaponId);
-            avatarReliquaryBuildCounter.GetOrAdd(avatar.AvatarId, key => new()).Increase(avatar.ReliquarySet);
         }
 
         // 仅当深渊记录存在时，统计才有意义
-        if (record.SpiralAbyss != null)
+        if (record.SpiralAbyss == null)
         {
-            ++totalSpiralAbyssCounter;
+            return;
+        }
 
-            // 查看楼层
-            foreach (EntityFloor floor in record.SpiralAbyss.Floors)
+        ++totalSpiralAbyssCounter;
+        int totalStar = 0;
+
+        // 深渊上场过的角色
+        HashSet<AvatarId> recordPresentAvatars = new();
+
+        // 查看楼层
+        foreach (EntityFloor floor in record.SpiralAbyss.Floors)
+        {
+            // 跳过非满星的数据
+            if (floor.Star < 9)
             {
-                // 仅统计满星数据
-                if (floor.Star < 9)
-                {
-                    continue;
-                }
+                continue;
+            }
 
+            totalStar += 9;
+
+            // 递增当前层记录数
+            switch (floor.Index)
+            {
+                case 09: ++level09TotalRecordCounter; break;
+                case 10: ++level10TotalRecordCounter; break;
+                case 11: ++level11TotalRecordCounter; break;
+                case 12: ++level12TotalRecordCounter; break;
+            }
+
+            foreach (AvatarId holdAvatarId in holdingAvatars.Keys)
+            {
+                // 递增当前层且持有对应角色的记录数
                 switch (floor.Index)
                 {
-                    case 09: ++level09TotalRecordCounter; break;
-                    case 10: ++level10TotalRecordCounter; break;
-                    case 11: ++level11TotalRecordCounter; break;
-                    case 12: ++level12TotalRecordCounter; break;
+                    case 09: level09RecordwithAvatarCounter.Increase(holdAvatarId); break;
+                    case 10: level10RecordwithAvatarCounter.Increase(holdAvatarId); break;
+                    case 11: level11RecordwithAvatarCounter.Increase(holdAvatarId); break;
+                    case 12: level12RecordwithAvatarCounter.Increase(holdAvatarId); break;
                 }
+            }
 
-                foreach (AvatarId holdAvatarId in holdingAvatars)
+            // 统合该层的所有角色，不重复
+            HashSet<AvatarId> levelPresentAvatarIds = new();
+
+            foreach (SimpleLevel level in floor.Levels)
+            {
+                foreach (SimpleBattle battle in level.Battles)
                 {
-                    switch (floor.Index)
+                    // 递增队伍出现次数
+                    Team team = StatisticsHelper.AsTeam(battle.Avatars);
+                    switch ((floor.Index, battle.Index))
                     {
-                        case 09: level09RecordwithAvatarCounter.Increase(holdAvatarId); break;
-                        case 10: level10RecordwithAvatarCounter.Increase(holdAvatarId); break;
-                        case 11: level11RecordwithAvatarCounter.Increase(holdAvatarId); break;
-                        case 12: level12RecordwithAvatarCounter.Increase(holdAvatarId); break;
+                        case (09, 1): level09Battle1TeamCounter.Increase(team); break;
+                        case (09, 2): level09Battle2TeamCounter.Increase(team); break;
+                        case (10, 1): level10Battle1TeamCounter.Increase(team); break;
+                        case (10, 2): level10Battle2TeamCounter.Increase(team); break;
+                        case (11, 1): level11Battle1TeamCounter.Increase(team); break;
+                        case (11, 2): level11Battle2TeamCounter.Increase(team); break;
+                        case (12, 1): level12Battle1TeamCounter.Increase(team); break;
+                        case (12, 2): level12Battle2TeamCounter.Increase(team); break;
                     }
-                }
 
-                // 统合该层的所有角色，不重复
-                HashSet<AvatarId> avatarIds = new();
-
-                foreach (SimpleLevel level in floor.Levels)
-                {
-                    foreach (SimpleBattle battle in level.Battles)
+                    foreach (int avatar in battle.Avatars)
                     {
-                        Team team = StatisticsHelper.AsTeam(battle.Avatars);
-                        switch ((floor.Index, battle.Index))
-                        {
-                            case (09, 1): level09Battle1TeamCounter.Increase(team); break;
-                            case (09, 2): level09Battle2TeamCounter.Increase(team); break;
-                            case (10, 1): level10Battle1TeamCounter.Increase(team); break;
-                            case (10, 2): level10Battle2TeamCounter.Increase(team); break;
-                            case (11, 1): level11Battle1TeamCounter.Increase(team); break;
-                            case (11, 2): level11Battle2TeamCounter.Increase(team); break;
-                            case (12, 1): level12Battle1TeamCounter.Increase(team); break;
-                            case (12, 2): level12Battle2TeamCounter.Increase(team); break;
-                        }
+                        levelPresentAvatarIds.Add(avatar);
 
-                        foreach (int avatar in battle.Avatars)
+                        // 递增角色搭配
+                        foreach (int coAvatar in battle.Avatars.SkipWhile(a => a != avatar))
                         {
-                            avatarIds.Add(avatar);
-                            foreach (int coAvatar in battle.Avatars.SkipWhile(a => a != avatar))
-                            {
-                                avatarAvatarBuildCounter.GetOrAdd(avatar, key => new()).Increase(coAvatar);
-                            }
+                            avatarAvatarBuildCounter.GetOrAdd(avatar, key => new()).Increase(coAvatar);
                         }
-                    }
-                }
-
-                foreach (AvatarId avatarId in avatarIds)
-                {
-                    switch (floor.Index)
-                    {
-                        case 09: level09PresentCounter.Increase(avatarId); break;
-                        case 10: level10PresentCounter.Increase(avatarId); break;
-                        case 11: level11PresentCounter.Increase(avatarId); break;
-                        case 12: level12PresentCounter.Increase(avatarId); break;
                     }
                 }
             }
+
+            foreach (AvatarId avatarId in levelPresentAvatarIds)
+            {
+                recordPresentAvatars.Add(avatarId);
+
+                switch (floor.Index)
+                {
+                    case 09: level09PresentCounter.Increase(avatarId); break;
+                    case 10: level10PresentCounter.Increase(avatarId); break;
+                    case 11: level11PresentCounter.Increase(avatarId); break;
+                    case 12: level12PresentCounter.Increase(avatarId); break;
+                }
+            }
+        }
+
+        if (totalStar != 36)
+        {
+            return;
+        }
+
+        foreach (AvatarId recordAvatarId in recordPresentAvatars)
+        {
+            EntityAvatar avatar = holdingAvatars[recordAvatarId];
+
+            avatarWeaponBuildCounter.GetOrAdd(recordAvatarId, key => new()).Increase(avatar.WeaponId);
+            avatarReliquaryBuildCounter.GetOrAdd(recordAvatarId, key => new()).Increase(avatar.ReliquarySet);
         }
     }
 

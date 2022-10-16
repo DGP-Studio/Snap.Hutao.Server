@@ -47,7 +47,7 @@ public class LegacyStatistics
     /// </summary>
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public int PrimaryId { get; set; }
+    public long PrimaryId { get; set; }
 
     /// <summary>
     /// 深渊计划Id

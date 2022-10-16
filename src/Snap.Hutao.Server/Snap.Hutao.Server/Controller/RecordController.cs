@@ -106,7 +106,7 @@ public class RecordController : ControllerBase
 
             if (record != null)
             {
-                int recordId = record.PrimaryId;
+                long recordId = record.PrimaryId;
                 EntitySpiralAbyss? spiralAbyss = appDbContext.SpiralAbysses.SingleOrDefault(r => r.RecordId == recordId);
 
                 if (spiralAbyss != null)

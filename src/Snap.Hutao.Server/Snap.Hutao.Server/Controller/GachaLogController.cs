@@ -19,9 +19,10 @@ public class GachaLogController : ControllerBase
     /// </summary>
     /// <param name="uid">uid</param>
     /// <returns>祈愿记录</returns>
-    [HttpGet("[Action]")]
-    public async Task<IActionResult> Retrive([FromQuery(Name = "uid")]string uid)
+    [HttpGet("Retrive")]
+    public async Task<IActionResult> RetriveAsync([FromQuery(Name = "uid")]string uid)
     {
+        await Task.Yield();
         return Model.Response.Response.Success("testing");
     }
 
@@ -29,9 +30,10 @@ public class GachaLogController : ControllerBase
     /// 上传祈愿记录
     /// </summary>
     /// <returns>上传成功</returns>
-    [HttpPost("[Action]")]
-    public async Task<IActionResult> Upload()
+    [HttpPost("Upload")]
+    public async Task<IActionResult> UploadAsync()
     {
+        await Task.Yield();
         return Model.Response.Response.Success("testing");
     }
 }

@@ -19,12 +19,12 @@ public class EntityTakeDamageRank
     /// </summary>
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public int PrimaryId { get; set; }
+    public long PrimaryId { get; set; }
 
     /// <summary>
     /// 外键
     /// </summary>
-    public int SpiralAbyssId { get; set; }
+    public long SpiralAbyssId { get; set; }
 
     /// <summary>
     /// 引用深渊信息

@@ -17,11 +17,12 @@ public class EntityRecord
     /// </summary>
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public int PrimaryId { get; set; }
+    public long PrimaryId { get; set; }
 
     /// <summary>
     /// Uid
     /// </summary>
+    [StringLength(9, MinimumLength =9)]
     public string Uid { get; set; } = null!;
 
     /// <summary>

@@ -41,7 +41,7 @@ public class RequestStatistics
     /// </summary>
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public int PrimaryId { get; set; }
+    public long PrimaryId { get; set; }
 
     /// <summary>
     /// UA头

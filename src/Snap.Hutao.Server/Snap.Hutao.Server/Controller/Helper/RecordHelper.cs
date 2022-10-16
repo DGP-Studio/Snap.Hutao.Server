@@ -39,7 +39,7 @@ public static class RecordHelper
         entityRecord.UploadTime = DateTimeOffset.Now.ToUnixTimeSeconds();
         await appDbContext.SaveChangesAsync().ConfigureAwait(false);
 
-        int recordId = entityRecord.PrimaryId;
+        long recordId = entityRecord.PrimaryId;
 
         // EntityAvatars
         List<EntityAvatar> entityAvatars = record.Avatars.Select(a => ToEntity(a, recordId)).ToList();
@@ -51,7 +51,7 @@ public static class RecordHelper
         await appDbContext.SpiralAbysses.AddAsync(entitySpiralAbyss).ConfigureAwait(false);
         await appDbContext.SaveChangesAsync().ConfigureAwait(false);
 
-        int spiralAbyssId = entitySpiralAbyss.PrimaryId;
+        long spiralAbyssId = entitySpiralAbyss.PrimaryId;
 
         // EntityFloors
         List<EntityFloor> entityFloors = record.SpiralAbyss.Floors.Where(f => f.Index >= 9).Select(f => ToEntity(f, spiralAbyssId)).ToList();
@@ -69,7 +69,7 @@ public static class RecordHelper
         await appDbContext.SaveChangesAsync().ConfigureAwait(false);
     }
 
-    private static EntityAvatar ToEntity(SimpleAvatar simpleAvatar, int recordId)
+    private static EntityAvatar ToEntity(SimpleAvatar simpleAvatar, long recordId)
     {
         Dictionary<int, int> relicSetCounter = new();
         foreach (int id in simpleAvatar.ReliquarySetIds)
@@ -103,8 +103,17 @@ public static class RecordHelper
         };
     }
 
-    private static EntityFloor ToEntity(SimpleFloor simpleFloor, int spiralAbyssId)
+    private static EntityFloor ToEntity(SimpleFloor simpleFloor, long spiralAbyssId)
     {
+        // Sort team avatars.
+        foreach (SimpleLevel level in simpleFloor.Levels)
+        {
+            foreach (SimpleBattle battle in level.Battles)
+            {
+                battle.Avatars.Sort();
+            }
+        }
+
         return new()
         {
             SpiralAbyssId = spiralAbyssId,
@@ -114,7 +123,7 @@ public static class RecordHelper
         };
     }
 
-    private static EntityDamageRank ToEntityDamageRank(SimpleRank rank, int spiralAbyssId, string uid)
+    private static EntityDamageRank ToEntityDamageRank(SimpleRank rank, long spiralAbyssId, string uid)
     {
         return new()
         {
@@ -125,7 +134,7 @@ public static class RecordHelper
         };
     }
 
-    private static EntityTakeDamageRank ToEntityTakeDamageRank(SimpleRank rank, int spiralAbyssId, string uid)
+    private static EntityTakeDamageRank ToEntityTakeDamageRank(SimpleRank rank, long spiralAbyssId, string uid)
     {
         return new()
         {

@@ -15,14 +15,11 @@ public class Map<TKey, TValue> : Dictionary<TKey, TValue>
     /// <returns>值</returns>
     internal TValue GetOrAdd(TKey key, Func<TKey, TValue> valueFactory)
     {
-        if (ContainsKey(key))
+        if (!TryGetValue(key, out TValue? value))
         {
-            return this[key];
+            value = valueFactory(key);
+            Add(key, value);
         }
-
-        TValue value = valueFactory(key);
-
-        Add(key, value);
 
         return value;
     }
