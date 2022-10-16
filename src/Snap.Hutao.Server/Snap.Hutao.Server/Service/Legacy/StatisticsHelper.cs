@@ -72,29 +72,19 @@ public static class StatisticsHelper
     /// <param name="weaponBuildCounter">武器构筑计数器</param>
     /// <param name="reliquaryBuildCounter">圣遗物构筑计数器</param>
     /// <returns>角色搭配</returns>
-    public static AvatarCollocation AvatarCollocation(AvatarId avatarId, Map<AvatarId, int>? avatarBuildCounter, Map<WeaponId, int> weaponBuildCounter, Map<ReliquarySets, int> reliquaryBuildCounter)
+    public static AvatarCollocation AvatarCollocation(AvatarId avatarId, Map<AvatarId, int> avatarBuildCounter, Map<WeaponId, int> weaponBuildCounter, Map<ReliquarySets, int> reliquaryBuildCounter)
     {
-        List<ItemRate<int, double>> avatars;
-        if (avatarBuildCounter != null)
-        {
-            double coAvatarTotalCount = avatarBuildCounter.Sum(kvp => kvp.Value);
-            avatars = avatarBuildCounter
-                .OrderByDescending(x => x.Value)
-                .Take(8)
-                .Select(kvp => new ItemRate<int, double>(kvp.Key, kvp.Value / coAvatarTotalCount))
-                .ToList();
-        }
-        else
-        {
-            avatars = new List<ItemRate<int, double>>();
-        }
-
+        double coAvatarTotalCount = avatarBuildCounter.Sum(kvp => kvp.Value);
         double weaponTotalCount = weaponBuildCounter.Sum(kvp => kvp.Value);
         double reliquarySetTotalCount = reliquaryBuildCounter.Sum(kvp => kvp.Value);
 
         return new(avatarId)
         {
-            Avatars = avatars,
+            Avatars = avatarBuildCounter
+                .OrderByDescending(x => x.Value)
+                .Take(8)
+                .Select(kvp => new ItemRate<int, double>(kvp.Key, kvp.Value / coAvatarTotalCount))
+                .ToList(),
             Weapons = weaponBuildCounter
                 .OrderByDescending(x => x.Value)
                 .Take(8)

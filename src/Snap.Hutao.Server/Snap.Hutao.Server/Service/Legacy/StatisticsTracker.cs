@@ -256,12 +256,11 @@ public class StatisticsTracker
 
         // AvatarCollocation
         {
-            List<AvatarCollocation> avatarCollocations = avatarHoldingCounter.Select(kvp =>
+            List<AvatarCollocation> avatarCollocations = avatarAvatarBuildCounter.Select(kvp =>
             {
                 AvatarId avatar = kvp.Key;
 
-                // 仅角色可能获取到空的构筑
-                Map<AvatarId, int>? avatarBuildCounter = avatarAvatarBuildCounter.GetValueOrDefault(avatar);
+                Map<AvatarId, int> avatarBuildCounter = avatarAvatarBuildCounter[avatar];
                 Map<WeaponId, int> weaponBuildCounter = avatarWeaponBuildCounter[avatar];
                 Map<ReliquarySets, int> reliquaryBuildCounter = avatarReliquaryBuildCounter[avatar];
 
