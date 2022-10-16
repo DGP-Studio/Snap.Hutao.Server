@@ -77,7 +77,7 @@ public static class StatisticsHelper
         List<ItemRate<int, double>> avatars;
         if (avatarBuildCounter != null)
         {
-            int coAvatarTotalCount = avatarBuildCounter.Sum(kvp => kvp.Value);
+            double coAvatarTotalCount = avatarBuildCounter.Sum(kvp => kvp.Value);
             avatars = avatarBuildCounter
                 .OrderByDescending(x => x.Value)
                 .Take(8)
@@ -89,8 +89,8 @@ public static class StatisticsHelper
             avatars = new List<ItemRate<int, double>>();
         }
 
-        int weaponTotalCount = weaponBuildCounter.Sum(kvp => kvp.Value);
-        int reliquarySetTotalCount = reliquaryBuildCounter.Sum(kvp => kvp.Value);
+        double weaponTotalCount = weaponBuildCounter.Sum(kvp => kvp.Value);
+        double reliquarySetTotalCount = reliquaryBuildCounter.Sum(kvp => kvp.Value);
 
         return new(avatarId)
         {
