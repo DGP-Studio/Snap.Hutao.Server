@@ -36,23 +36,32 @@ public readonly struct Team : IEquatable<Team>
     /// <param name="list">value</param>
     public Team(List<int> list)
     {
-        Position1 = list[0];
-        Position2 = list[1];
-        Position3 = list[2];
-        Position4 = list[3];
+        Position1 = list.ElementAtOrDefault(0);
+        Position2 = list.ElementAtOrDefault(1);
+        Position3 = list.ElementAtOrDefault(2);
+        Position4 = list.ElementAtOrDefault(3);
     }
 
     public static implicit operator string(Team value)
     {
         StringBuilder teamBuider = new(35);
-        teamBuider
-            .Append(value.Position1)
-            .Append(',')
-            .Append(value.Position2)
-            .Append(',')
-            .Append(value.Position3)
-            .Append(',')
-            .Append(value.Position4);
+        teamBuider.Append(value.Position1);
+
+        if (value.Position2 != 0)
+        {
+            teamBuider.Append(',').Append(value.Position2);
+        }
+
+        if (value.Position3 != 0)
+        {
+            teamBuider.Append(',').Append(value.Position3);
+        }
+
+        if (value.Position4 != 0)
+        {
+            teamBuider.Append(',').Append(value.Position4);
+        }
+
         return teamBuider.ToString();
     }
 
