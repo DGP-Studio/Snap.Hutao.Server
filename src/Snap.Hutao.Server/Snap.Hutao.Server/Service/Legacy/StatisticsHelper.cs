@@ -101,13 +101,15 @@ public static class StatisticsHelper
     /// <summary>
     /// 构造一个新的队伍出场
     /// </summary>
+    /// <param name="floor">层</param>
     /// <param name="upTeamCounter">上半</param>
     /// <param name="downTeamCounter">下半</param>
     /// <returns>队伍出场</returns>
-    public static TeamAppearance TeamAppearance(Map<Team, int> upTeamCounter, Map<Team, int> downTeamCounter)
+    public static TeamAppearance TeamAppearance(int floor, Map<Team, int> upTeamCounter, Map<Team, int> downTeamCounter)
     {
         return new()
         {
+            Floor = floor,
             Up = upTeamCounter
                 .OrderByDescending(x => x.Value)
                 .Take(16)
@@ -128,7 +130,7 @@ public static class StatisticsHelper
     /// <returns>队伍</returns>
     public static Team AsTeam(List<int> avatars)
     {
-        return string.Join(',', avatars);
+        return new(avatars);
     }
 
     /// <summary>

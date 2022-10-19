@@ -8,7 +8,6 @@ using Snap.Hutao.Server.Model.Entity;
 using Snap.Hutao.Server.Model.Legacy;
 using Snap.Hutao.Server.Model.Upload;
 using Snap.Hutao.Server.Service.Legacy.Primitive;
-using System.Reflection.Emit;
 
 namespace Snap.Hutao.Server.Service.Legacy;
 
@@ -270,10 +269,10 @@ public class StatisticsTracker
         {
             List<TeamAppearance> teamAppearances = new()
             {
-                StatisticsHelper.TeamAppearance(level09Battle1TeamCounter, level09Battle2TeamCounter),
-                StatisticsHelper.TeamAppearance(level10Battle1TeamCounter, level10Battle2TeamCounter),
-                StatisticsHelper.TeamAppearance(level11Battle1TeamCounter, level11Battle2TeamCounter),
-                StatisticsHelper.TeamAppearance(level12Battle1TeamCounter, level12Battle2TeamCounter),
+                StatisticsHelper.TeamAppearance(09, level09Battle1TeamCounter, level09Battle2TeamCounter),
+                StatisticsHelper.TeamAppearance(10, level10Battle1TeamCounter, level10Battle2TeamCounter),
+                StatisticsHelper.TeamAppearance(11, level11Battle1TeamCounter, level11Battle2TeamCounter),
+                StatisticsHelper.TeamAppearance(12, level12Battle1TeamCounter, level12Battle2TeamCounter),
             };
 
             StatisticsHelper.SaveStatistics(appDbContext, memoryCache, scheduleId, LegacyStatistics.TeamAppearance, teamAppearances);

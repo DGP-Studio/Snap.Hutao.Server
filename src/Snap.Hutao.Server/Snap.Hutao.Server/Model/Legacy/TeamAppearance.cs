@@ -9,6 +9,11 @@ namespace Snap.Hutao.Server.Model.Legacy;
 public class TeamAppearance
 {
     /// <summary>
+    /// 层
+    /// </summary>
+    public int Floor { get; set; }
+
+    /// <summary>
     /// 上半
     /// </summary>
     public List<ItemRate<string, int>> Up { get; set; } = default!;
