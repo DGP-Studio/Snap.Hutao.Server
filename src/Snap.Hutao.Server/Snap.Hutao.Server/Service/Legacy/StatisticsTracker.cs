@@ -84,7 +84,7 @@ public class StatisticsTracker
         {
             holdingAvatars.Add(avatar.AvatarId, avatar);
             avatarHoldingCounter.Increase(avatar.AvatarId);
-            avatarConstellationCounter.GetOrAdd(avatar.AvatarId, key => new()).Increase(avatar.ActivedConstellationNumber);
+            avatarConstellationCounter.GetOrAdd(avatar.AvatarId, Maps.ForConstellation).Increase(avatar.ActivedConstellationNumber);
         }
 
         // 仅当深渊记录存在时，统计才有意义

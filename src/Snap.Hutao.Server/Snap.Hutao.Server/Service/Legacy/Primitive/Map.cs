@@ -8,6 +8,23 @@ public class Map<TKey, TValue> : Dictionary<TKey, TValue>
     where TKey : notnull
 {
     /// <summary>
+    /// 初始化一个新的映射
+    /// </summary>
+    public Map()
+        : base()
+    {
+    }
+
+    /// <summary>
+    /// 初始化一个新的映射
+    /// </summary>
+    /// <param name="dict">复制的字典</param>
+    public Map(IDictionary<TKey, TValue> dict)
+        : base(dict)
+    {
+    }
+
+    /// <summary>
     /// 获取或新增
     /// </summary>
     /// <param name="key">键</param>
