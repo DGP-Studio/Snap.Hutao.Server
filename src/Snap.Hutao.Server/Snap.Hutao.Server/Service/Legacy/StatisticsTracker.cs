@@ -173,7 +173,7 @@ public class StatisticsTracker
             foreach (int avatar in battle.Avatars)
             {
                 // 递增角色搭配
-                foreach (int coAvatar in battle.Avatars.SkipWhile(a => a != avatar))
+                foreach (int coAvatar in battle.Avatars.SkipWhile(a => a == avatar))
                 {
                     avatarAvatarBuildCounter.GetOrAdd(avatar, key => new()).Increase(coAvatar);
                 }
