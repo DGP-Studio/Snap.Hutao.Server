@@ -21,6 +21,7 @@ public static class RankHelper
     {
         List<IndexUidAvatarValue> rank = appDbContext.DamageRanks
             .OrderBy(r => r.Value)
+            .AsEnumerable()
             .Select((r, i) => new IndexUidAvatarValue(i, r.Uid, r.AvatarId, r.Value))
             .ToList();
 
@@ -40,6 +41,7 @@ public static class RankHelper
     {
         List<IndexUidAvatarValue> rank = appDbContext.TakeDamageRanks
             .OrderBy(r => r.Value)
+            .AsEnumerable()
             .Select((r, i) => new IndexUidAvatarValue(i, r.Uid, r.AvatarId, r.Value))
             .ToList();
 
