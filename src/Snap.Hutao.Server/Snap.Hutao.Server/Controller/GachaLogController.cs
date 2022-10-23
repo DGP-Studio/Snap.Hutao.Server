@@ -20,7 +20,7 @@ public class GachaLogController : ControllerBase
     /// <param name="uid">uid</param>
     /// <returns>祈愿记录</returns>
     [HttpGet("Retrive")]
-    public async Task<IActionResult> RetriveAsync([FromQuery(Name = "uid")]string uid)
+    public async Task<IActionResult> RetriveAsync([FromQuery(Name = "uid")] string uid)
     {
         await Task.Yield();
         return Model.Response.Response.Success("testing");

@@ -22,7 +22,7 @@ public class EntityRecord
     /// <summary>
     /// Uid
     /// </summary>
-    [StringLength(9, MinimumLength =9)]
+    [StringLength(9, MinimumLength = 9)]
     public string Uid { get; set; } = null!;
 
     /// <summary>

@@ -42,4 +42,9 @@ public enum ReturnCode
     /// 无效的查询
     /// </summary>
     InvalidQueryString = 500021,
+
+    /// <summary>
+    /// Uid 由于某些原因被我们封禁
+    /// </summary>
+    BannedUid = 500022,
 }

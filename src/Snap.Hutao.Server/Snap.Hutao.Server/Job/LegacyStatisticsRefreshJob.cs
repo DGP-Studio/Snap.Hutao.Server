@@ -2,7 +2,6 @@
 // Licensed under the MIT license.
 
 using Quartz;
-using Snap.Hutao.Server.Core;
 using Snap.Hutao.Server.Service.Legacy;
 
 namespace Snap.Hutao.Server.Job;
@@ -29,9 +28,8 @@ public class LegacyStatisticsRefreshJob : IJob
     /// <inheritdoc/>
     public async Task Execute(IJobExecutionContext context)
     {
-        logger.LogInformation("已触发数据更新...");
-        ValueStopwatch stopwatch = ValueStopwatch.StartNew();
+        logger.LogInformation("[{time}]自动统计数据更新开始", DateTimeOffset.Now);
         await statisticsService.RunAsync().ConfigureAwait(false);
-        logger.LogInformation("数据更新完成，耗时 {time}ms", stopwatch.GetElapsedTime().TotalMilliseconds);
+        logger.LogInformation("[{time}]自动统计数据更新结束", DateTimeOffset.Now);
     }
 }

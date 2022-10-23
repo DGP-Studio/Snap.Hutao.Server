@@ -8,7 +8,7 @@ namespace Snap.Hutao.Server.Core;
 /// <summary>
 /// 值类型的<see cref="Stopwatch"/>
 /// </summary>
-internal struct ValueStopwatch
+public struct ValueStopwatch
 {
     private static readonly double TimestampToTicks = TimeSpan.TicksPerSecond / (double)Stopwatch.Frequency;
 
@@ -22,10 +22,7 @@ internal struct ValueStopwatch
     /// <summary>
     /// 是否处于活动状态
     /// </summary>
-    public bool IsActive
-    {
-        get => startTimestamp != 0;
-    }
+    public bool IsActive => startTimestamp != 0;
 
     /// <summary>
     /// 触发一个新的停表

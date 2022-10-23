@@ -3,6 +3,7 @@
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using Snap.Hutao.Server.Core;
 using Snap.Hutao.Server.Extension;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity;
@@ -44,15 +45,18 @@ public class StatisticsService
         {
             using (await appDbContext.OperationLock.EnterAsync().ConfigureAwait(false))
             {
+                ValueStopwatch stopwatch = ValueStopwatch.StartNew();
                 await Task.Run(() => RunCore(tracker)).ConfigureAwait(false);
-                tracker.CompleteTracking(appDbContext, memoryCache);
+                tracker.CompleteTracking(appDbContext, memoryCache, stopwatch);
+
+                await RankPartioner.MakeAsync(appDbContext, memoryCache).ConfigureAwait(false);
             }
         }
     }
 
     private void RunCore(StatisticsTracker tracker)
     {
-        const int partion = 100;
+        const int partion = 200;
 
         while (true)
         {

@@ -43,6 +43,16 @@ public class LegacyStatistics
     public const string TeamAppearance = "TeamAppearance";
 
     /// <summary>
+    /// 造成伤害榜
+    /// </summary>
+    public const string DamageRank = "DamageRank";
+
+    /// <summary>
+    /// 受到伤害榜
+    /// </summary>
+    public const string TakeDamageRank = "TakeDamageRank";
+
+    /// <summary>
     /// 主键
     /// </summary>
     [Key]

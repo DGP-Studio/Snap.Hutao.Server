@@ -34,6 +34,11 @@ public class AppDbContext : DbContext
     public DbSet<LegacyStatistics> Statistics { get; set; } = default!;
 
     /// <summary>
+    /// 封禁的用户列表
+    /// </summary>
+    public DbSet<Banned> BannedList { get; set; } = default!;
+
+    /// <summary>
     /// 深渊记录
     /// </summary>
     public DbSet<EntityRecord> Records { get; set; } = default!;
@@ -66,7 +71,7 @@ public class AppDbContext : DbContext
     /// <summary>
     /// 操作锁
     /// </summary>
-    public SemaphoreSlim OperationLock { get => operationLock; }
+    public SemaphoreSlim OperationLock => operationLock;
 
     /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder modelBuilder)

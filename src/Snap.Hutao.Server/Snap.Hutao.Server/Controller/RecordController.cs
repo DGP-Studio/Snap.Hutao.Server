@@ -53,6 +53,14 @@ public class RecordController : ControllerBase
             return Model.Response.Response.Fail(ReturnCode.ComputingStatistics, "正在计算统计数据");
         }
 
+        string recordUid = record.Uid;
+        bool isBanned = appDbContext.BannedList.Any(banned => banned.Uid == recordUid);
+
+        if (isBanned)
+        {
+            return Model.Response.Response.Fail(ReturnCode.BannedUid, "Uid 已被数据库封禁");
+        }
+
         if (!record.Validate())
         {
             return Model.Response.Response.Fail(ReturnCode.InvalidUploadData, "无效的提交数据");
@@ -147,8 +155,10 @@ public class RecordController : ControllerBase
             Rank rank;
             using (await appDbContext.OperationLock.EnterAsync().ConfigureAwait(false))
             {
-                ItemRate<int, double> damageRank = RankHelper.GetDamageRank(appDbContext, uid);
-                ItemRate<int, double> takeDamageRank = RankHelper.GetTakeDamageRank(appDbContext, uid);
+                int scheduleId = StatisticsHelper.GetScheduleId();
+
+                ItemRate<int, double>? damageRank = RankHelper.GetDamageRank(appDbContext, memoryCache, scheduleId, uid);
+                ItemRate<int, double>? takeDamageRank = RankHelper.GetTakeDamageRank(appDbContext, memoryCache, scheduleId, uid);
                 rank = new(damageRank, takeDamageRank);
             }
 
