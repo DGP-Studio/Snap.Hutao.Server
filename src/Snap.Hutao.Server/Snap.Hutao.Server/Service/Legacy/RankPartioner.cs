@@ -45,7 +45,7 @@ public class RankPartioner
             {
                 List<EntityDamageRank> rank = appDbContext.DamageRanks
                     .OrderBy(r => r.Value)
-                    .Where(r=>r.Value>lastValue)
+                    .Where(r => r.Value > lastValue)
                     .Take(partion)
                     .ToList();
 
@@ -69,6 +69,7 @@ public class RankPartioner
     private static void MakeTakeDamageRank(AppDbContext appDbContext, IMemoryCache memoryCache, int scheduleId)
     {
         double totalCount = appDbContext.TakeDamageRanks.Count();
+        int lastValue = 0;
         int current = 0;
 
         List<RankPartion> rankPartions = new(200);
@@ -81,13 +82,15 @@ public class RankPartioner
             {
                 List<EntityTakeDamageRank> rank = appDbContext.TakeDamageRanks
                     .OrderBy(r => r.Value)
+                    .Where(r => r.Value > lastValue)
                     .Take(partion)
                     .ToList();
 
                 if (rank.Count > 0)
                 {
                     current += rank.Count;
-                    rankPartions.Add(new() { Reference = current / totalCount, Value = rank.Last().Value });
+                    lastValue = rank.Last().Value;
+                    rankPartions.Add(new() { Reference = current / totalCount, Value = lastValue });
                 }
 
                 if (rank.Count < partion)
