@@ -316,11 +316,11 @@ public class StatisticsTracker
     /// <param name="team">队伍</param>
     private void IncreaseAvatarAvatarBuild(List<int> team)
     {
-        foreach (int avatar in team)
+        foreach (int currentAvatar in team)
         {
-            foreach (int coAvatar in team.SkipWhile(a => a == avatar))
+            foreach (int otherAvatar in team.Where(avatar => avatar != currentAvatar))
             {
-                avatarAvatarBuildCounter.GetOrAdd(avatar, key => new()).Increase(coAvatar);
+                avatarAvatarBuildCounter.GetOrAdd(currentAvatar, key => new()).Increase(otherAvatar);
             }
         }
     }
