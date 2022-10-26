@@ -22,7 +22,7 @@ public static class RankHelper
     /// <param name="scheduleId">计划Id</param>
     /// <param name="uid">uid</param>
     /// <returns>排行</returns>
-    public static ItemRate<int, double>? GetDamageRank(AppDbContext appDbContext, IMemoryCache memoryCache, int scheduleId, string uid)
+    public static RankValue? GetDamageRank(AppDbContext appDbContext, IMemoryCache memoryCache, int scheduleId, string uid)
     {
         List<RankPartion>? damageRankPartion = StatisticsHelper.FromCacheOrDb<List<RankPartion>>(appDbContext, memoryCache, scheduleId, LegacyStatistics.DamageRank);
         if (damageRankPartion != null && damageRankPartion.Any())
@@ -33,7 +33,7 @@ public static class RankHelper
                 int avatar = damage.AvatarId;
                 double reference = damageRankPartion.MinBy(r => Math.Abs(r.Value - damage.Value))?.Reference ?? 0;
 
-                return new(avatar, reference);
+                return new(avatar, damage.Value, reference);
             }
         }
 
@@ -48,7 +48,7 @@ public static class RankHelper
     /// <param name="scheduleId">计划Id</param>
     /// <param name="uid">uid</param>
     /// <returns>排行</returns>
-    public static ItemRate<int, double>? GetTakeDamageRank(AppDbContext appDbContext, IMemoryCache memoryCache, int scheduleId, string uid)
+    public static RankValue? GetTakeDamageRank(AppDbContext appDbContext, IMemoryCache memoryCache, int scheduleId, string uid)
     {
         List<RankPartion>? damageRankPartion = StatisticsHelper.FromCacheOrDb<List<RankPartion>>(appDbContext, memoryCache, scheduleId, LegacyStatistics.TakeDamageRank);
         if (damageRankPartion != null && damageRankPartion.Any())
@@ -59,7 +59,7 @@ public static class RankHelper
                 int avatar = damage.AvatarId;
                 double reference = damageRankPartion.MinBy(r => Math.Abs(r.Value - damage.Value))?.Reference ?? 0;
 
-                return new(avatar, reference);
+                return new(avatar, damage.Value, reference);
             }
         }
 

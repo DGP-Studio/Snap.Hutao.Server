@@ -13,7 +13,7 @@ public class Rank
     /// </summary>
     /// <param name="damage">造成伤害</param>
     /// <param name="takeDamage">受到伤害</param>
-    public Rank(ItemRate<int, double>? damage, ItemRate<int, double>? takeDamage)
+    public Rank(RankValue? damage, RankValue? takeDamage)
     {
         Damage = damage;
         TakeDamage = takeDamage;
@@ -22,10 +22,33 @@ public class Rank
     /// <summary>
     /// 造成伤害
     /// </summary>
-    public ItemRate<int, double>? Damage { get; set; } = default!;
+    public RankValue? Damage { get; set; } = default!;
 
     /// <summary>
     /// 受到伤害
     /// </summary>
-    public ItemRate<int, double>? TakeDamage { get; set; } = default!;
+    public RankValue? TakeDamage { get; set; } = default!;
+}
+
+/// <summary>
+/// 伤害值
+/// </summary>
+public class RankValue : ItemRate<int, double>
+{
+    /// <summary>
+    /// 构造一个新的伤害值
+    /// </summary>
+    /// <param name="item">物品</param>
+    /// <param name="value">伤害</param>
+    /// <param name="rate">率</param>
+    public RankValue(int item, int value, double rate)
+        : base(item, rate)
+    {
+        Value = value;
+    }
+
+    /// <summary>
+    /// 伤害值
+    /// </summary>
+    public int Value { get; set; }
 }

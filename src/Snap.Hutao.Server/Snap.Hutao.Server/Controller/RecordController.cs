@@ -157,8 +157,8 @@ public class RecordController : ControllerBase
             {
                 int scheduleId = StatisticsHelper.GetScheduleId();
 
-                ItemRate<int, double>? damageRank = RankHelper.GetDamageRank(appDbContext, memoryCache, scheduleId, uid);
-                ItemRate<int, double>? takeDamageRank = RankHelper.GetTakeDamageRank(appDbContext, memoryCache, scheduleId, uid);
+                RankValue? damageRank = RankHelper.GetDamageRank(appDbContext, memoryCache, scheduleId, uid);
+                RankValue? takeDamageRank = RankHelper.GetTakeDamageRank(appDbContext, memoryCache, scheduleId, uid);
                 rank = new(damageRank, takeDamageRank);
             }
 
