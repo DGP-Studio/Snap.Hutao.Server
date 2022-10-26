@@ -4,6 +4,7 @@
 using Microsoft.EntityFrameworkCore;
 using Quartz;
 using Snap.Hutao.Server.Model.Context;
+using Snap.Hutao.Server.Service;
 
 namespace Snap.Hutao.Server.Job;
 
@@ -13,16 +14,19 @@ namespace Snap.Hutao.Server.Job;
 public class SpialAbyssRecordClearJob : IJob
 {
     private readonly AppDbContext appDbContext;
+    private readonly RankService rankService;
     private readonly ILogger<SpialAbyssRecordClearJob> logger;
 
     /// <summary>
     /// 构造一个新的深渊记录清除任务
     /// </summary>
     /// <param name="appDbContext">数据库上下文</param>
+    /// <param name="rankService">排行服务</param>
     /// <param name="logger">日志器</param>
-    public SpialAbyssRecordClearJob(AppDbContext appDbContext, ILogger<SpialAbyssRecordClearJob> logger)
+    public SpialAbyssRecordClearJob(AppDbContext appDbContext, RankService rankService, ILogger<SpialAbyssRecordClearJob> logger)
     {
         this.appDbContext = appDbContext;
+        this.rankService = rankService;
         this.logger = logger;
     }
 
@@ -47,6 +51,8 @@ public class SpialAbyssRecordClearJob : IJob
             .ExecuteSqlRawAsync("DELETE FROM spiral_abysses")
             .ConfigureAwait(false);
 
-        logger.LogInformation("删除了 {count1} 条提交记录 | 删除了 {count2} 条深渊数据", deletedRecordsCount, deletedSpiralCount);
+        long removedKeys = await rankService.ClearRanksAsync().ConfigureAwait(false);
+
+        logger.LogInformation("删除了 {count1} 条提交记录 | 删除了 {count2} 条深渊数据 | 删除了 {count3} 个 Redis 键", deletedRecordsCount, deletedSpiralCount, removedKeys);
     }
 }

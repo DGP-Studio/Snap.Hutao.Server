@@ -43,6 +43,12 @@ public sealed class RankService : IDisposable
             AppDbContext appDbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         }
 
+        // 保存使用过的键
+        await db.SetAddAsync("Hutao.UsedKeys", "Hutao.Damage.Avatar.All").ConfigureAwait(false);
+        await db.SetAddAsync("Hutao.UsedKeys", "Hutao.TakeDamage.Avatar.All").ConfigureAwait(false);
+        await db.SetAddAsync("Hutao.UsedKeys", $"Hutao.Damage.Avatar.{damage.AvatarId}").ConfigureAwait(false);
+        await db.SetAddAsync("Hutao.UsedKeys", $"Hutao.TakeDamage.Avatar.{takeDamage.AvatarId}").ConfigureAwait(false);
+
         // 造成伤害
         await db.SortedSetAddAsync($"Hutao.Damage.Avatar.{damage.AvatarId}", uid, damage.Value).ConfigureAwait(false);
         await db.SortedSetAddAsync("Hutao.Damage.Avatar.All", uid, damage.Value).ConfigureAwait(false);
@@ -102,6 +108,20 @@ public sealed class RankService : IDisposable
             GetRankValue(avatarTakeDamageIndex, avatarTakeDamageTotal));
 
         return new Rank(damageValue, takeDamageValue);
+    }
+
+    /// <summary>
+    /// 异步清除排行
+    /// </summary>
+    /// <returns>任务</returns>
+    public async Task<long> ClearRanksAsync()
+    {
+        IDatabase db = redis.GetDatabase(12);
+
+        RedisValue[] keys = await db.SetMembersAsync("Hutao.UsedKeys").ConfigureAwait(false);
+        RedisKey[] usedKeys = keys.Select(k => new RedisKey(k)).ToArray();
+
+        return await db.KeyDeleteAsync(usedKeys).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
