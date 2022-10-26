@@ -24,7 +24,7 @@ public sealed class RankService : IDisposable
     public RankService(IServiceScopeFactory scopeFactory)
     {
         this.scopeFactory = scopeFactory;
-        redis = ConnectionMultiplexer.Connect("localhost:6379");
+        redis = ConnectionMultiplexer.Connect("172.17.0.1:6379");
     }
 
     /// <summary>
