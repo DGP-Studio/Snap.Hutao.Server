@@ -29,26 +29,3 @@ public class Rank
     /// </summary>
     public RankValue? TakeDamage { get; set; } = default!;
 }
-
-/// <summary>
-/// 伤害值
-/// </summary>
-public class RankValue : ItemRate<int, double>
-{
-    /// <summary>
-    /// 构造一个新的伤害值
-    /// </summary>
-    /// <param name="item">物品</param>
-    /// <param name="value">伤害</param>
-    /// <param name="rate">率</param>
-    public RankValue(int item, int value, double rate)
-        : base(item, rate)
-    {
-        Value = value;
-    }
-
-    /// <summary>
-    /// 伤害值
-    /// </summary>
-    public int Value { get; set; }
-}

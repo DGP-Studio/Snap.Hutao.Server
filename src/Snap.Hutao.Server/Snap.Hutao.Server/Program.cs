@@ -7,6 +7,7 @@ using Quartz;
 using Snap.Hutao.Server.Controller.Filter;
 using Snap.Hutao.Server.Job;
 using Snap.Hutao.Server.Model.Context;
+using Snap.Hutao.Server.Service;
 using Snap.Hutao.Server.Service.Legacy;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -32,7 +33,8 @@ public class Program
         services
             .AddMemoryCache()
             .AddTransient<StatisticsService>()
-            .AddTransient<RequestFilter>();
+            .AddTransient<RequestFilter>()
+            .AddSingleton<RankService>();
 
         services
             .AddControllers()

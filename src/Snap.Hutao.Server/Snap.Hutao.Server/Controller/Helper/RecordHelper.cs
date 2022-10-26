@@ -6,6 +6,7 @@ using Snap.Hutao.Server.Extension;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity;
 using Snap.Hutao.Server.Model.Upload;
+using Snap.Hutao.Server.Service;
 
 namespace Snap.Hutao.Server.Controller.Helper;
 
@@ -18,9 +19,10 @@ public static class RecordHelper
     /// 异步保存记录
     /// </summary>
     /// <param name="appDbContext">数据库上下文</param>
+    /// <param name="rankService">排行服务</param>
     /// <param name="record">记录</param>
     /// <returns>任务</returns>
-    public static async Task SaveRecordAsync(AppDbContext appDbContext, SimpleRecord record)
+    public static async Task SaveRecordAsync(AppDbContext appDbContext, RankService rankService, SimpleRecord record)
     {
         EntityRecord? entityRecord = await appDbContext.Records.SingleOrDefaultAsync(r => r.Uid == record.Uid).ConfigureAwait(false);
 
@@ -67,6 +69,9 @@ public static class RecordHelper
         EntityTakeDamageRank entityTakeDamageRank = ToEntityTakeDamageRank(record.SpiralAbyss.TakeDamage, spiralAbyssId, record.Uid);
         await appDbContext.TakeDamageRanks.AddAsync(entityTakeDamageRank).ConfigureAwait(false);
         await appDbContext.SaveChangesAsync().ConfigureAwait(false);
+
+        // Redis rank sync
+        await rankService.SaveRankAsync(record.Uid, record.SpiralAbyss.Damage, record.SpiralAbyss.TakeDamage).ConfigureAwait(false);
     }
 
     private static EntityAvatar ToEntity(SimpleAvatar simpleAvatar, long recordId)

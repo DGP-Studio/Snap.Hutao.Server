@@ -85,7 +85,6 @@ public class Response<T> : Response
     /// <summary>
     /// 成功
     /// </summary>
-    /// <typeparam name="T">返回数据的类型</typeparam>
     /// <param name="msg">消息</param>
     /// <param name="data">返回的数据</param>
     /// <returns>操作结果</returns>

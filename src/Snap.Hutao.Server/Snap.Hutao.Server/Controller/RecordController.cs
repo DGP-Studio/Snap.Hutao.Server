@@ -11,6 +11,7 @@ using Snap.Hutao.Server.Model.Entity;
 using Snap.Hutao.Server.Model.Legacy;
 using Snap.Hutao.Server.Model.Response;
 using Snap.Hutao.Server.Model.Upload;
+using Snap.Hutao.Server.Service;
 using Snap.Hutao.Server.Service.Legacy;
 using System.Collections.Concurrent;
 
@@ -24,19 +25,21 @@ namespace Snap.Hutao.Server.Controller;
 [ServiceFilter(typeof(RequestFilter))]
 public class RecordController : ControllerBase
 {
+    private static readonly ConcurrentDictionary<string, UploadToken> UidUploading = new();
     private readonly AppDbContext appDbContext;
+    private readonly RankService rankService;
     private readonly IMemoryCache memoryCache;
-    private readonly ConcurrentDictionary<string, UploadToken> uidUploading = new();
-    private bool isRanking;
 
     /// <summary>
     /// 构造一个新的记录控制器
     /// </summary>
     /// <param name="appDbContext">数据库上下文</param>
+    /// <param name="rankService">排行服务</param>
     /// <param name="memoryCache">内存缓存</param>
-    public RecordController(AppDbContext appDbContext, IMemoryCache memoryCache)
+    public RecordController(AppDbContext appDbContext, RankService rankService, IMemoryCache memoryCache)
     {
         this.appDbContext = appDbContext;
+        this.rankService = rankService;
         this.memoryCache = memoryCache;
     }
 
@@ -66,16 +69,16 @@ public class RecordController : ControllerBase
             return Model.Response.Response.Fail(ReturnCode.InvalidUploadData, "无效的提交数据");
         }
 
-        if (uidUploading.TryGetValue(record.Uid, out _))
+        if (UidUploading.TryGetValue(record.Uid, out _))
         {
             return Model.Response.Response.Fail(ReturnCode.PreviousRequestNotCompleted, "该UID的请求尚在处理");
         }
 
-        if (uidUploading.TryAdd(record.Uid, new()))
+        if (UidUploading.TryAdd(record.Uid, new()))
         {
-            await RecordHelper.SaveRecordAsync(appDbContext, record).ConfigureAwait(false);
+            await RecordHelper.SaveRecordAsync(appDbContext, rankService, record).ConfigureAwait(false);
 
-            if (uidUploading.TryRemove(record.Uid, out _))
+            if (UidUploading.TryRemove(record.Uid, out _))
             {
                 return Model.Response.Response.Success("数据提交成功");
             }
@@ -145,26 +148,8 @@ public class RecordController : ControllerBase
             return Model.Response.Response.Fail(ReturnCode.InvalidQueryString, $"{uid}不是合法的uid");
         }
 
-        if (isRanking)
-        {
-            return Model.Response.Response.Fail(ReturnCode.RequestTooFrequent, $"上个排行请求仍在处理中");
-        }
-        else
-        {
-            isRanking = true;
-            Rank rank;
-            using (await appDbContext.OperationLock.EnterAsync().ConfigureAwait(false))
-            {
-                int scheduleId = StatisticsHelper.GetScheduleId();
-
-                RankValue? damageRank = RankHelper.GetDamageRank(appDbContext, memoryCache, scheduleId, uid);
-                RankValue? takeDamageRank = RankHelper.GetTakeDamageRank(appDbContext, memoryCache, scheduleId, uid);
-                rank = new(damageRank, takeDamageRank);
-            }
-
-            isRanking = false;
-            return Response<Rank>.Success("获取排行数据成功", rank);
-        }
+        Rank rank = await rankService.RetriveRankAsync(uid).ConfigureAwait(false);
+        return Response<Rank>.Success("获取排行数据成功", rank);
     }
 
     /// <summary>
