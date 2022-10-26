@@ -132,6 +132,6 @@ public sealed class RankService : IDisposable
 
     private static double GetRankValue(long index, long total)
     {
-        return (index + 1) / (double)total;
+        return total == 0 ? 0 : (index + 1) / (double)total;
     }
 }
