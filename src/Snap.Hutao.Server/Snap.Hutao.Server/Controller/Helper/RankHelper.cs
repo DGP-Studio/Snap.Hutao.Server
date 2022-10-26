@@ -31,7 +31,7 @@ public static class RankHelper
             if (damage != null)
             {
                 int avatar = damage.AvatarId;
-                double reference = damageRankPartion.LastOrDefault(r => r.Value > damage.Value)?.Reference ?? 0;
+                double reference = damageRankPartion.MinBy(r => Math.Abs(r.Value - damage.Value))?.Reference ?? 0;
 
                 return new(avatar, reference);
             }
@@ -57,7 +57,7 @@ public static class RankHelper
             if (damage != null)
             {
                 int avatar = damage.AvatarId;
-                double reference = damageRankPartion.LastOrDefault(r => r.Value > damage.Value)?.Reference ?? 0;
+                double reference = damageRankPartion.MinBy(r => Math.Abs(r.Value - damage.Value))?.Reference ?? 0;
 
                 return new(avatar, reference);
             }
