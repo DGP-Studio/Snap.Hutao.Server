@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Quartz;
 using Snap.Hutao.Server.Controller.Filter;
 using Snap.Hutao.Server.Job;
@@ -72,7 +73,7 @@ public class Program
 
             optionsBuilder
                 .UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
-                /*.ConfigureWarnings(c => c.Log((RelationalEventId.CommandExecuted, LogLevel.Debug)))*/;
+                .ConfigureWarnings(c => c.Log((RelationalEventId.CommandExecuted, LogLevel.Debug)));
         });
 
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
