@@ -56,24 +56,36 @@ public class StatisticsService
 
     private void RunCore(StatisticsTracker tracker)
     {
-        const int partion = 200;
+        const int partion = 100;
 
         while (true)
         {
-            // keyset 分页获取，降低内存压力
             List<EntityRecord> part = appDbContext.Records
+                .AsNoTracking()
                 .OrderBy(r => r.PrimaryId)
                 .Where(r => r.PrimaryId > tracker.LastId)
-
-                // https://learn.microsoft.com/en-us/ef/core/miscellaneous/nullable-reference-types#navigating-and-including-nullable-relationships
-                .Include(r => r.SpiralAbyss!)
-                .ThenInclude(s => s.Floors)
-                .Include(r => r.Avatars)
                 .Take(partion)
                 .ToList();
 
             foreach (EntityRecord record in part)
             {
+                record.Avatars = appDbContext.Avatars
+                    .AsNoTracking()
+                    .Where(a => a.RecordId == record.PrimaryId)
+                    .ToList();
+
+                record.SpiralAbyss = appDbContext.SpiralAbysses
+                    .AsNoTracking()
+                    .SingleOrDefault(s => s.RecordId == record.PrimaryId);
+
+                if (record.SpiralAbyss != null)
+                {
+                    record.SpiralAbyss.Floors = appDbContext.SpiralAbyssFloors
+                        .AsNoTracking()
+                        .Where(f => f.SpiralAbyssId == record.SpiralAbyss.PrimaryId)
+                        .ToList();
+                }
+
                 tracker.Track(record);
             }
 
