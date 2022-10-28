@@ -48,15 +48,13 @@ public class StatisticsService
                 ValueStopwatch stopwatch = ValueStopwatch.StartNew();
                 await Task.Run(() => RunCore(tracker)).ConfigureAwait(false);
                 tracker.CompleteTracking(appDbContext, memoryCache, stopwatch);
-
-                await RankPartioner.MakeAsync(appDbContext, memoryCache).ConfigureAwait(false);
             }
         }
     }
 
     private void RunCore(StatisticsTracker tracker)
     {
-        const int partion = 100;
+        const int partion = 200;
 
         while (true)
         {

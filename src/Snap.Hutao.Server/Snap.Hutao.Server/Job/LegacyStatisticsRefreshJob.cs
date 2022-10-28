@@ -28,8 +28,8 @@ public class LegacyStatisticsRefreshJob : IJob
     /// <inheritdoc/>
     public async Task Execute(IJobExecutionContext context)
     {
-        logger.LogInformation("[{time}]自动统计数据更新开始", DateTimeOffset.Now);
+        logger.LogInformation("[{time:yyyy.MM.dd HH:mm:ss.fffffff}] 自动统计数据更新开始", DateTimeOffset.Now);
         await statisticsService.RunAsync().ConfigureAwait(false);
-        logger.LogInformation("[{time}]自动统计数据更新结束", DateTimeOffset.Now);
+        logger.LogInformation("[{time:yyyy.MM.dd HH:mm:ss.fffffff}] 自动统计数据更新结束", DateTimeOffset.Now);
     }
 }

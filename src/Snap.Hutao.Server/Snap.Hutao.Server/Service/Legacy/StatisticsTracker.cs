@@ -165,9 +165,9 @@ public class StatisticsTracker
                 RecordTotal = totalRecordCounter,
                 SpiralAbyssTotal = totalSpiralAbyssCounter,
                 SpiralAbyssFullStar = level12TotalRecordCounter,
-                Timestamp = DateTimeOffset.Now.ToUnixTimeSeconds(),
+                Timestamp = DateTimeOffset.Now.ToUnixTimeMilliseconds(),
                 TimeTotal = totalTime,
-                TimeAverage = totalRecordCounter / totalTime,
+                TimeAverage = totalTime / totalRecordCounter,
             };
 
             StatisticsHelper.SaveStatistics(appDbContext, memoryCache, scheduleId, LegacyStatistics.Overview, overview);
