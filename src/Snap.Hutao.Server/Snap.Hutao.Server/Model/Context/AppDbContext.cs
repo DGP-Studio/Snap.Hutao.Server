@@ -69,6 +69,11 @@ public class AppDbContext : DbContext
     public DbSet<EntityFloor> SpiralAbyssFloors { get; set; } = default!;
 
     /// <summary>
+    /// 胡桃日志
+    /// </summary>
+    public DbSet<HutaoLog> HutaoLogs { get; set; } = default!;
+
+    /// <summary>
     /// 操作锁
     /// </summary>
     public SemaphoreSlim OperationLock => operationLock;

@@ -54,10 +54,10 @@ public class Program
                 config
                     .UseMicrosoftDependencyInjectionJobFactory();
                 config
-                    .ScheduleJob<SpialAbyssRecordClearJob>(t => t.StartNow().WithCronSchedule("0 0 4 1,16 * ?"))
+                    .ScheduleJob<SpialAbyssRecordCleanJob>(t => t.StartNow().WithCronSchedule("0 0 4 1,16 * ?"))
                     .ScheduleJob<LegacyStatisticsRefreshJob>(t => t.StartNow().WithCronSchedule("0 5 */1 * * ?"));
             })
-            .AddTransient<SpialAbyssRecordClearJob>()
+            .AddTransient<SpialAbyssRecordCleanJob>()
             .AddTransient<LegacyStatisticsRefreshJob>()
             .AddQuartzServer(config => config.WaitForJobsToComplete = true);
 

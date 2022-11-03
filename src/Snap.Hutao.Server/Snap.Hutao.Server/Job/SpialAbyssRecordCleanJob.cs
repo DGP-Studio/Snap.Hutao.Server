@@ -11,11 +11,11 @@ namespace Snap.Hutao.Server.Job;
 /// <summary>
 /// 深渊记录清除任务
 /// </summary>
-public class SpialAbyssRecordClearJob : IJob
+public class SpialAbyssRecordCleanJob : IJob
 {
     private readonly AppDbContext appDbContext;
     private readonly RankService rankService;
-    private readonly ILogger<SpialAbyssRecordClearJob> logger;
+    private readonly ILogger<SpialAbyssRecordCleanJob> logger;
 
     /// <summary>
     /// 构造一个新的深渊记录清除任务
@@ -23,7 +23,7 @@ public class SpialAbyssRecordClearJob : IJob
     /// <param name="appDbContext">数据库上下文</param>
     /// <param name="rankService">排行服务</param>
     /// <param name="logger">日志器</param>
-    public SpialAbyssRecordClearJob(AppDbContext appDbContext, RankService rankService, ILogger<SpialAbyssRecordClearJob> logger)
+    public SpialAbyssRecordCleanJob(AppDbContext appDbContext, RankService rankService, ILogger<SpialAbyssRecordCleanJob> logger)
     {
         this.appDbContext = appDbContext;
         this.rankService = rankService;
