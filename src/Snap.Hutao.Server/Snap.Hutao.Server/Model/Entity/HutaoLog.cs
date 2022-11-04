@@ -1,7 +1,6 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
-using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -11,9 +10,15 @@ namespace Snap.Hutao.Server.Model.Entity;
 /// 胡桃上传的日志
 /// </summary>
 [Table("hutao_logs")]
-[Keyless]
 public class HutaoLog
 {
+    /// <summary>
+    /// 主键
+    /// </summary>
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public long PrimaryId { get; set; }
+
     /// <summary>
     /// 设备Id
     /// </summary>
