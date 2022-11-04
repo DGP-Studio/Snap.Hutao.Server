@@ -34,7 +34,7 @@ public class HutaoLogController : ControllerBase
     /// </summary>
     /// <param name="hutaoLog">日志</param>
     /// <returns>任务</returns>
-    [HttpGet("Upload")]
+    [HttpPost("Upload")]
     public IActionResult Upload([FromBody] HutaoLog hutaoLog)
     {
         if (hutaoLog.Id == null)
