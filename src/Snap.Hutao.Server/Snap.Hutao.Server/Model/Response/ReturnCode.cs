@@ -24,6 +24,11 @@ public enum ReturnCode
     InternalStateException = 500001,
 
     /// <summary>
+    /// 无对应的日志Id
+    /// </summary>
+    NoMatchedLogId = 500002,
+
+    /// <summary>
     /// 上个请求尚未结束
     /// </summary>
     PreviousRequestNotCompleted = 500010,

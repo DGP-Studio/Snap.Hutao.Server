@@ -33,22 +33,20 @@ public class SpialAbyssRecordCleanJob : IJob
     /// <inheritdoc/>
     public async Task Execute(IJobExecutionContext context)
     {
-        logger.LogInformation("触发数据清理", DateTime.Now);
+        logger.LogInformation("触发数据清理", DateTimeOffset.Now);
 
         DateTimeOffset lastAllowed = DateTimeOffset.Now - TimeSpan.FromDays(30);
         long lastAllowedTimestamp = lastAllowed.ToUnixTimeSeconds();
 
-        // 等待 .NET 7
-        // https://learn.microsoft.com/zh-cn/ef/core/querying/sql-queries#executing-non-querying-sql
-
         // 批量删除 长期未提交的记录
-        int deletedRecordsCount = await appDbContext.Database
-            .ExecuteSqlInterpolatedAsync($"DELETE FROM records WHERE UploadTime < {lastAllowedTimestamp}")
+        int deletedRecordsCount = await appDbContext.Records
+            .Where(r => r.UploadTime < lastAllowedTimestamp)
+            .ExecuteDeleteAsync()
             .ConfigureAwait(false);
 
         // 批量删除 深渊记录
-        int deletedSpiralCount = await appDbContext.Database
-            .ExecuteSqlRawAsync("DELETE FROM spiral_abysses")
+        int deletedSpiralCount = await appDbContext.SpiralAbysses
+            .ExecuteDeleteAsync()
             .ConfigureAwait(false);
 
         long removedKeys = await rankService.ClearRanksAsync().ConfigureAwait(false);

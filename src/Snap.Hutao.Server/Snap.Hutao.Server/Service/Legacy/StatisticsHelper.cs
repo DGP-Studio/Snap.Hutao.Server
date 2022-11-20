@@ -112,12 +112,12 @@ public static class StatisticsHelper
             Floor = floor,
             Up = upTeamCounter
                 .OrderByDescending(x => x.Value)
-                .Take(16)
+                .Take(32)
                 .Select(kvp => new ItemRate<string, int>(kvp.Key, kvp.Value))
                 .ToList(),
             Down = downTeamCounter
                 .OrderByDescending(x => x.Value)
-                .Take(16)
+                .Take(32)
                 .Select(kvp => new ItemRate<string, int>(kvp.Key, kvp.Value))
                 .ToList(),
         };
