@@ -56,8 +56,9 @@ public class HutaoLogController : ControllerBase
         {
             if (!log.Resolved)
             {
-                ++log.Count;
+                log.Count += 1;
                 log.Time = uploadLog.Time;
+                appDbContext.SaveChanges();
             }
         }
         else
@@ -87,6 +88,7 @@ public class HutaoLogController : ControllerBase
             .AsNoTracking()
             .OrderBy(log => log.Time)
             .Where(log => log.Time > time)
+            .Where(log => log.Resolved == false)
             .Take(10)
             .ToList();
 
@@ -98,9 +100,10 @@ public class HutaoLogController : ControllerBase
     /// </summary>
     /// <param name="pid">主键Id</param>
     /// <returns>结果</returns>
+    [HttpGet("Resolve")]
     public IActionResult Resolve([FromQuery] long pid)
     {
-        var log = appDbContext.HutaoLogs.SingleOrDefault(l => l.PrimaryId == pid);
+        HutaoLog? log = appDbContext.HutaoLogs.SingleOrDefault(l => l.PrimaryId == pid);
 
         if (log != null)
         {
