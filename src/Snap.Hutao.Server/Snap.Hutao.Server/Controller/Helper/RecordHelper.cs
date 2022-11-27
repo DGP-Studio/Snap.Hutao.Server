@@ -50,7 +50,7 @@ public static class RecordHelper
 
         // EntitySpiralAbyss
         EntitySpiralAbyss entitySpiralAbyss = new() { RecordId = entityRecord.PrimaryId };
-        await appDbContext.SpiralAbysses.AddAsync(entitySpiralAbyss).ConfigureAwait(false);
+        appDbContext.SpiralAbysses.Add(entitySpiralAbyss);
         await appDbContext.SaveChangesAsync().ConfigureAwait(false);
 
         long spiralAbyssId = entitySpiralAbyss.PrimaryId;
@@ -62,12 +62,12 @@ public static class RecordHelper
 
         // EntityDamageRank
         EntityDamageRank entityDamageRank = ToEntityDamageRank(record.SpiralAbyss.Damage, spiralAbyssId, record.Uid);
-        await appDbContext.DamageRanks.AddAsync(entityDamageRank).ConfigureAwait(false);
+        appDbContext.DamageRanks.Add(entityDamageRank);
         await appDbContext.SaveChangesAsync().ConfigureAwait(false);
 
         // EntityTakeDamageRank
         EntityTakeDamageRank entityTakeDamageRank = ToEntityTakeDamageRank(record.SpiralAbyss.TakeDamage, spiralAbyssId, record.Uid);
-        await appDbContext.TakeDamageRanks.AddAsync(entityTakeDamageRank).ConfigureAwait(false);
+        appDbContext.TakeDamageRanks.Add(entityTakeDamageRank);
         await appDbContext.SaveChangesAsync().ConfigureAwait(false);
 
         // Redis rank sync

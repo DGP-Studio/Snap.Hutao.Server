@@ -19,9 +19,20 @@ public class StatisticsService
     /// 统计服务正在工作
     /// </summary>
     public const string Working = "StatisticsService.Working";
+    private const int partion = 200;
 
     private readonly AppDbContext appDbContext;
     private readonly IMemoryCache memoryCache;
+
+    // comple queries that used multiple times to increase performance
+    private readonly Func<AppDbContext, long, IEnumerable<EntityRecord>> partionQuery = EF.CompileQuery((AppDbContext context, long lastId) =>
+        context.Records.AsNoTracking().OrderBy(r => r.PrimaryId).Where(r => r.PrimaryId > lastId).Take(partion));
+    private readonly Func<AppDbContext, long, IEnumerable<EntityAvatar>> avatarQuery = EF.CompileQuery((AppDbContext context, long recordId) =>
+        context.Avatars.AsNoTracking().Where(a => a.RecordId == recordId));
+    private readonly Func<AppDbContext, long, EntitySpiralAbyss?> spiralAbyssQuery = EF.CompileQuery((AppDbContext context, long recordId) =>
+        context.SpiralAbysses.AsNoTracking().SingleOrDefault(s => s.RecordId == recordId));
+    private readonly Func<AppDbContext, long, IEnumerable<EntityFloor>> floorQuery = EF.CompileQuery((AppDbContext context, long spiralAbyssId) =>
+        context.SpiralAbyssFloors.AsNoTracking().Where(f => f.SpiralAbyssId == spiralAbyssId));
 
     /// <summary>
     /// 构造一个新的统计服务
@@ -54,34 +65,18 @@ public class StatisticsService
 
     private void RunCore(StatisticsTracker tracker)
     {
-        const int partion = 200;
-
         while (true)
         {
-            List<EntityRecord> part = appDbContext.Records
-                .AsNoTracking()
-                .OrderBy(r => r.PrimaryId)
-                .Where(r => r.PrimaryId > tracker.LastId)
-                .Take(partion)
-                .ToList();
+            List<EntityRecord> part = partionQuery(appDbContext, tracker.LastId).ToList();
 
             foreach (EntityRecord record in part)
             {
-                record.Avatars = appDbContext.Avatars
-                    .AsNoTracking()
-                    .Where(a => a.RecordId == record.PrimaryId)
-                    .ToList();
-
-                record.SpiralAbyss = appDbContext.SpiralAbysses
-                    .AsNoTracking()
-                    .SingleOrDefault(s => s.RecordId == record.PrimaryId);
+                record.Avatars = avatarQuery(appDbContext, record.PrimaryId).ToList();
+                record.SpiralAbyss = spiralAbyssQuery(appDbContext, record.PrimaryId);
 
                 if (record.SpiralAbyss != null)
                 {
-                    record.SpiralAbyss.Floors = appDbContext.SpiralAbyssFloors
-                        .AsNoTracking()
-                        .Where(f => f.SpiralAbyssId == record.SpiralAbyss.PrimaryId)
-                        .ToList();
+                    record.SpiralAbyss.Floors = floorQuery(appDbContext, record.SpiralAbyss.PrimaryId).ToList();
                 }
 
                 tracker.Track(record);

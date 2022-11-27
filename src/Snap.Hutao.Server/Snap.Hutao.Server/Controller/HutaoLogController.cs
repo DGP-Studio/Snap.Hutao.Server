@@ -54,12 +54,8 @@ public class HutaoLogController : ControllerBase
 
         if (log != null)
         {
-            if (!log.Resolved)
-            {
-                log.Count += 1;
-                log.Time = uploadLog.Time;
-                appDbContext.SaveChanges();
-            }
+            log.Count += 1;
+            log.Time = uploadLog.Time;
         }
         else
         {
@@ -70,9 +66,9 @@ public class HutaoLogController : ControllerBase
                 Info = info,
                 Count = 1,
             });
-            appDbContext.SaveChanges();
         }
 
+        appDbContext.SaveChanges();
         return Model.Response.Response.Success("日志上传成功");
     }
 

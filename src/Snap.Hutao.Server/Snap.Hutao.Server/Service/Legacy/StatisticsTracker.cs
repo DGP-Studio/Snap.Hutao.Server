@@ -16,6 +16,7 @@ namespace Snap.Hutao.Server.Service.Legacy;
 /// </summary>
 public class StatisticsTracker
 {
+    #region Counters
     // 对应层满星 | 出场
     private readonly Map<AvatarId, int> level09PresentCounter = new();
     private readonly Map<AvatarId, int> level10PresentCounter = new();
@@ -62,6 +63,7 @@ public class StatisticsTracker
     private int level10TotalRecordCounter;
     private int level11TotalRecordCounter;
     private int level12TotalRecordCounter;
+    #endregion
 
     /// <summary>
     /// 最后处理的Id
@@ -155,24 +157,6 @@ public class StatisticsTracker
     {
         int scheduleId = StatisticsHelper.GetScheduleId();
 
-        // Overview
-        {
-            double totalTime = stopwatch.GetElapsedTime().TotalMilliseconds;
-
-            Overview overview = new()
-            {
-                ScheduleId = scheduleId,
-                RecordTotal = totalRecordCounter,
-                SpiralAbyssTotal = totalSpiralAbyssCounter,
-                SpiralAbyssFullStar = level12TotalRecordCounter,
-                Timestamp = DateTimeOffset.Now.ToUnixTimeMilliseconds(),
-                TimeTotal = totalTime,
-                TimeAverage = totalTime / totalRecordCounter,
-            };
-
-            StatisticsHelper.SaveStatistics(appDbContext, memoryCache, scheduleId, LegacyStatistics.Overview, overview);
-        }
-
         // AvatarAppearanceRank
         {
             List<AvatarAppearanceRank> avatarAppearanceRanks = new()
@@ -238,6 +222,24 @@ public class StatisticsTracker
             };
 
             StatisticsHelper.SaveStatistics(appDbContext, memoryCache, scheduleId, LegacyStatistics.TeamAppearance, teamAppearances);
+        }
+
+        // Overview
+        {
+            double totalTime = stopwatch.GetElapsedTime().TotalMilliseconds;
+
+            Overview overview = new()
+            {
+                ScheduleId = scheduleId,
+                RecordTotal = totalRecordCounter,
+                SpiralAbyssTotal = totalSpiralAbyssCounter,
+                SpiralAbyssFullStar = level12TotalRecordCounter,
+                Timestamp = DateTimeOffset.Now.ToUnixTimeMilliseconds(),
+                TimeTotal = totalTime,
+                TimeAverage = totalTime / totalRecordCounter,
+            };
+
+            StatisticsHelper.SaveStatistics(appDbContext, memoryCache, scheduleId, LegacyStatistics.Overview, overview);
         }
     }
 
