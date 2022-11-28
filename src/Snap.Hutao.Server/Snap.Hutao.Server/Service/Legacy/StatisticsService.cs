@@ -19,18 +19,21 @@ public class StatisticsService
     /// 统计服务正在工作
     /// </summary>
     public const string Working = "StatisticsService.Working";
-    private const int partion = 200;
+    private const int Partion = 200;
 
     private readonly AppDbContext appDbContext;
     private readonly IMemoryCache memoryCache;
 
     // comple queries that used multiple times to increase performance
     private readonly Func<AppDbContext, long, IEnumerable<EntityRecord>> partionQuery = EF.CompileQuery((AppDbContext context, long lastId) =>
-        context.Records.AsNoTracking().OrderBy(r => r.PrimaryId).Where(r => r.PrimaryId > lastId).Take(partion));
+        context.Records.AsNoTracking().OrderBy(r => r.PrimaryId).Where(r => r.PrimaryId > lastId).Take(Partion));
+
     private readonly Func<AppDbContext, long, IEnumerable<EntityAvatar>> avatarQuery = EF.CompileQuery((AppDbContext context, long recordId) =>
         context.Avatars.AsNoTracking().Where(a => a.RecordId == recordId));
+
     private readonly Func<AppDbContext, long, EntitySpiralAbyss?> spiralAbyssQuery = EF.CompileQuery((AppDbContext context, long recordId) =>
         context.SpiralAbysses.AsNoTracking().SingleOrDefault(s => s.RecordId == recordId));
+
     private readonly Func<AppDbContext, long, IEnumerable<EntityFloor>> floorQuery = EF.CompileQuery((AppDbContext context, long spiralAbyssId) =>
         context.SpiralAbyssFloors.AsNoTracking().Where(f => f.SpiralAbyssId == spiralAbyssId));
 
@@ -82,7 +85,7 @@ public class StatisticsService
                 tracker.Track(record);
             }
 
-            if (part.Count < partion)
+            if (part.Count < Partion)
             {
                 break;
             }

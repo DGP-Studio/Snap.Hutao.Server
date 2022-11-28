@@ -8,7 +8,7 @@ namespace Snap.Hutao.Server.Core;
 /// <summary>
 /// 值类型的<see cref="Stopwatch"/>
 /// </summary>
-public struct ValueStopwatch
+public readonly struct ValueStopwatch
 {
     private static readonly double TimestampToTicks = TimeSpan.TicksPerSecond / (double)Stopwatch.Frequency;
 

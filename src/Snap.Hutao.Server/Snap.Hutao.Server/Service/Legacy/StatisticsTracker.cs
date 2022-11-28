@@ -44,6 +44,9 @@ public class StatisticsTracker
     // 角色 | 圣遗物搭配
     private readonly Map<AvatarId, Map<ReliquarySets, int>> avatarReliquaryBuildCounter = new();
 
+    // 武器 | 角色搭配
+    private readonly Map<WeaponId, Map<AvatarId, int>> wepaonAvatarBuildCounter = new();
+
     // 对应层满星 | 队伍出场
     private readonly Map<Team, int> level09Battle1TeamCounter = new();
     private readonly Map<Team, int> level09Battle2TeamCounter = new();
@@ -142,8 +145,10 @@ public class StatisticsTracker
         {
             EntityAvatar avatar = holdingAvatars[recordAvatarId];
 
-            avatarWeaponBuildCounter.GetOrAdd(recordAvatarId, key => new()).Increase(avatar.WeaponId);
-            avatarReliquaryBuildCounter.GetOrAdd(recordAvatarId, key => new()).Increase(avatar.ReliquarySet);
+            avatarWeaponBuildCounter.GetOrNew(recordAvatarId).Increase(avatar.WeaponId);
+            avatarReliquaryBuildCounter.GetOrNew(recordAvatarId).Increase(avatar.ReliquarySet);
+
+            wepaonAvatarBuildCounter.GetOrNew(avatar.WeaponId).Increase(recordAvatarId);
         }
     }
 
@@ -209,6 +214,19 @@ public class StatisticsTracker
             }).ToList();
 
             StatisticsHelper.SaveStatistics(appDbContext, memoryCache, scheduleId, LegacyStatistics.AvatarCollocation, avatarCollocations);
+        }
+
+        // WeaponCollocation
+        {
+            List<WeaponCollocation> weaponCollocations = wepaonAvatarBuildCounter.Select(kvp =>
+            {
+                WeaponId weapon = kvp.Key;
+                Map<AvatarId, int> avatarBuildCounter = wepaonAvatarBuildCounter[kvp.Key];
+
+                return StatisticsHelper.WeaponCollocation(weapon, avatarBuildCounter);
+            }).ToList();
+
+            StatisticsHelper.SaveStatistics(appDbContext, memoryCache, scheduleId, LegacyStatistics.WeaponCollocation, weaponCollocations);
         }
 
         // TeamAppearance
@@ -322,7 +340,7 @@ public class StatisticsTracker
         {
             foreach (int otherAvatar in team.Where(avatar => avatar != currentAvatar))
             {
-                avatarAvatarBuildCounter.GetOrAdd(currentAvatar, key => new()).Increase(otherAvatar);
+                avatarAvatarBuildCounter.GetOrNew(currentAvatar).Increase(otherAvatar);
             }
         }
     }

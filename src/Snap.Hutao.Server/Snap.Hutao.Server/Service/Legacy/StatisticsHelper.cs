@@ -99,6 +99,26 @@ public static class StatisticsHelper
     }
 
     /// <summary>
+    /// 构筑一个新的武器搭配
+    /// </summary>
+    /// <param name="weaponId">武器Id</param>
+    /// <param name="avatarBuildCounter">角色计数器</param>
+    /// <returns>武器搭配</returns>
+    public static WeaponCollocation WeaponCollocation(WeaponId weaponId, Map<AvatarId, int> avatarBuildCounter)
+    {
+        double coAvatarTotalCount = avatarBuildCounter.Sum(kvp => kvp.Value);
+
+        return new(weaponId)
+        {
+            Avatars = avatarBuildCounter
+                .OrderByDescending(x => x.Value)
+                .Take(8)
+                .Select(kvp => new ItemRate<int, double>(kvp.Key, kvp.Value / coAvatarTotalCount))
+                .ToList(),
+        };
+    }
+
+    /// <summary>
     /// 构造一个新的队伍出场
     /// </summary>
     /// <param name="floor">层</param>

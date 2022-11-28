@@ -38,6 +38,11 @@ public class LegacyStatistics
     public const string AvatarCollocation = "AvatarCollocation";
 
     /// <summary>
+    /// 武器搭配信息
+    /// </summary>
+    public const string WeaponCollocation = "WeaponCollocation";
+
+    /// <summary>
     /// 队伍出场
     /// </summary>
     public const string TeamAppearance = "TeamAppearance";

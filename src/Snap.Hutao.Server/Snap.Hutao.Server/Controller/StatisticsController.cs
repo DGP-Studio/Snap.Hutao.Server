@@ -85,6 +85,16 @@ public class StatisticsController : ControllerBase
     }
 
     /// <summary>
+    /// 获取武器搭配
+    /// </summary>
+    /// <returns>武器搭配</returns>
+    [HttpGet("Weapon/WeaponCollocation")]
+    public IActionResult WeaponCollocation()
+    {
+        return GetStatistics<List<WeaponCollocation>>(LegacyStatistics.WeaponCollocation);
+    }
+
+    /// <summary>
     /// 获取队伍上场
     /// </summary>
     /// <returns>队伍上场</returns>

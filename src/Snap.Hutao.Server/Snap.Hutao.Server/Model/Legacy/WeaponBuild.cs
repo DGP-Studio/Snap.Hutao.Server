@@ -6,29 +6,29 @@ using System.Text.Json.Serialization;
 namespace Snap.Hutao.Server.Model.Legacy;
 
 /// <summary>
-/// 角色相关构筑
+/// 武器相关构筑
 /// </summary>
-public abstract class AvatarBuild
+public abstract class WeaponBuild
 {
     /// <summary>
     /// 构造一个新的角色构筑信息
     /// </summary>
     [JsonConstructor]
-    public AvatarBuild()
+    public WeaponBuild()
     {
     }
 
     /// <summary>
-    /// 构造一个新的角色构筑信息
+    /// 构造一个新的武器构筑信息
     /// </summary>
-    /// <param name="avatarId">角色Id</param>
-    public AvatarBuild(int avatarId)
+    /// <param name="weaponId">武器Id</param>
+    public WeaponBuild(int weaponId)
     {
-        AvatarId = avatarId;
+        WeaponId = weaponId;
     }
 
     /// <summary>
-    /// 角色Id
+    /// 武器Id
     /// </summary>
-    public int AvatarId { get; set; }
+    public int WeaponId { get; set; }
 }

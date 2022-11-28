@@ -82,7 +82,7 @@ public class HutaoLogController : ControllerBase
     {
         List<HutaoLog> result = appDbContext.HutaoLogs
             .AsNoTracking()
-            .OrderBy(log => log.Time)
+            .OrderBy(log => log.Count)
             .Where(log => log.Time > time)
             .Where(log => log.Resolved == false)
             .Take(10)
