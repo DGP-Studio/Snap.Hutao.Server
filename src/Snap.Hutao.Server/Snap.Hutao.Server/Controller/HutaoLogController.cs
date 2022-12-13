@@ -55,35 +55,68 @@ public class HutaoLogController : ControllerBase
         if (log != null)
         {
             log.Count += 1;
-            log.Time = uploadLog.Time;
         }
         else
         {
-            appDbContext.HutaoLogs.Add(new HutaoLog
+            log = new HutaoLog
             {
-                Id = uploadLog.Id,
-                Time = uploadLog.Time,
                 Info = info,
                 Count = 1,
-            });
+            };
+            appDbContext.HutaoLogs.Add(log);
         }
 
         appDbContext.SaveChanges();
+
+        HutaoLogSingleItem singleItem = new()
+        {
+            LogId = log.PrimaryId,
+            DeviceId = uploadLog.Id,
+            Time = uploadLog.Time,
+        };
+        appDbContext.HutaoLogSingleItems.Add(singleItem);
+        appDbContext.SaveChanges();
+
         return Model.Response.Response.Success("日志上传成功");
+    }
+
+    /// <summary>
+    /// 按设备Id给出最近3次的崩溃信息
+    /// </summary>
+    /// <param name="deviceId">设备Id</param>
+    /// <returns>最近3次的崩溃信息</returns>
+    [HttpGet("ByDeviceId")]
+    public IActionResult ByDeviceId([FromQuery(Name = "id")] string deviceId)
+    {
+        List<HutaoLogSingleItem> items = appDbContext.HutaoLogSingleItems
+            .AsNoTracking()
+            .Where(i => i.DeviceId == deviceId)
+            .OrderByDescending(i => i.Time)
+            .Take(3)
+            .ToList();
+
+        List<HutaoLog> logs = new(3);
+
+        foreach (HutaoLogSingleItem item in items)
+        {
+            long logId = item.LogId;
+            HutaoLog log = appDbContext.HutaoLogs.AsNoTracking().Single(x => x.PrimaryId == logId);
+            logs.Add(log);
+        }
+
+        return Response<List<HutaoLog>>.Success("获取记录成功", logs);
     }
 
     /// <summary>
     /// 获取未完成的列表
     /// </summary>
-    /// <param name="time">时间</param>
     /// <returns>未完成的列表</returns>
     [HttpGet("Unresolved")]
-    public IActionResult Unresolved([FromQuery]long time)
+    public IActionResult Unresolved()
     {
         List<HutaoLog> result = appDbContext.HutaoLogs
             .AsNoTracking()
-            .OrderBy(log => log.Count)
-            .Where(log => log.Time > time)
+            .OrderByDescending(log => log.Count)
             .Where(log => log.Resolved == false)
             .Take(10)
             .ToList();

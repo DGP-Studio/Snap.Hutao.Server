@@ -28,7 +28,7 @@ public class RequestFilter : IAsyncActionFilter
     public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
     {
         string path = context.HttpContext.Request.Path;
-        string ua = context.HttpContext.Request.Headers.UserAgent;
+        string? ua = context.HttpContext.Request.Headers.UserAgent;
 
         using (await appDbContext.OperationLock.EnterAsync().ConfigureAwait(false))
         {

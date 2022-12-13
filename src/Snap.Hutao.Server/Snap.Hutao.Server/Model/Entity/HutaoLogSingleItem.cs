@@ -7,10 +7,10 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Snap.Hutao.Server.Model.Entity;
 
 /// <summary>
-/// 胡桃上传的日志
+/// 单个日志信息
 /// </summary>
-[Table("hutao_logs")]
-public class HutaoLog
+[Table("hutao_log_items")]
+public class HutaoLogSingleItem
 {
     /// <summary>
     /// 主键
@@ -20,17 +20,24 @@ public class HutaoLog
     public long PrimaryId { get; set; }
 
     /// <summary>
-    /// 错误信息
+    /// 外键
     /// </summary>
-    public string Info { get; set; } = default!;
+    public long LogId { get; set; }
 
     /// <summary>
-    /// 个数
+    /// 外键对象
     /// </summary>
-    public int Count { get; set; } = default!;
+    [ForeignKey(nameof(LogId))]
+    public HutaoLog Log { get; set; } = default!;
 
     /// <summary>
-    /// 是否已经解决
+    /// 设备Id
     /// </summary>
-    public bool Resolved { get; set; }
+    [MaxLength(32)]
+    public string DeviceId { get; set; } = default!;
+
+    /// <summary>
+    /// 崩溃时间
+    /// </summary>
+    public long Time { get; set; }
 }

@@ -74,6 +74,11 @@ public class AppDbContext : DbContext
     public DbSet<HutaoLog> HutaoLogs { get; set; } = default!;
 
     /// <summary>
+    /// 单个日志
+    /// </summary>
+    public DbSet<HutaoLogSingleItem> HutaoLogSingleItems { get; set; } = default!;
+
+    /// <summary>
     /// 操作锁
     /// </summary>
     public SemaphoreSlim OperationLock => operationLock;
