@@ -34,7 +34,7 @@ public sealed class RankService : IDisposable
     /// <param name="damage">造成伤害</param>
     /// <param name="takeDamage">受到伤害</param>
     /// <returns>任务</returns>
-    public async Task SaveRankAsync(string uid, SimpleRank damage, SimpleRank takeDamage)
+    public async Task SaveRankAsync(string uid, SimpleRank damage, SimpleRank? takeDamage)
     {
         IDatabase db = redis.GetDatabase(12);
 
@@ -46,16 +46,19 @@ public sealed class RankService : IDisposable
         // 保存使用过的键
         await db.SetAddAsync("Hutao.UsedKeys", "Hutao.Damage.Avatar.All").ConfigureAwait(false);
         await db.SetAddAsync("Hutao.UsedKeys", "Hutao.TakeDamage.Avatar.All").ConfigureAwait(false);
-        await db.SetAddAsync("Hutao.UsedKeys", $"Hutao.Damage.Avatar.{damage.AvatarId}").ConfigureAwait(false);
-        await db.SetAddAsync("Hutao.UsedKeys", $"Hutao.TakeDamage.Avatar.{takeDamage.AvatarId}").ConfigureAwait(false);
 
         // 造成伤害
+        await db.SetAddAsync("Hutao.UsedKeys", $"Hutao.Damage.Avatar.{damage.AvatarId}").ConfigureAwait(false);
         await db.SortedSetAddAsync($"Hutao.Damage.Avatar.{damage.AvatarId}", uid, damage.Value).ConfigureAwait(false);
         await db.SortedSetAddAsync("Hutao.Damage.Avatar.All", uid, damage.Value).ConfigureAwait(false);
 
         // 受到伤害
-        await db.SortedSetAddAsync($"Hutao.TakeDamage.Avatar.{takeDamage.AvatarId}", uid, takeDamage.Value).ConfigureAwait(false);
-        await db.SortedSetAddAsync("Hutao.TakeDamage.Avatar.All", uid, takeDamage.Value).ConfigureAwait(false);
+        if (takeDamage != null)
+        {
+            await db.SetAddAsync("Hutao.UsedKeys", $"Hutao.TakeDamage.Avatar.{takeDamage.AvatarId}").ConfigureAwait(false);
+            await db.SortedSetAddAsync($"Hutao.TakeDamage.Avatar.{takeDamage.AvatarId}", uid, takeDamage.Value).ConfigureAwait(false);
+            await db.SortedSetAddAsync("Hutao.TakeDamage.Avatar.All", uid, takeDamage.Value).ConfigureAwait(false);
+        }
     }
 
     /// <summary>
@@ -76,30 +79,33 @@ public sealed class RankService : IDisposable
             takeDamage = appDbContext.TakeDamageRanks.SingleOrDefault(r => r.Uid == uid);
         }
 
-        if (damage == null || takeDamage == null)
+        if (damage == null)
         {
             return new(null, null);
         }
 
         IDatabase db = redis.GetDatabase(12);
 
-        long damageTotal = await db.SortedSetLengthAsync("Hutao.Damage.Avatar.All").ConfigureAwait(false);
-        long takeDamageTotal = await db.SortedSetLengthAsync("Hutao.TakeDamage.Avatar.All").ConfigureAwait(false);
-
-        long avatarDamageTotal = await db.SortedSetLengthAsync($"Hutao.Damage.Avatar.{damage.AvatarId}").ConfigureAwait(false);
-        long avatarTakeDamageTotal = await db.SortedSetLengthAsync($"Hutao.TakeDamage.Avatar.{damage.AvatarId}").ConfigureAwait(false);
-
         long damageIndex = await db.SortedSetRankAsync("Hutao.Damage.Avatar.All", uid).ConfigureAwait(false) ?? 0;
-        long takeDamageIndex = await db.SortedSetRankAsync("Hutao.TakeDamage.Avatar.All", uid).ConfigureAwait(false) ?? 0;
-
+        long damageTotal = await db.SortedSetLengthAsync("Hutao.Damage.Avatar.All").ConfigureAwait(false);
         long avatarDamageIndex = await db.SortedSetRankAsync($"Hutao.Damage.Avatar.{damage.AvatarId}", uid).ConfigureAwait(false) ?? 0;
-        long avatarTakeDamageIndex = await db.SortedSetRankAsync($"Hutao.TakeDamage.Avatar.{damage.AvatarId}", uid).ConfigureAwait(false) ?? 0;
+        long avatarDamageTotal = await db.SortedSetLengthAsync($"Hutao.Damage.Avatar.{damage.AvatarId}").ConfigureAwait(false);
 
         RankValue damageValue = new(
             damage.AvatarId,
             damage.Value,
             GetRankValue(damageIndex, damageTotal),
             GetRankValue(avatarDamageIndex, avatarDamageTotal));
+
+        if (takeDamage == null)
+        {
+            return new Rank(damageValue, null);
+        }
+
+        long takeDamageIndex = await db.SortedSetRankAsync("Hutao.TakeDamage.Avatar.All", uid).ConfigureAwait(false) ?? 0;
+        long takeDamageTotal = await db.SortedSetLengthAsync("Hutao.TakeDamage.Avatar.All").ConfigureAwait(false);
+        long avatarTakeDamageIndex = await db.SortedSetRankAsync($"Hutao.TakeDamage.Avatar.{damage.AvatarId}", uid).ConfigureAwait(false) ?? 0;
+        long avatarTakeDamageTotal = await db.SortedSetLengthAsync($"Hutao.TakeDamage.Avatar.{damage.AvatarId}").ConfigureAwait(false);
 
         RankValue takeDamageValue = new(
             takeDamage.AvatarId,

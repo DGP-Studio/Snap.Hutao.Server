@@ -194,7 +194,7 @@ public static class StatisticsHelper
     {
         if (memoryCache.TryGetValue(name, out object? data))
         {
-            return (T)data;
+            return (T)data!;
         }
 
         LegacyStatistics? statistics = appDbContext.Statistics

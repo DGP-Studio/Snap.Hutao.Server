@@ -29,7 +29,7 @@ public static class MemoryCacheExtension
         return new MemoryCacheFlagRemover(memoryCache, name);
     }
 
-    private struct MemoryCacheFlagRemover : IDisposable
+    private readonly struct MemoryCacheFlagRemover : IDisposable
     {
         private readonly IMemoryCache memoryCache;
         private readonly string name;

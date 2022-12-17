@@ -30,7 +30,7 @@ public class RequestStatistics
     {
         HttpRequest request = context.HttpContext.Request;
 
-        UserAgent = request.Headers.UserAgent;
+        UserAgent = (string?)request.Headers.UserAgent ?? string.Empty;
         Path = request.Path;
         Count = 0;
     }

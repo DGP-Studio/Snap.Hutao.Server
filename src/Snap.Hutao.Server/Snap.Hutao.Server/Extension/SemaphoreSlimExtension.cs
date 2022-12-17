@@ -19,7 +19,7 @@ public static class SemaphoreSlimExtension
         return new SemaphoreSlimReleaser(semaphoreSlim);
     }
 
-    private struct SemaphoreSlimReleaser : IDisposable
+    private readonly struct SemaphoreSlimReleaser : IDisposable
     {
         private readonly SemaphoreSlim semaphoreSlim;
 

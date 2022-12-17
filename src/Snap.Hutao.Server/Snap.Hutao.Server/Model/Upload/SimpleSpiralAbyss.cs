@@ -21,7 +21,7 @@ public class SimpleSpiralAbyss
     /// <summary>
     /// 受到伤害
     /// </summary>
-    public SimpleRank TakeDamage { get; set; } = default!;
+    public SimpleRank? TakeDamage { get; set; } = default!;
 
     /// <summary>
     /// 层

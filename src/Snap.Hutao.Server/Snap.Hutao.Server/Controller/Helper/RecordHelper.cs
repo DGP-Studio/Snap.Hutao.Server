@@ -66,9 +66,12 @@ public static class RecordHelper
         await appDbContext.SaveChangesAsync().ConfigureAwait(false);
 
         // EntityTakeDamageRank
-        EntityTakeDamageRank entityTakeDamageRank = ToEntityTakeDamageRank(record.SpiralAbyss.TakeDamage, spiralAbyssId, record.Uid);
-        appDbContext.TakeDamageRanks.Add(entityTakeDamageRank);
-        await appDbContext.SaveChangesAsync().ConfigureAwait(false);
+        if (record.SpiralAbyss.TakeDamage != null)
+        {
+            EntityTakeDamageRank entityTakeDamageRank = ToEntityTakeDamageRank(record.SpiralAbyss.TakeDamage, spiralAbyssId, record.Uid);
+            appDbContext.TakeDamageRanks.Add(entityTakeDamageRank);
+            await appDbContext.SaveChangesAsync().ConfigureAwait(false);
+        }
 
         // Redis rank sync
         await rankService.SaveRankAsync(record.Uid, record.SpiralAbyss.Damage, record.SpiralAbyss.TakeDamage).ConfigureAwait(false);
