@@ -26,7 +26,7 @@ namespace Snap.Hutao.Server.Migrations
 
                     b.HasKey("Uid");
 
-                    b.ToTable("banned");
+                    b.ToTable("banned", (string)null);
                 });
 
             modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.EntityAvatar", b =>
@@ -55,7 +55,7 @@ namespace Snap.Hutao.Server.Migrations
 
                     b.HasIndex("RecordId");
 
-                    b.ToTable("avatars");
+                    b.ToTable("avatars", (string)null);
                 });
 
             modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.EntityDamageRank", b =>
@@ -84,7 +84,7 @@ namespace Snap.Hutao.Server.Migrations
 
                     b.HasIndex("Value");
 
-                    b.ToTable("damage_ranks");
+                    b.ToTable("damage_ranks", (string)null);
                 });
 
             modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.EntityFloor", b =>
@@ -110,7 +110,7 @@ namespace Snap.Hutao.Server.Migrations
 
                     b.HasIndex("SpiralAbyssId");
 
-                    b.ToTable("spiral_abysses_floors");
+                    b.ToTable("spiral_abysses_floors", (string)null);
                 });
 
             modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.EntityRecord", b =>
@@ -133,7 +133,7 @@ namespace Snap.Hutao.Server.Migrations
 
                     b.HasKey("PrimaryId");
 
-                    b.ToTable("records");
+                    b.ToTable("records", (string)null);
                 });
 
             modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.EntitySpiralAbyss", b =>
@@ -150,7 +150,7 @@ namespace Snap.Hutao.Server.Migrations
                     b.HasIndex("RecordId")
                         .IsUnique();
 
-                    b.ToTable("spiral_abysses");
+                    b.ToTable("spiral_abysses", (string)null);
                 });
 
             modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.EntityTakeDamageRank", b =>
@@ -179,7 +179,7 @@ namespace Snap.Hutao.Server.Migrations
 
                     b.HasIndex("Value");
 
-                    b.ToTable("take_damage_ranks");
+                    b.ToTable("take_damage_ranks", (string)null);
                 });
 
             modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.HutaoLog", b =>
@@ -200,7 +200,7 @@ namespace Snap.Hutao.Server.Migrations
 
                     b.HasKey("PrimaryId");
 
-                    b.ToTable("hutao_logs");
+                    b.ToTable("hutao_logs", (string)null);
                 });
 
             modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.HutaoLogSingleItem", b =>
@@ -224,7 +224,7 @@ namespace Snap.Hutao.Server.Migrations
 
                     b.HasIndex("LogId");
 
-                    b.ToTable("hutao_log_items");
+                    b.ToTable("hutao_log_items", (string)null);
                 });
 
             modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.LegacyStatistics", b =>
@@ -246,7 +246,7 @@ namespace Snap.Hutao.Server.Migrations
 
                     b.HasKey("PrimaryId");
 
-                    b.ToTable("spiral_abysses_statistics");
+                    b.ToTable("spiral_abysses_statistics", (string)null);
                 });
 
             modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.RequestStatistics", b =>
@@ -268,7 +268,7 @@ namespace Snap.Hutao.Server.Migrations
 
                     b.HasKey("PrimaryId");
 
-                    b.ToTable("request_statistics");
+                    b.ToTable("request_statistics", (string)null);
                 });
 
             modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.EntityAvatar", b =>
