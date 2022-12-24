@@ -8,11 +8,14 @@ using Snap.Hutao.Server.Model.Entity;
 using Snap.Hutao.Server.Model.Legacy;
 using Snap.Hutao.Server.Model.Upload;
 using Snap.Hutao.Server.Service.Legacy.Primitive;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace Snap.Hutao.Server.Service.Legacy;
 
 /// <summary>
 /// 统计追踪器
+/// TODO: 不换队专项统计/一遍过、三间连打统计/总览
 /// </summary>
 public class StatisticsTracker
 {
@@ -61,11 +64,17 @@ public class StatisticsTracker
     private int totalRecordCounter;
     private int totalSpiralAbyssCounter;
 
-    // 对应层总记录数
+    // 对应层满星总记录数
     private int level09TotalRecordCounter;
     private int level10TotalRecordCounter;
     private int level11TotalRecordCounter;
     private int level12TotalRecordCounter;
+    #endregion
+
+    #region Specialized Counters
+    private int totalSpiralAbyssPassedCounter;
+    private int totalSpiralAbyssStarCounter;
+    private long totalSpiralAbyssBattleTimesCounter;
     #endregion
 
     /// <summary>
@@ -82,30 +91,50 @@ public class StatisticsTracker
         LastId = record.PrimaryId;
 
         ++totalRecordCounter;
-        Map<AvatarId, EntityAvatar> holdingAvatars = new();
+        Map<AvatarId, EntityAvatar> holdingAvatarMap = new();
 
         // 遍历角色
-        foreach (EntityAvatar avatar in record.Avatars)
+        Span<EntityAvatar> recordAvatars = CollectionsMarshal.AsSpan(record.Avatars);
+        ref EntityAvatar avatarAtZero = ref MemoryMarshal.GetReference(recordAvatars);
+        for (int i = 0; i < recordAvatars.Length; i++)
         {
-            holdingAvatars.Add(avatar.AvatarId, avatar);
+            ref EntityAvatar avatar = ref Unsafe.Add(ref avatarAtZero, i);
+
+            // 在 for 循环中顺便填充了Id -> Entity 映射
+            holdingAvatarMap.Add(avatar.AvatarId, avatar);
+
+            // 递增角色持有数
             avatarHoldingCounter.Increase(avatar.AvatarId);
+
+            // 递增角色命座持有数
             avatarConstellationCounter.GetOrAdd(avatar.AvatarId, Maps.ForConstellation).Increase(avatar.ActivedConstellationNumber);
         }
 
-        // 仅当深渊记录存在时，统计才有意义
+        // 仅当深渊记录存在时，下方的统计才有意义
         if (record.SpiralAbyss == null)
         {
             return;
         }
 
         ++totalSpiralAbyssCounter;
+        totalSpiralAbyssBattleTimesCounter += record.SpiralAbyss.TotalBattleTimes;
 
         // 深渊上场过的角色
         HashSet<AvatarId> recordPresentAvatars = new();
 
         // 遍历楼层
-        foreach (EntityFloor floor in record.SpiralAbyss.Floors)
+        Span<EntityFloor> floorSpan = CollectionsMarshal.AsSpan(record.SpiralAbyss.Floors);
+        ref EntityFloor floorAtZero = ref MemoryMarshal.GetReference(floorSpan);
+        for (int i = 0; i < floorSpan.Length; i++)
         {
+            ref EntityFloor floor = ref Unsafe.Add(ref floorAtZero, i);
+            totalSpiralAbyssStarCounter += floor.Star;
+
+            if (floor.Index == 12 && floor.Levels.Count == 3)
+            {
+                ++totalSpiralAbyssPassedCounter;
+            }
+
             // 跳过非满星的数据
             if (floor.Star < 9)
             {
@@ -116,23 +145,34 @@ public class StatisticsTracker
 
             IncreaseCurrentFloorRecordCount(floor.Index);
 
-            foreach (AvatarId holdAvatarId in holdingAvatars.Keys)
+            // reuse the ref variable
+            for (int j = 0; j < recordAvatars.Length; j++)
             {
-                IncreaseCurrentFloorHoldingAvatarRecordCount(floor.Index, holdAvatarId);
+                ref EntityAvatar avatar = ref Unsafe.Add(ref avatarAtZero, i);
+                IncreaseCurrentFloorHoldingAvatarRecordCount(floor.Index, avatar.AvatarId);
             }
 
-            foreach (SimpleBattle battle in floor.Levels.SelectMany(l => l.Battles))
+            Span<SimpleLevel> levels = CollectionsMarshal.AsSpan(floor.Levels);
+            ref SimpleLevel levelAtZero = ref MemoryMarshal.GetReference(levels);
+            for (int j = 0; j < levels.Length; j++)
             {
-                // 递增队伍出现次数
-                Team team = StatisticsHelper.AsTeam(battle.Avatars);
-                IncreaseCurrentFloorUpDownTeamCount(floor.Index, battle.Index, team);
-                IncreaseAvatarAvatarBuild(battle.Avatars);
+                ref SimpleLevel level = ref Unsafe.Add(ref levelAtZero, j);
 
-                foreach (AvatarId avatarId in battle.Avatars)
-                {
-                    recordPresentAvatars.Add(avatarId);
-                    floorPresentAvatars.Add(avatarId);
-                }
+                // 最多仅能出现两次战斗
+                // 所以我们在此处避免了额外的一层 for
+                SimpleBattle battleUp = level.Battles[0];
+                Team teamUp = StatisticsHelper.AsTeam(battleUp.Avatars);
+                IncreaseCurrentFloorUpDownTeamCount(floor.Index, battleUp.Index, teamUp);
+                IncreaseAvatarAvatarBuild(teamUp);
+                StatisticsHelper.AddTeamAvatarToHashSet(teamUp, recordPresentAvatars);
+                StatisticsHelper.AddTeamAvatarToHashSet(teamUp, floorPresentAvatars);
+
+                SimpleBattle battleDown = level.Battles[1];
+                Team teamDown = StatisticsHelper.AsTeam(battleDown.Avatars);
+                IncreaseCurrentFloorUpDownTeamCount(floor.Index, battleDown.Index, teamDown);
+                IncreaseAvatarAvatarBuild(teamDown);
+                StatisticsHelper.AddTeamAvatarToHashSet(teamDown, recordPresentAvatars);
+                StatisticsHelper.AddTeamAvatarToHashSet(teamDown, floorPresentAvatars);
             }
 
             foreach (AvatarId avatarId in floorPresentAvatars)
@@ -143,7 +183,7 @@ public class StatisticsTracker
 
         foreach (AvatarId recordAvatarId in recordPresentAvatars)
         {
-            EntityAvatar avatar = holdingAvatars[recordAvatarId];
+            EntityAvatar avatar = holdingAvatarMap[recordAvatarId];
 
             avatarWeaponBuildCounter.GetOrNew(recordAvatarId).Increase(avatar.WeaponId);
             avatarReliquaryBuildCounter.GetOrNew(recordAvatarId).Increase(avatar.ReliquarySet);
@@ -162,7 +202,7 @@ public class StatisticsTracker
     {
         int scheduleId = StatisticsHelper.GetScheduleId();
 
-        // AvatarAppearanceRank
+        // 角色出场率 AvatarAppearanceRank
         {
             List<AvatarAppearanceRank> avatarAppearanceRanks = new()
             {
@@ -175,7 +215,7 @@ public class StatisticsTracker
             StatisticsHelper.SaveStatistics(appDbContext, memoryCache, scheduleId, LegacyStatistics.AvatarAppearanceRank, avatarAppearanceRanks);
         }
 
-        // AvatarUsageRank
+        // 角色使用率 AvatarUsageRank
         {
             List<AvatarUsageRank> avatarUsageRanks = new()
             {
@@ -229,7 +269,7 @@ public class StatisticsTracker
             StatisticsHelper.SaveStatistics(appDbContext, memoryCache, scheduleId, LegacyStatistics.WeaponCollocation, weaponCollocations);
         }
 
-        // TeamAppearance
+        // 队伍出场 TeamAppearance
         {
             List<TeamAppearance> teamAppearances = new()
             {
@@ -242,7 +282,7 @@ public class StatisticsTracker
             StatisticsHelper.SaveStatistics(appDbContext, memoryCache, scheduleId, LegacyStatistics.TeamAppearance, teamAppearances);
         }
 
-        // Overview
+        // 总览数据 Overview
         {
             double totalTime = stopwatch.GetElapsedTime().TotalMilliseconds;
 
@@ -251,6 +291,9 @@ public class StatisticsTracker
                 ScheduleId = scheduleId,
                 RecordTotal = totalRecordCounter,
                 SpiralAbyssTotal = totalSpiralAbyssCounter,
+                SpiralAbyssStarTotal = totalSpiralAbyssStarCounter,
+                SpiralAbyssBattleTotal = totalSpiralAbyssBattleTimesCounter,
+                SpiralAbyssPassed = totalSpiralAbyssPassedCounter,
                 SpiralAbyssFullStar = level12TotalRecordCounter,
                 Timestamp = DateTimeOffset.Now.ToUnixTimeMilliseconds(),
                 TimeTotal = totalTime,
@@ -334,14 +377,33 @@ public class StatisticsTracker
     /// 递增角色搭配
     /// </summary>
     /// <param name="team">队伍</param>
-    private void IncreaseAvatarAvatarBuild(List<int> team)
+    private void IncreaseAvatarAvatarBuild(Team team)
     {
-        foreach (int currentAvatar in team)
+        if (team.Count == 4)
         {
-            foreach (int otherAvatar in team.Where(avatar => avatar != currentAvatar))
-            {
-                avatarAvatarBuildCounter.GetOrNew(currentAvatar).Increase(otherAvatar);
-            }
+            avatarAvatarBuildCounter.GetOrNew(team.Position1).Increase(team.Position2);
+            avatarAvatarBuildCounter.GetOrNew(team.Position1).Increase(team.Position3);
+            avatarAvatarBuildCounter.GetOrNew(team.Position1).Increase(team.Position4);
+            avatarAvatarBuildCounter.GetOrNew(team.Position2).Increase(team.Position1);
+            avatarAvatarBuildCounter.GetOrNew(team.Position2).Increase(team.Position3);
+            avatarAvatarBuildCounter.GetOrNew(team.Position2).Increase(team.Position4);
+            avatarAvatarBuildCounter.GetOrNew(team.Position3).Increase(team.Position1);
+            avatarAvatarBuildCounter.GetOrNew(team.Position3).Increase(team.Position2);
+            avatarAvatarBuildCounter.GetOrNew(team.Position3).Increase(team.Position4);
+        }
+        else if (team.Count == 3)
+        {
+            avatarAvatarBuildCounter.GetOrNew(team.Position1).Increase(team.Position2);
+            avatarAvatarBuildCounter.GetOrNew(team.Position1).Increase(team.Position3);
+            avatarAvatarBuildCounter.GetOrNew(team.Position2).Increase(team.Position1);
+            avatarAvatarBuildCounter.GetOrNew(team.Position2).Increase(team.Position3);
+            avatarAvatarBuildCounter.GetOrNew(team.Position3).Increase(team.Position1);
+            avatarAvatarBuildCounter.GetOrNew(team.Position3).Increase(team.Position2);
+        }
+        else if (team.Count == 2)
+        {
+            avatarAvatarBuildCounter.GetOrNew(team.Position1).Increase(team.Position2);
+            avatarAvatarBuildCounter.GetOrNew(team.Position2).Increase(team.Position1);
         }
     }
 }

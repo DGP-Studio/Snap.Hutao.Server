@@ -7,6 +7,8 @@ using Snap.Hutao.Server.Core;
 using Snap.Hutao.Server.Extension;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace Snap.Hutao.Server.Service.Legacy;
 
@@ -19,7 +21,7 @@ public class StatisticsService
     /// 统计服务正在工作
     /// </summary>
     public const string Working = "StatisticsService.Working";
-    private const int Partion = 200;
+    private const int Partion = 256;
 
     private readonly AppDbContext appDbContext;
     private readonly IMemoryCache memoryCache;
@@ -70,22 +72,27 @@ public class StatisticsService
     {
         while (true)
         {
-            List<EntityRecord> part = partionQuery(appDbContext, tracker.LastId).ToList();
+            List<EntityRecord> partionRecords = partionQuery(appDbContext, tracker.LastId).ToList();
 
-            foreach (EntityRecord record in part)
+            Span<EntityRecord> partionRecordSpan = CollectionsMarshal.AsSpan(partionRecords);
+            ref EntityRecord recordAtZero = ref MemoryMarshal.GetReference(partionRecordSpan);
+
+            for (int i = 0; i < partionRecordSpan.Length; i++)
             {
-                record.Avatars = avatarQuery(appDbContext, record.PrimaryId).ToList();
-                record.SpiralAbyss = spiralAbyssQuery(appDbContext, record.PrimaryId);
+                ref EntityRecord recordRef = ref Unsafe.Add(ref recordAtZero, i);
 
-                if (record.SpiralAbyss != null)
+                recordRef.Avatars = avatarQuery(appDbContext, recordRef.PrimaryId).ToList();
+                recordRef.SpiralAbyss = spiralAbyssQuery(appDbContext, recordRef.PrimaryId);
+
+                if (recordRef.SpiralAbyss != null)
                 {
-                    record.SpiralAbyss.Floors = floorQuery(appDbContext, record.SpiralAbyss.PrimaryId).ToList();
+                    recordRef.SpiralAbyss.Floors = floorQuery(appDbContext, recordRef.SpiralAbyss.PrimaryId).ToList();
                 }
 
-                tracker.Track(record);
+                tracker.Track(recordRef);
             }
 
-            if (part.Count < Partion)
+            if (partionRecordSpan.Length < Partion)
             {
                 break;
             }

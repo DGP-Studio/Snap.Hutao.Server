@@ -25,6 +25,16 @@ public class EntitySpiralAbyss
     public long RecordId { get; set; }
 
     /// <summary>
+    /// 总战斗次数
+    /// </summary>
+    public int TotalBattleTimes { get; set; }
+
+    /// <summary>
+    /// 总战斗胜利次数
+    /// </summary>
+    public int TotalWinTimes { get; set; }
+
+    /// <summary>
     /// 引用记录
     /// </summary>
     [ForeignKey(nameof(RecordId))]

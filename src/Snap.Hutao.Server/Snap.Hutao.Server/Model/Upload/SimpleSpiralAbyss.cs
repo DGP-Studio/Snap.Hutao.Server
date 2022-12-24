@@ -14,6 +14,16 @@ public class SimpleSpiralAbyss
     public int ScheduleId { get; set; }
 
     /// <summary>
+    /// 总战斗次数
+    /// </summary>
+    public int TotalBattleTimes { get; set; }
+
+    /// <summary>
+    /// 总战斗胜利次数
+    /// </summary>
+    public int TotalWinTimes { get; set; }
+
+    /// <summary>
     /// 造成伤害
     /// </summary>
     public SimpleRank Damage { get; set; } = default!;

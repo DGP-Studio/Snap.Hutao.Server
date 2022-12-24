@@ -31,6 +31,11 @@ public readonly struct Team : IEquatable<Team>
     public readonly AvatarId Position4;
 
     /// <summary>
+    /// 队伍中的角色个数
+    /// </summary>
+    public readonly int Count;
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="Team"/> struct.
     /// </summary>
     /// <param name="list">value</param>
@@ -40,6 +45,7 @@ public readonly struct Team : IEquatable<Team>
         Position2 = list.ElementAtOrDefault(1);
         Position3 = list.ElementAtOrDefault(2);
         Position4 = list.ElementAtOrDefault(3);
+        Count = list.Count;
     }
 
     public static implicit operator string(Team value)

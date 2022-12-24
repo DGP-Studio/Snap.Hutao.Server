@@ -144,6 +144,37 @@ public static class StatisticsHelper
     }
 
     /// <summary>
+    /// 将队伍成员加入到哈希集
+    /// </summary>
+    /// <param name="team">队伍</param>
+    /// <param name="set">集</param>
+    public static void AddTeamAvatarToHashSet(Team team, HashSet<AvatarId> set)
+    {
+        if (team.Count == 4)
+        {
+            set.Add(team.Position1);
+            set.Add(team.Position2);
+            set.Add(team.Position3);
+            set.Add(team.Position4);
+        }
+        else if (team.Count == 3)
+        {
+            set.Add(team.Position1);
+            set.Add(team.Position2);
+            set.Add(team.Position3);
+        }
+        else if (team.Count == 2)
+        {
+            set.Add(team.Position1);
+            set.Add(team.Position2);
+        }
+        else if (team.Count == 1)
+        {
+            set.Add(team.Position1);
+        }
+    }
+
+    /// <summary>
     /// 转换到队伍
     /// </summary>
     /// <param name="avatars">角色</param>
