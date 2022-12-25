@@ -49,7 +49,12 @@ public static class RecordHelper
         await appDbContext.SaveChangesAsync().ConfigureAwait(false);
 
         // EntitySpiralAbyss
-        EntitySpiralAbyss entitySpiralAbyss = new() { RecordId = entityRecord.PrimaryId };
+        EntitySpiralAbyss entitySpiralAbyss = new()
+        {
+            RecordId = entityRecord.PrimaryId,
+            TotalBattleTimes = record.SpiralAbyss.TotalBattleTimes,
+            TotalWinTimes = record.SpiralAbyss.TotalWinTimes,
+        };
         appDbContext.SpiralAbysses.Add(entitySpiralAbyss);
         await appDbContext.SaveChangesAsync().ConfigureAwait(false);
 

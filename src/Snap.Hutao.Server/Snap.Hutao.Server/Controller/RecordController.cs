@@ -47,9 +47,10 @@ public class RecordController : ControllerBase
     /// 上传记录
     /// </summary>
     /// <param name="record">记录</param>
+    /// <param name="returningRank">返回排行结果</param>
     /// <returns>上传结果</returns>
     [HttpPost("Upload")]
-    public async Task<IActionResult> UploadAsync([FromBody] SimpleRecord record)
+    public async Task<IActionResult> UploadAsync([FromBody] SimpleRecord record, [FromQuery] bool returningRank = false)
     {
         if (memoryCache.TryGetValue(StatisticsService.Working, out object? _))
         {
@@ -80,7 +81,15 @@ public class RecordController : ControllerBase
 
             if (UidUploading.TryRemove(record.Uid, out _))
             {
-                return Model.Response.Response.Success("数据提交成功");
+                if (returningRank)
+                {
+                    Rank rank = await rankService.RetriveRankAsync(record.Uid).ConfigureAwait(false);
+                    return Response<Rank>.Success("获取排行数据成功", rank);
+                }
+                else
+                {
+                    return Model.Response.Response.Success("数据提交成功");
+                }
             }
             else
             {

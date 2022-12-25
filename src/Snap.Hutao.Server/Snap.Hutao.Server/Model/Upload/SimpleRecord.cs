@@ -44,6 +44,12 @@ public class SimpleRecord
             return false;
         }
 
+        // 较老的客户端上传的不兼容数据
+        if (SpiralAbyss.TotalWinTimes == 0 || SpiralAbyss.TotalBattleTimes == 0)
+        {
+            return false;
+        }
+
         if (Avatars == null || Avatars.Count <= 8)
         {
             return false;
@@ -54,6 +60,8 @@ public class SimpleRecord
         foreach (SimpleAvatar a in Avatars)
         {
             int avatarId = a.AvatarId;
+
+            // 男女主
             if (avatarId == 10000005 || avatarId == 10000007)
             {
                 --traveller;
