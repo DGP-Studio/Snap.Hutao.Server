@@ -95,10 +95,10 @@ public class StatisticsTracker
 
         // 遍历角色
         Span<EntityAvatar> recordAvatars = CollectionsMarshal.AsSpan(record.Avatars);
-        ref EntityAvatar avatarAtZero = ref MemoryMarshal.GetReference(recordAvatars);
+        ref EntityAvatar recordAvatarAtZero = ref MemoryMarshal.GetReference(recordAvatars);
         for (int i = 0; i < recordAvatars.Length; i++)
         {
-            ref EntityAvatar avatar = ref Unsafe.Add(ref avatarAtZero, i);
+            ref EntityAvatar avatar = ref Unsafe.Add(ref recordAvatarAtZero, i);
 
             // 在 for 循环中顺便填充了Id -> Entity 映射
             holdingAvatarMap.Add(avatar.AvatarId, avatar);
@@ -148,8 +148,8 @@ public class StatisticsTracker
             // reuse the ref variable
             for (int j = 0; j < recordAvatars.Length; j++)
             {
-                ref EntityAvatar avatar = ref Unsafe.Add(ref avatarAtZero, i);
-                IncreaseCurrentFloorHoldingAvatarRecordCount(floor.Index, avatar.AvatarId);
+                ref EntityAvatar avatar = ref Unsafe.Add(ref recordAvatarAtZero, j);
+                IncreaseCurrentFloorHoldingAvatarCount(floor.Index, avatar.AvatarId);
             }
 
             Span<SimpleLevel> levels = CollectionsMarshal.AsSpan(floor.Levels);
@@ -324,7 +324,7 @@ public class StatisticsTracker
     /// </summary>
     /// <param name="index">层</param>
     /// <param name="avatarId">角色</param>
-    private void IncreaseCurrentFloorHoldingAvatarRecordCount(int index, AvatarId avatarId)
+    private void IncreaseCurrentFloorHoldingAvatarCount(int index, AvatarId avatarId)
     {
         // 递增当前层且持有对应角色的记录数
         switch (index)
