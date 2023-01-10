@@ -33,4 +33,9 @@ public class HutaoLog
     /// 是否已经解决
     /// </summary>
     public bool Resolved { get; set; }
+
+    /// <summary>
+    /// 发生版本
+    /// </summary>
+    public string Version { get; set; } = default!;
 }

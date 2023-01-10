@@ -50,11 +50,13 @@ public class HutaoLogController : ControllerBase
         }
 
         string info = uploadLog.Info;
+        string version = Request.Headers.UserAgent.ToString();
         HutaoLog? log = appDbContext.HutaoLogs.SingleOrDefault(log => log.Info == info);
 
         if (log != null)
         {
             log.Count += 1;
+            log.Version = version;
         }
         else
         {
@@ -62,6 +64,7 @@ public class HutaoLogController : ControllerBase
             {
                 Info = info,
                 Count = 1,
+                Version = version,
             };
             appDbContext.HutaoLogs.Add(log);
         }
