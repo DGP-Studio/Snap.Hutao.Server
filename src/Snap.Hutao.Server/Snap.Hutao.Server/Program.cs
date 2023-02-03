@@ -70,7 +70,7 @@ public class Program
         services.AddDbContextPool<AppDbContext>(optionsBuilder =>
         {
             string connectionString = builder.Configuration.GetConnectionString("LocalDb")!;
-
+            Console.WriteLine($"Using connection string:\n [{connectionString}]");
             optionsBuilder
                 .UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
                 .ConfigureWarnings(c => c.Log((RelationalEventId.CommandExecuted, LogLevel.Debug)));

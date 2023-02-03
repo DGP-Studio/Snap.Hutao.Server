@@ -15,5 +15,7 @@ docker build -t $imageName:$version -f Dockerfile .
 
 echo port is $port
 docker run -d -p $port:80 \
+    --network=bridge \
+    --ip=172.17.0.5 \
     --name="$containerName-$version" \
     $imageName:$version 

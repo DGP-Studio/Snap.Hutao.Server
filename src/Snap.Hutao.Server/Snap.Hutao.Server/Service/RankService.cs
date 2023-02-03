@@ -38,11 +38,6 @@ public sealed class RankService : IDisposable
     {
         IDatabase db = redis.GetDatabase(12);
 
-        using (IServiceScope scope = scopeFactory.CreateScope())
-        {
-            AppDbContext appDbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        }
-
         // 保存使用过的键
         await db.SetAddAsync("Hutao.UsedKeys", "Hutao.Damage.Avatar.All").ConfigureAwait(false);
         await db.SetAddAsync("Hutao.UsedKeys", "Hutao.TakeDamage.Avatar.All").ConfigureAwait(false);
