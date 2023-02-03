@@ -21,10 +21,14 @@ public sealed class RankService : IDisposable
     /// 构造一个新的排行服务
     /// </summary>
     /// <param name="scopeFactory">范围工厂</param>
-    public RankService(IServiceScopeFactory scopeFactory)
+    /// <param name="configuration">配置</param>
+    /// <param name="logger">日志器</param>
+    public RankService(IServiceScopeFactory scopeFactory, IConfiguration configuration, ILogger<RankService> logger)
     {
         this.scopeFactory = scopeFactory;
-        redis = ConnectionMultiplexer.Connect("172.17.0.1:6379");
+        string redisConfig = configuration["Redis"] ?? string.Empty;
+        logger.LogInformation("Using Redis: {confi}", redisConfig);
+        redis = ConnectionMultiplexer.Connect(redisConfig);
     }
 
     /// <summary>
