@@ -25,6 +25,7 @@ public class StatisticsService
 
     private readonly AppDbContext appDbContext;
     private readonly IMemoryCache memoryCache;
+    private readonly ILogger<StatisticsService> logger;
 
     // comple queries that used multiple times to increase performance
     private readonly Func<AppDbContext, long, IEnumerable<EntityRecord>> partionQuery = EF.CompileQuery((AppDbContext context, long lastId) =>
@@ -44,10 +45,12 @@ public class StatisticsService
     /// </summary>
     /// <param name="appDbContext">数据库上下文</param>
     /// <param name="memoryCache">内存缓存</param>
-    public StatisticsService(AppDbContext appDbContext, IMemoryCache memoryCache)
+    /// <param name="logger">日志器</param>
+    public StatisticsService(AppDbContext appDbContext, IMemoryCache memoryCache, ILogger<StatisticsService> logger)
     {
         this.appDbContext = appDbContext;
         this.memoryCache = memoryCache;
+        this.logger = logger;
     }
 
     /// <summary>
@@ -56,7 +59,8 @@ public class StatisticsService
     /// <returns>任务</returns>
     public async Task RunAsync()
     {
-        StatisticsTracker tracker = new();
+        StatisticsTracker tracker = new(logger);
+
         using (memoryCache.Flag(Working))
         {
             using (await appDbContext.OperationLock.EnterAsync().ConfigureAwait(false))

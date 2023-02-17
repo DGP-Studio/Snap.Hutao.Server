@@ -19,6 +19,8 @@ namespace Snap.Hutao.Server.Service.Legacy;
 /// </summary>
 public class StatisticsTracker
 {
+    private readonly ILogger logger;
+
     #region Counters
     // 对应层满星 | 出场
     private readonly Map<AvatarId, int> level09PresentCounter = new();
@@ -76,6 +78,11 @@ public class StatisticsTracker
     private int totalSpiralAbyssStarCounter;
     private long totalSpiralAbyssBattleTimesCounter;
     #endregion
+
+    public StatisticsTracker(ILogger logger)
+    {
+        this.logger = logger;
+    }
 
     /// <summary>
     /// 最后处理的Id
@@ -167,12 +174,20 @@ public class StatisticsTracker
                 StatisticsHelper.AddTeamAvatarToHashSet(teamUp, recordPresentAvatars);
                 StatisticsHelper.AddTeamAvatarToHashSet(teamUp, floorPresentAvatars);
 
-                SimpleBattle battleDown = level.Battles[1];
-                Team teamDown = StatisticsHelper.AsTeam(battleDown.Avatars);
-                IncreaseCurrentFloorUpDownTeamCount(floor.Index, battleDown.Index, teamDown);
-                IncreaseAvatarAvatarBuild(teamDown);
-                StatisticsHelper.AddTeamAvatarToHashSet(teamDown, recordPresentAvatars);
-                StatisticsHelper.AddTeamAvatarToHashSet(teamDown, floorPresentAvatars);
+                if (level.Battles.Count > 1)
+                {
+                    SimpleBattle battleDown = level.Battles[1];
+                    Team teamDown = StatisticsHelper.AsTeam(battleDown.Avatars);
+                    IncreaseCurrentFloorUpDownTeamCount(floor.Index, battleDown.Index, teamDown);
+                    IncreaseAvatarAvatarBuild(teamDown);
+                    StatisticsHelper.AddTeamAvatarToHashSet(teamDown, recordPresentAvatars);
+                    StatisticsHelper.AddTeamAvatarToHashSet(teamDown, floorPresentAvatars);
+                }
+                else
+                {
+                    // we will ban those who upload fake data.
+                    logger.LogWarning("Incompleted record: {uid}", record.Uid);
+                }
             }
 
             foreach (AvatarId avatarId in floorPresentAvatars)
