@@ -42,15 +42,15 @@ public class PassportController : ControllerBase
     /// <summary>
     /// 获取注册验证码
     /// </summary>
-    /// <param name="userName">加密的用户名</param>
+    /// <param name="userNameData">加密的用户名</param>
     /// <returns>响应</returns>
     [HttpPost("Verify")]
-    public async Task<IActionResult> VerifyAsync(EncryptedUserName userName)
+    public async Task<IActionResult> VerifyAsync(EncryptedUserName userNameData)
     {
         string code = GetRandomStringWithChars();
-        memoryCache.Set($"UserRegisterVerifyCode:{userName.UserName}", code, TimeSpan.FromMinutes(5));
-        string decrypted = passportService.Decrypt(userName.UserName);
-        await mailService.SendRegistrationVerifyCodeAsync(decrypted, code).ConfigureAwait(false);
+        string userName = passportService.Decrypt(userNameData.UserName);
+        memoryCache.Set($"UserRegisterVerifyCode:{userName}", code, TimeSpan.FromMinutes(5));
+        await mailService.SendRegistrationVerifyCodeAsync(userName, code).ConfigureAwait(false);
         return Model.Response.Response.Success("请求验证码成功");
     }
 
@@ -63,13 +63,15 @@ public class PassportController : ControllerBase
     public async Task<IActionResult> RegisterAsync(EncryptedRegistration registration)
     {
         string code = passportService.Decrypt(registration.VerifyCode);
-        if (memoryCache.TryGetValue($"UserRegisterVerifyCode:{registration.UserName}", out string? storedCode))
+        string userName = passportService.Decrypt(registration.UserName);
+
+        if (memoryCache.TryGetValue($"UserRegisterVerifyCode:{userName}", out string? storedCode))
         {
             if (storedCode == code)
             {
                 Passport passport = new()
                 {
-                    UserName = passportService.Decrypt(registration.UserName),
+                    UserName = userName,
                     Password = passportService.Decrypt(registration.Password),
                 };
 
