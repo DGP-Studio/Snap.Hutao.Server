@@ -1,6 +1,8 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Snap.Hutao.Server.Model.Context.Configuration;
 using Snap.Hutao.Server.Model.Entity;
@@ -10,7 +12,7 @@ namespace Snap.Hutao.Server.Model.Context;
 /// <summary>
 /// 数据库上下文
 /// </summary>
-public class AppDbContext : DbContext
+public class AppDbContext : IdentityDbContext<HutaoUser, IdentityRole<int>, int>
 {
     private readonly SemaphoreSlim operationLock = new(1);
 
@@ -86,6 +88,7 @@ public class AppDbContext : DbContext
     /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfiguration(new EntityFloorConfiguration());
     }
 }

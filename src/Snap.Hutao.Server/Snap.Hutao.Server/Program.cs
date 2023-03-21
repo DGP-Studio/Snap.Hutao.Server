@@ -1,14 +1,19 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.IdentityModel.Tokens;
 using Quartz;
 using Snap.Hutao.Server.Controller.Filter;
 using Snap.Hutao.Server.Job;
 using Snap.Hutao.Server.Model.Context;
+using Snap.Hutao.Server.Model.Entity;
 using Snap.Hutao.Server.Service;
+using Snap.Hutao.Server.Service.Authorization;
 using Snap.Hutao.Server.Service.Legacy;
+using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -34,9 +39,48 @@ public class Program
             .AddMemoryCache()
             .AddTransient<StatisticsService>()
             .AddTransient<RequestFilter>()
-            .AddSingleton<RankService>();
+            .AddScoped<PassportService>()
+            .AddSingleton<RankService>()
+            .AddSingleton<MailService>()
+            .AddSingleton<JwtTokenService>();
 
         services
+            .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+            {
+                SymmetricSecurityKey key = new(Encoding.UTF8.GetBytes(builder.Configuration["Jwt"]!));
+                options.TokenValidationParameters = new()
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = key,
+                    ValidateIssuer = false,
+                    ValidIssuer = "https://homa.snapgenshin.com",
+                    ValidateAudience = false,
+                    RequireExpirationTime = false,
+                    ClockSkew = TimeSpan.FromSeconds(10),
+                };
+            });
+
+        services
+            .AddIdentityCore<HutaoUser>(options =>
+            {
+                options.Password.RequiredLength = 8;
+                options.Password.RequiredUniqueChars = 0;
+                options.Password.RequireLowercase = false;
+                options.Password.RequireUppercase = false;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequireDigit = false;
+            })
+            .AddEntityFrameworkStores<AppDbContext>();
+
+        services
+            .AddAuthorization(options =>
+            {
+                // options.AddPolicy(PassportPolicyNames.Generic, policy => policy.AddRequirements());
+            });
+
+        services
+            .AddResponseCompression()
             .AddControllers()
             .AddJsonOptions(o =>
             {
@@ -66,7 +110,6 @@ public class Program
             builder.AllowAnyMethod().AllowAnyHeader().AllowAnyOrigin().AllowCredentials();
         }));
 
-        builder.Configuration.AddEnvironmentVariables();
         services.AddDbContextPool<AppDbContext>(optionsBuilder =>
         {
             string connectionString = builder.Configuration.GetConnectionString("LocalDb")!;
@@ -76,7 +119,6 @@ public class Program
                 .ConfigureWarnings(c => c.Log((RelationalEventId.CommandExecuted, LogLevel.Debug)));
         });
 
-        // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen(c =>
         {
@@ -89,6 +131,8 @@ public class Program
         WebApplication app = builder.Build();
         MigrateDatabase(app);
 
+        app.UseResponseCompression();
+
         app.UseSwagger();
         app.UseSwaggerUI(option =>
         {
@@ -96,7 +140,11 @@ public class Program
         });
 
         app.UseHttpsRedirection();
+
+        // 顺序敏感
+        app.UseAuthentication();
         app.UseAuthorization();
+
         app.MapControllers();
         app.Run();
     }

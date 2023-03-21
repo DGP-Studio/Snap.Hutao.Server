@@ -52,4 +52,14 @@ public enum ReturnCode
     /// Uid 由于某些原因被我们封禁
     /// </summary>
     BannedUid = 500022,
+
+    /// <summary>
+    /// 注册失败
+    /// </summary>
+    RegisterFail = 500030,
+
+    /// <summary>
+    /// 登录失败
+    /// </summary>
+    LoginFail = 500031,
 }

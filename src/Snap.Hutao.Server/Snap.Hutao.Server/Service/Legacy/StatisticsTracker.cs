@@ -22,6 +22,7 @@ public class StatisticsTracker
     private readonly ILogger logger;
 
     #region Counters
+
     // 对应层满星 | 出场
     private readonly Map<AvatarId, int> level09PresentCounter = new();
     private readonly Map<AvatarId, int> level10PresentCounter = new();
@@ -79,6 +80,10 @@ public class StatisticsTracker
     private long totalSpiralAbyssBattleTimesCounter;
     #endregion
 
+    /// <summary>
+    /// 构造一个新的追踪器
+    /// </summary>
+    /// <param name="logger">日志器</param>
     public StatisticsTracker(ILogger logger)
     {
         this.logger = logger;
