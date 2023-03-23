@@ -23,7 +23,7 @@ public class EntityGachaItem
     /// <summary>
     /// 用户Id
     /// </summary>
-    public long UserId { get; set; }
+    public int UserId { get; set; }
 
     /// <summary>
     /// Uid

@@ -145,7 +145,7 @@ public class GachaLogController : ControllerBase
         }
     }
 
-    private static void AppendModelsToEntities(List<SimpleGachaItem> gachaItems, List<EntityGachaItem> items, long userId, string uid, bool isTrusted)
+    private static void AppendModelsToEntities(List<SimpleGachaItem> gachaItems, List<EntityGachaItem> items, int userId, string uid, bool isTrusted)
     {
         Span<SimpleGachaItem> gachaItemSpan = CollectionsMarshal.AsSpan(gachaItems);
         ref SimpleGachaItem itemAtZero = ref MemoryMarshal.GetReference(gachaItemSpan);
