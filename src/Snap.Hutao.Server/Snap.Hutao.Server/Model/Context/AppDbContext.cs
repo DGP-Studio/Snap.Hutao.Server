@@ -81,6 +81,11 @@ public class AppDbContext : IdentityDbContext<HutaoUser, IdentityRole<int>, int>
     public DbSet<HutaoLogSingleItem> HutaoLogSingleItems { get; set; } = default!;
 
     /// <summary>
+    /// 祈愿记录物品
+    /// </summary>
+    public DbSet<EntityGachaItem> GachaItems { get; set; } = default!;
+
+    /// <summary>
     /// 操作锁
     /// </summary>
     public SemaphoreSlim OperationLock => operationLock;

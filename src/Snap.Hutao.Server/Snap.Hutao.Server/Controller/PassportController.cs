@@ -42,16 +42,32 @@ public class PassportController : ControllerBase
     /// <summary>
     /// 获取注册验证码
     /// </summary>
-    /// <param name="userNameData">加密的用户名</param>
+    /// <param name="verification">加密的验证请求</param>
     /// <returns>响应</returns>
     [HttpPost("Verify")]
-    public async Task<IActionResult> VerifyAsync(EncryptedUserName userNameData)
+    public async Task<IActionResult> VerifyAsync(EncryptedVerification verification)
     {
         string code = GetRandomStringWithChars();
-        string userName = passportService.Decrypt(userNameData.UserName);
-        memoryCache.Set($"UserRegisterVerifyCode:{userName}", code, TimeSpan.FromMinutes(5));
-        await mailService.SendRegistrationVerifyCodeAsync(userName, code).ConfigureAwait(false);
-        return Model.Response.Response.Success("请求验证码成功");
+        string userName = passportService.Decrypt(verification.UserName);
+        if (memoryCache.TryGetValue($"VerifyCodeFor:{userName}", out object? _))
+        {
+            return Model.Response.Response.Fail(ReturnCode.VerifyCodeTooFrequently, "请求过快，请稍后再试");
+        }
+        else
+        {
+            memoryCache.Set($"VerifyCodeFor:{userName}", code, TimeSpan.FromMinutes(5));
+
+            if (verification.IsResetPassword)
+            {
+                await mailService.SendResetPasswordVerifyCodeAsync(userName, code).ConfigureAwait(false);
+            }
+            else
+            {
+                await mailService.SendRegistrationVerifyCodeAsync(userName, code).ConfigureAwait(false);
+            }
+
+            return Model.Response.Response.Success("请求验证码成功");
+        }
     }
 
     /// <summary>
@@ -65,7 +81,7 @@ public class PassportController : ControllerBase
         string code = passportService.Decrypt(registration.VerifyCode);
         string userName = passportService.Decrypt(registration.UserName);
 
-        if (memoryCache.TryGetValue($"UserRegisterVerifyCode:{userName}", out string? storedCode))
+        if (memoryCache.TryGetValue($"VerifyCodeFor:{userName}", out string? storedCode))
         {
             if (storedCode == code)
             {
@@ -79,6 +95,42 @@ public class PassportController : ControllerBase
                 if (result.Success)
                 {
                     return Response<string>.Success("注册成功", result.Token);
+                }
+                else
+                {
+                    return Model.Response.Response.Fail(ReturnCode.RegisterFail, result.Message);
+                }
+            }
+        }
+
+        return Model.Response.Response.Fail(ReturnCode.RegisterFail, "验证失败");
+    }
+
+    /// <summary>
+    /// 重置密码
+    /// </summary>
+    /// <param name="registration">加密的用户名密码</param>
+    /// <returns>响应</returns>
+    [HttpPost("ResetPassword")]
+    public async Task<IActionResult> ResetPasswordAsync(EncryptedRegistration registration)
+    {
+        string code = passportService.Decrypt(registration.VerifyCode);
+        string userName = passportService.Decrypt(registration.UserName);
+
+        if (memoryCache.TryGetValue($"VerifyCodeFor:{userName}", out string? storedCode))
+        {
+            if (storedCode == code)
+            {
+                Passport passport = new()
+                {
+                    UserName = userName,
+                    Password = passportService.Decrypt(registration.Password),
+                };
+
+                PassportResult result = await passportService.ResetPasswordAsync(passport).ConfigureAwait(false);
+                if (result.Success)
+                {
+                    return Response<string>.Success("密码设置成功", result.Token);
                 }
                 else
                 {
@@ -117,7 +169,7 @@ public class PassportController : ControllerBase
 
     private static string GetRandomStringWithChars()
     {
-        StringBuilder sb = new(6);
+        StringBuilder sb = new(8);
 
         for (int i = 0; i < 8; i++)
         {

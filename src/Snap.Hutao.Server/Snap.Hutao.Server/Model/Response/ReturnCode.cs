@@ -62,4 +62,14 @@ public enum ReturnCode
     /// 登录失败
     /// </summary>
     LoginFail = 500031,
+
+    /// <summary>
+    /// 请求验证码过于频繁
+    /// </summary>
+    VerifyCodeTooFrequently = 500032,
+
+    /// <summary>
+    /// 祈愿记录数据库操作失败
+    /// </summary>
+    GachaLogDatabaseOperationFailed = 500040,
 }

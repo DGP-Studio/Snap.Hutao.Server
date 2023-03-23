@@ -2,8 +2,11 @@
 // Licensed under the MIT license.
 
 using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
 using Snap.Hutao.Server.Model.Entity;
 using Snap.Hutao.Server.Model.Passport;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -14,22 +17,21 @@ namespace Snap.Hutao.Server.Service.Authorization;
 /// </summary>
 public class PassportService
 {
-    private readonly JwtTokenService jwtTokenService;
     private readonly UserManager<HutaoUser> userManager;
     private readonly string rsaPrivateKey;
+    private readonly SymmetricSecurityKey jwtSigningKey;
 
     /// <summary>
     /// 构造一个新的通行证服务
     /// </summary>
-    /// <param name="jwtTokenService">jwt令牌服务</param>
     /// <param name="userManager">用户管理器</param>
     /// <param name="configuration">配置</param>
-    public PassportService(JwtTokenService jwtTokenService, UserManager<HutaoUser> userManager, IConfiguration configuration)
+    public PassportService(UserManager<HutaoUser> userManager, IConfiguration configuration)
     {
-        this.jwtTokenService = jwtTokenService;
         this.userManager = userManager;
 
         rsaPrivateKey = configuration["RSAPrivateKey"]!;
+        jwtSigningKey = new(Encoding.UTF8.GetBytes(configuration["Jwt"]!));
     }
 
     /// <summary>
@@ -51,21 +53,21 @@ public class PassportService
     /// <summary>
     /// 异步注册
     /// </summary>
-    /// <param name="ingestion">账密</param>
+    /// <param name="passport">账密</param>
     /// <returns>结果</returns>
-    public async Task<PassportResult> RegisterAsync(Passport ingestion)
+    public async Task<PassportResult> RegisterAsync(Passport passport)
     {
-        if (await userManager.FindByNameAsync(ingestion.UserName).ConfigureAwait(false) is HutaoUser user)
+        if (await userManager.FindByNameAsync(passport.UserName).ConfigureAwait(false) is HutaoUser user)
         {
             return new(false, "邮箱已被注册");
         }
         else
         {
-            HutaoUser newUser = new() { UserName = ingestion.UserName };
-            IdentityResult result = await userManager.CreateAsync(newUser, ingestion.Password).ConfigureAwait(false);
+            HutaoUser newUser = new() { UserName = passport.UserName };
+            IdentityResult result = await userManager.CreateAsync(newUser, passport.Password).ConfigureAwait(false);
             if (result.Succeeded)
             {
-                return new(true, "注册成功", jwtTokenService.CreateToken(newUser));
+                return new(true, "注册成功", CreateToken(newUser));
             }
             else
             {
@@ -75,20 +77,58 @@ public class PassportService
     }
 
     /// <summary>
+    /// 异步修改密码
+    /// </summary>
+    /// <param name="passport">账密</param>
+    /// <returns>结果</returns>
+    public async Task<PassportResult> ResetPasswordAsync(Passport passport)
+    {
+        if (await userManager.FindByNameAsync(passport.UserName).ConfigureAwait(false) is HutaoUser user)
+        {
+            await userManager.RemovePasswordAsync(user).ConfigureAwait(false);
+            await userManager.AddPasswordAsync(user, passport.Password).ConfigureAwait(false);
+
+            return new(true, "密码设置成功");
+        }
+        else
+        {
+            return new(false, "该邮箱尚未注册");
+        }
+    }
+
+    /// <summary>
     /// 异步登录
     /// </summary>
-    /// <param name="ingestion">账密</param>
+    /// <param name="passport">账密</param>
     /// <returns>结果</returns>
-    public async Task<PassportResult> LoginAsync(Passport ingestion)
+    public async Task<PassportResult> LoginAsync(Passport passport)
     {
-        if (await userManager.FindByNameAsync(ingestion.UserName).ConfigureAwait(false) is HutaoUser user)
+        if (await userManager.FindByNameAsync(passport.UserName).ConfigureAwait(false) is HutaoUser user)
         {
-            if (await userManager.CheckPasswordAsync(user, ingestion.Password).ConfigureAwait(false))
+            if (await userManager.CheckPasswordAsync(user, passport.Password).ConfigureAwait(false))
             {
-                return new(true, "登录成功", jwtTokenService.CreateToken(user));
+                return new(true, "登录成功", CreateToken(user));
             }
         }
 
         return new PassportResult(false, "邮箱或密码不正确");
+    }
+
+    private string CreateToken(HutaoUser user)
+    {
+        JwtSecurityTokenHandler handler = new();
+        SecurityTokenDescriptor descriptor = new()
+        {
+            Subject = new(new Claim[]
+            {
+                new Claim(PassportClaimTypes.UserId, user.Id.ToString()),
+            }),
+            Expires = DateTime.UtcNow.AddHours(2),
+            Issuer = "homa.snapgenshin.com",
+            SigningCredentials = new(jwtSigningKey, SecurityAlgorithms.HmacSha256Signature),
+        };
+
+        SecurityToken token = handler.CreateToken(descriptor);
+        return handler.WriteToken(token);
     }
 }

@@ -108,7 +108,7 @@ public class RecordController : ControllerBase
     /// <param name="uid">uid</param>
     /// <returns>是否存在记录</returns>
     [HttpGet("Check")]
-    public async Task<IActionResult> CheckAsync([FromQuery(Name = "uid")] string uid)
+    public async Task<IActionResult> CheckAsync([FromQuery(Name = "Uid")] string uid)
     {
         if (memoryCache.TryGetValue(StatisticsService.Working, out object? _))
         {
@@ -145,7 +145,7 @@ public class RecordController : ControllerBase
     /// <param name="uid">uid</param>
     /// <returns>排行</returns>
     [HttpGet("Rank")]
-    public async Task<IActionResult> RankAsync([FromQuery(Name = "uid")] string uid)
+    public async Task<IActionResult> RankAsync([FromQuery(Name = "Uid")] string uid)
     {
         if (memoryCache.TryGetValue(StatisticsService.Working, out object? _))
         {

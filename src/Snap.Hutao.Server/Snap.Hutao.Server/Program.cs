@@ -41,8 +41,7 @@ public class Program
             .AddTransient<RequestFilter>()
             .AddScoped<PassportService>()
             .AddSingleton<RankService>()
-            .AddSingleton<MailService>()
-            .AddSingleton<JwtTokenService>();
+            .AddSingleton<MailService>();
 
         services
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -53,10 +52,10 @@ public class Program
                 {
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = key,
-                    ValidateIssuer = false,
-                    ValidIssuer = "https://homa.snapgenshin.com",
+                    ValidateIssuer = true,
+                    ValidIssuer = "homa.snapgenshin.com",
                     ValidateAudience = false,
-                    RequireExpirationTime = false,
+                    RequireExpirationTime = true,
                     ClockSkew = TimeSpan.FromSeconds(10),
                 };
             });
@@ -73,11 +72,7 @@ public class Program
             })
             .AddEntityFrameworkStores<AppDbContext>();
 
-        services
-            .AddAuthorization(options =>
-            {
-                // options.AddPolicy(PassportPolicyNames.Generic, policy => policy.AddRequirements());
-            });
+        services.AddAuthorization();
 
         services
             .AddResponseCompression()
