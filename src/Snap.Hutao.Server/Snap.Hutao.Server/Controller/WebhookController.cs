@@ -33,13 +33,6 @@ public class WebhookController : ControllerBase
     public async Task<IActionResult> IncomingAfdianAsync([FromBody] AfdianRequest<OrderWrapper> request)
     {
         logger.LogInformation("UserName:{name}", request.Data.Order.Remark);
-
-        using (StreamReader reader = new(HttpContext.Request.Body))
-        {
-            string body = await reader.ReadToEndAsync().ConfigureAwait(false);
-            logger.LogInformation("Afdian Webhook:\n{body}", body);
-        }
-
         return new JsonResult(new AfdianCallback() { ErrorCode = 200, ErrorMessage = string.Empty });
     }
 
@@ -48,7 +41,7 @@ public class WebhookController : ControllerBase
     /// </summary>
     /// <param name="request">请求</param>
     /// <returns>结果</returns>
-    [HttpPost("Incoming/Afdian2")]
+    [Route("Incoming/Afdian2")]
     public async Task<IActionResult> IncomingAfdian2Async([FromBody] string request)
     {
         logger.LogInformation("Afdian Webhook:\n{request}", request);
