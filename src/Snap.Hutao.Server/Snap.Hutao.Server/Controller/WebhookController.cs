@@ -3,6 +3,7 @@
 
 using Microsoft.AspNetCore.Mvc;
 using Snap.Hutao.Server.Model.Afdian;
+using System.Text.Json;
 
 namespace Snap.Hutao.Server.Controller;
 
@@ -29,10 +30,12 @@ public class WebhookController : ControllerBase
     /// </summary>
     /// <param name="request">请求</param>
     /// <returns>结果</returns>
+    [HttpGet("Incoming/Afdian")]
     [HttpPost("Incoming/Afdian")]
-    public async Task<IActionResult> IncomingAfdianAsync([FromBody] AfdianRequest<OrderWrapper> request)
+    public async Task<IActionResult> IncomingAfdianAsync([FromBody] JsonElement request/*[FromBody] AfdianRequest<OrderWrapper> request*/)
     {
-        logger.LogInformation("UserName:{name}", request.Data.Order.Remark);
+        logger.LogInformation("Body:\n{body}", JsonSerializer.Serialize(request));
+        // logger.LogInformation("UserName:{name}", request.Data.Order.Remark);
         return new JsonResult(new AfdianCallback() { ErrorCode = 200, ErrorMessage = string.Empty });
     }
 }
