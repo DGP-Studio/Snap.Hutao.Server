@@ -10,4 +10,8 @@ namespace Snap.Hutao.Server.Model.Entity;
 /// </summary>
 public sealed class HutaoUser : IdentityUser<int>
 {
+    /// <summary>
+    /// 祈愿记录过期时间
+    /// </summary>
+    public long GachaLogExpireAt { get; set; }
 }
