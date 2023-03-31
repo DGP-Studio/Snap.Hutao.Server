@@ -35,16 +35,4 @@ public class WebhookController : ControllerBase
         logger.LogInformation("UserName:{name}", request.Data.Order.Remark);
         return new JsonResult(new AfdianCallback() { ErrorCode = 200, ErrorMessage = string.Empty });
     }
-
-    /// <summary>
-    /// 爱发电
-    /// </summary>
-    /// <param name="request">请求</param>
-    /// <returns>结果</returns>
-    [Route("Incoming/Afdian2")]
-    public async Task<IActionResult> IncomingAfdian2Async([FromBody] string request)
-    {
-        logger.LogInformation("Afdian Webhook:\n{request}", request);
-        return new JsonResult(new AfdianCallback() { ErrorCode = 200, ErrorMessage = string.Empty });
-    }
 }
