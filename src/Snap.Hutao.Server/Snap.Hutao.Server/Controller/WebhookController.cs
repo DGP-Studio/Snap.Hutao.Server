@@ -60,7 +60,6 @@ public class WebhookController : ControllerBase
 
         string userName = request.Data.Order.Remark;
         logger.LogInformation("UserName:{name}", request.Data.Order.Remark);
-
         string tradeNumber = request.Data.Order.OutTradeNo;
 
         if (request.Data.Order.SkuDetail.FirstOrDefault() is SkuDetail skuDetail)
@@ -123,6 +122,7 @@ public class WebhookController : ControllerBase
     private async Task<bool> ValidateTradeAsync(string tradeNumber, string skuId, int count)
     {
         QueryOrder query = QueryOrder.Create(UserId, tradeNumber, afdianToken);
+        logger.LogInformation("Fetch data for trade: {trade}", tradeNumber);
         HttpResponseMessage response = await httpClient.PostAsJsonAsync("https://afdian.net/api/open/query-order", query).ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
         AfdianResponse<ListWrapper<Order>>? resp = await response.Content.ReadFromJsonAsync<AfdianResponse<ListWrapper<Order>>>().ConfigureAwait(false);
@@ -137,8 +137,24 @@ public class WebhookController : ControllerBase
                     {
                         return true;
                     }
+                    else
+                    {
+                        logger.LogInformation("Detail not matched");
+                    }
+                }
+                else
+                {
+                    logger.LogInformation("No sku");
                 }
             }
+            else
+            {
+                logger.LogInformation("No matched order");
+            }
+        }
+        else
+        {
+            logger.LogInformation("Bad Request, Not valid data");
         }
 
         return false;
