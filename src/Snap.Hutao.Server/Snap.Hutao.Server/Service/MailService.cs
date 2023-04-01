@@ -43,7 +43,7 @@ public sealed class MailService
     public Task SendRegistrationVerifyCodeAsync(string emailAddress, string code)
     {
         logger.LogInformation("Send Registration Mail to [{email}] with [{code}]", emailAddress, code);
-        return SendMailAsync(emailAddress, GetRegistrationVerifyCodeMailBody(code));
+        return SendVerifyCodeMailAsync(emailAddress, GetRegistrationVerifyCodeMailBody(code));
     }
 
     /// <summary>
@@ -55,7 +55,20 @@ public sealed class MailService
     public Task SendResetPasswordVerifyCodeAsync(string emailAddress, string code)
     {
         logger.LogInformation("Send ResetPassword Mail to [{email}] with [{code}]", emailAddress, code);
-        return SendMailAsync(emailAddress, GetResetPasswordVerifyCodeMailBody(code));
+        return SendVerifyCodeMailAsync(emailAddress, GetResetPasswordVerifyCodeMailBody(code));
+    }
+
+    /// <summary>
+    /// 异步发送祈愿记录上传服务
+    /// </summary>
+    /// <param name="emailAddress">目标邮箱</param>
+    /// <param name="expireAt">过期时间</param>
+    /// <param name="tradeNumber">交易编号</param>
+    /// <returns>任务</returns>
+    public Task SendPurchaseGachaLogStorageServiceAsync(string emailAddress, string expireAt, string tradeNumber)
+    {
+        logger.LogInformation("Send GachaLog Mail to [{email}] with [{code}]", emailAddress, tradeNumber);
+        return SendPurchaseServiceAsync(emailAddress, GetPurchaseGachaLogStorageServiceMailBody(expireAt, tradeNumber));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -68,7 +81,7 @@ public sealed class MailService
                         div {
                             background: linear-gradient(120deg,#f1c40f,#f39c12);
                             box-shadow: 4px 4px 8px #e67e2280;
-                            max-width: 480px;
+                            max-width: 360px;
                             padding: 16px;
                         }
                         h3 {
@@ -108,7 +121,7 @@ public sealed class MailService
                         div {
                             background: linear-gradient(120deg,#f1c40f,#f39c12);
                             box-shadow: 4px 4px 8px #e67e2280;
-                            max-width: 480px;
+                            max-width: 360px;
                             padding: 16px;
                         }
                         h3 {
@@ -138,11 +151,79 @@ public sealed class MailService
             """;
     }
 
-    private async Task SendMailAsync(string emailAddress, string text)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static string GetPurchaseGachaLogStorageServiceMailBody(string expireAt, string tradeNumber)
+    {
+        return $$"""
+            <html>
+                <head>
+                    <style>
+                        div {
+                            background: linear-gradient(120deg,#f1c40f,#f39c12);
+                            box-shadow: 4px 4px 8px #e67e2280;
+                            max-width: 360px;
+                            padding: 16px;
+                        }
+                        h3 {
+                            margin: 0px;
+                            color: #2c3e50;
+                        }
+                        h2 {
+                            background-color: #2c3e50;
+                            padding: 12px;
+                            color: #ecf0f1;
+                        }
+                        p {
+                            color: #34495e;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div>
+                        <h3>感谢您购买 Snap Hutao 祈愿记录上传服务</h3>
+                        <p>服务有效期至</p>
+                        <h2>{{expireAt}}</h2>
+                        <p>请妥善保存此邮件，订单编号：{{tradeNumber}}</p>
+                        <p style="margin: 0px;">DGP Studio 胡桃开发团队</p>
+                    </div>
+            </body>
+            </html>
+            """;
+    }
+
+    private async Task SendVerifyCodeMailAsync(string emailAddress, string text)
     {
         MimeMessage mimeMessage = new()
         {
             Subject = "Snap Hutao 账号安全",
+            From =
+            {
+                new MailboxAddress("DGP Studio", userName),
+            },
+            To =
+            {
+                new MailboxAddress(emailAddress, emailAddress),
+            },
+            Body = new TextPart("html")
+            {
+                Text = text,
+            },
+        };
+
+        using (SmtpClient client = new())
+        {
+            await client.ConnectAsync(server).ConfigureAwait(false);
+            await client.AuthenticateAsync(userName, password).ConfigureAwait(false);
+            await client.SendAsync(mimeMessage).ConfigureAwait(false);
+            await client.DisconnectAsync(true).ConfigureAwait(false);
+        }
+    }
+
+    private async Task SendPurchaseServiceAsync(string emailAddress, string text)
+    {
+        MimeMessage mimeMessage = new()
+        {
+            Subject = "Snap Hutao 账号服务",
             From =
             {
                 new MailboxAddress("DGP Studio", userName),

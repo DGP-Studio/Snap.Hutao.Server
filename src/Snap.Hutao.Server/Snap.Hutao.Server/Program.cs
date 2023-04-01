@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.IdentityModel.Tokens;
@@ -36,6 +37,7 @@ public class Program
         IServiceCollection services = builder.Services;
 
         services
+            .AddHttpClient()
             .AddMemoryCache()
             .AddTransient<StatisticsService>()
             .AddTransient<RequestFilter>()
