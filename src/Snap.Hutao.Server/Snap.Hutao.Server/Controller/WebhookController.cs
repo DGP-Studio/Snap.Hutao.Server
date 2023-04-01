@@ -12,6 +12,7 @@ namespace Snap.Hutao.Server.Controller;
 /// <summary>
 /// Webhook 控制器
 /// </summary>
+[ApiExplorerSettings(IgnoreApi = true)]
 [Route("[controller]")]
 [ApiController]
 public class WebhookController : ControllerBase

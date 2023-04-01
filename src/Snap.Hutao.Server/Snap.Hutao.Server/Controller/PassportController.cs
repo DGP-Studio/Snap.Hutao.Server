@@ -15,6 +15,7 @@ namespace Snap.Hutao.Server.Controller;
 /// <summary>
 /// 通行证控制器
 /// </summary>
+[ApiExplorerSettings(IgnoreApi = true)]
 [Route("[controller]")]
 [ApiController]
 [ServiceFilter(typeof(RequestFilter))]
