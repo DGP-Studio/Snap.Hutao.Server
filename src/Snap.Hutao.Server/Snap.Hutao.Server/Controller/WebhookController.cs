@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Snap.Hutao.Server.Model.Afdian;
 using Snap.Hutao.Server.Model.Entity;
 using Snap.Hutao.Server.Service;
+using System.Text.Json;
 
 namespace Snap.Hutao.Server.Controller;
 
@@ -44,48 +45,51 @@ public class WebhookController : ControllerBase
     /// <returns>结果</returns>
     [HttpGet("Incoming/Afdian")]
     [HttpPost("Incoming/Afdian")]
-    public async Task<IActionResult> IncomingAfdianAsync([FromBody] AfdianResponse<OrderWrapper> request)
+    public async Task<IActionResult> IncomingAfdianAsync([FromBody] JsonElement request /*[FromBody] AfdianResponse<OrderWrapper> request*/)
     {
-        string userName = request.Data.Order.Remark;
-        logger.LogInformation("UserName:{name}", request.Data.Order.Remark);
-
-        string tradeNumber = request.Data.Order.OutTradeNo;
-
-        if (request.Data.Order.SkuDetail.FirstOrDefault() is SkuDetail skuDetail)
-        {
-            // GachaLog Upload
-            if (skuDetail.SkuId == "80d6dcb8cf9011ed9c3652540025c377")
-            {
-                string skuId = skuDetail.SkuId;
-                int count = skuDetail.Count;
-
-                if (await ValidateTradeAsync(tradeNumber, skuId, count).ConfigureAwait(false))
-                {
-                    HutaoUser? user = await userManager.FindByNameAsync(userName).ConfigureAwait(false);
-
-                    if (user != null)
-                    {
-                        long now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-                        if (user.GachaLogExpireAt < now)
-                        {
-                            user.GachaLogExpireAt = now;
-                        }
-
-                        user.GachaLogExpireAt += (long)TimeSpan.FromDays(30 * count).TotalSeconds;
-
-                        IdentityResult result = await userManager.UpdateAsync(user).ConfigureAwait(false);
-
-                        if (result.Succeeded)
-                        {
-                            string expireAt = DateTimeOffset.FromUnixTimeSeconds(user.GachaLogExpireAt).ToString("yyy MM dd HH:mm:ss");
-                            await mailService.SendPurchaseGachaLogStorageServiceAsync(userName, expireAt, tradeNumber).ConfigureAwait(false);
-                        }
-                    }
-                }
-            }
-        }
-
+        logger.LogInformation("UserName:{name}", request);
         return new JsonResult(new AfdianResponse() { ErrorCode = 200, ErrorMessage = string.Empty });
+
+        //string userName = request.Data.Order.Remark;
+        //logger.LogInformation("UserName:{name}", request.Data.Order.Remark);
+
+        //string tradeNumber = request.Data.Order.OutTradeNo;
+
+        //if (request.Data.Order.SkuDetail.FirstOrDefault() is SkuDetail skuDetail)
+        //{
+        //    // GachaLog Upload
+        //    if (skuDetail.SkuId == "80d6dcb8cf9011ed9c3652540025c377")
+        //    {
+        //        string skuId = skuDetail.SkuId;
+        //        int count = skuDetail.Count;
+
+        //        if (await ValidateTradeAsync(tradeNumber, skuId, count).ConfigureAwait(false))
+        //        {
+        //            HutaoUser? user = await userManager.FindByNameAsync(userName).ConfigureAwait(false);
+
+        //            if (user != null)
+        //            {
+        //                long now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        //                if (user.GachaLogExpireAt < now)
+        //                {
+        //                    user.GachaLogExpireAt = now;
+        //                }
+
+        //                user.GachaLogExpireAt += (long)TimeSpan.FromDays(30 * count).TotalSeconds;
+
+        //                IdentityResult result = await userManager.UpdateAsync(user).ConfigureAwait(false);
+
+        //                if (result.Succeeded)
+        //                {
+        //                    string expireAt = DateTimeOffset.FromUnixTimeSeconds(user.GachaLogExpireAt).ToString("yyy MM dd HH:mm:ss");
+        //                    await mailService.SendPurchaseGachaLogStorageServiceAsync(userName, expireAt, tradeNumber).ConfigureAwait(false);
+        //                }
+        //            }
+        //        }
+        //    }
+        //}
+
+        //return new JsonResult(new AfdianResponse() { ErrorCode = 200, ErrorMessage = string.Empty });
     }
 
     private async Task<bool> ValidateTradeAsync(string tradeNumber, string skuId, int count)
