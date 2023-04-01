@@ -17,22 +17,10 @@ public sealed class Order
     public string OutTradeNo { get; set; } = default!;
 
     /// <summary>
-    /// 自定义信息
-    /// </summary>
-    [JsonPropertyName("custom_order_id")]
-    public string CustomOrderId { get; set; } = default!;
-
-    /// <summary>
     /// 下单用户ID
     /// </summary>
     [JsonPropertyName("user_id")]
     public string UserId { get; set; } = default!;
-
-    /// <summary>
-    /// 用户UUID
-    /// </summary>
-    [JsonPropertyName("user_private_id")]
-    public string UserPrivateId { get; set; } = default!;
 
     /// <summary>
     /// 方案ID，如自选，则为空
@@ -41,7 +29,7 @@ public sealed class Order
     public string PlanId { get; set; } = default!;
 
     /// <summary>
-    /// 赞助月份
+    /// 赞助月份个数
     /// </summary>
     [JsonPropertyName("month")]
     public int Month { get; set; }
@@ -93,6 +81,24 @@ public sealed class Order
     /// </summary>
     [JsonPropertyName("sku_detail")]
     public List<SkuDetail> SkuDetail { get; set; } = default!;
+
+    /// <summary>
+    /// 创建时间
+    /// </summary>
+    [JsonPropertyName("create_time")]
+    public long CreateTime { get; set; }
+
+    /// <summary>
+    /// 创建时间
+    /// </summary>
+    [JsonPropertyName("plan_title")]
+    public string PlanTitle { get; set; } = default!;
+
+    /// <summary>
+    /// 用户UUID
+    /// </summary>
+    [JsonPropertyName("user_private_id")]
+    public string UserPrivateId { get; set; } = default!;
 
     /// <summary>
     /// 收件人

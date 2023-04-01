@@ -39,4 +39,16 @@ public sealed class SkuDetail
     /// </summary>
     [JsonPropertyName("pic")]
     public string Pic { get; set; } = default!;
+
+    /// <summary>
+    /// ?
+    /// </summary>
+    [JsonPropertyName("stock")]
+    public string Stock { get; set; } = default!;
+
+    /// <summary>
+    /// 帖子Id
+    /// </summary>
+    [JsonPropertyName("post_id")]
+    public string PostId { get; set; } = default!;
 }

@@ -46,7 +46,7 @@ public class PassportController : ControllerBase
     /// <param name="request">加密的验证请求</param>
     /// <returns>响应</returns>
     [HttpPost("Verify")]
-    public async Task<IActionResult> VerifyAsync(PassportRequest request)
+    public async Task<IActionResult> VerifyAsync([FromBody] PassportRequest request)
     {
         string userName = passportService.Decrypt(request.UserName);
 
@@ -78,7 +78,7 @@ public class PassportController : ControllerBase
     /// <param name="request">加密的用户名密码</param>
     /// <returns>响应</returns>
     [HttpPost("Register")]
-    public async Task<IActionResult> RegisterAsync(PassportRequest request)
+    public async Task<IActionResult> RegisterAsync([FromBody] PassportRequest request)
     {
         string code = passportService.Decrypt(request.VerifyCode);
         string userName = passportService.Decrypt(request.UserName);
@@ -114,7 +114,7 @@ public class PassportController : ControllerBase
     /// <param name="request">加密的用户名密码</param>
     /// <returns>响应</returns>
     [HttpPost("ResetPassword")]
-    public async Task<IActionResult> ResetPasswordAsync(PassportRequest request)
+    public async Task<IActionResult> ResetPasswordAsync([FromBody] PassportRequest request)
     {
         string code = passportService.Decrypt(request.VerifyCode);
         string userName = passportService.Decrypt(request.UserName);
@@ -150,7 +150,7 @@ public class PassportController : ControllerBase
     /// <param name="request">加密的用户名密码</param>
     /// <returns>响应</returns>
     [HttpPost("Login")]
-    public async Task<IActionResult> LoginAsync(PassportRequest request)
+    public async Task<IActionResult> LoginAsync([FromBody] PassportRequest request)
     {
         Passport passport = new()
         {
