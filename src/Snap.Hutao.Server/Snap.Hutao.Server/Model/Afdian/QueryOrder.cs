@@ -3,6 +3,7 @@
 
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Snap.Hutao.Server.Model.Afdian;
@@ -45,7 +46,7 @@ public class QueryOrder
     /// <returns>查询 POST 数据</returns>
     public static QueryOrder Create(string userId, string tradeNumber, string token)
     {
-        string param = $$"""{\"out_trade_no\":\"{{tradeNumber}}\"}""";
+        string param = JsonSerializer.Serialize(new Param() { OutTradeNo = tradeNumber });
         return new QueryOrder
         {
             UserId = userId,
@@ -59,6 +60,15 @@ public class QueryOrder
     {
         long ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         byte[] hash = MD5.HashData(Encoding.UTF8.GetBytes($"{token}params{param}ts{ts}user_id{userId}"));
-        return Convert.ToHexString(hash);
+        return Convert.ToHexString(hash).ToLowerInvariant();
+    }
+
+    private sealed class Param
+    {
+        /// <summary>
+        /// 订单编号
+        /// </summary>
+        [JsonPropertyName("out_trade_no")]
+        public string OutTradeNo { get; set; }
     }
 }

@@ -47,17 +47,7 @@ public class WebhookController : ControllerBase
     [HttpPost("Incoming/Afdian")]
     public async Task<IActionResult> IncomingAfdianAsync([FromBody] JsonElement raw)
     {
-        AfdianResponse<OrderWrapper> request;
-        try
-        {
-            request = JsonSerializer.Deserialize<AfdianResponse<OrderWrapper>>(raw)!;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Exception when parsing data");
-            return new JsonResult(new AfdianResponse() { ErrorCode = 200, ErrorMessage = string.Empty });
-        }
-
+        AfdianResponse<OrderWrapper> request = JsonSerializer.Deserialize<AfdianResponse<OrderWrapper>>(raw)!;
         string userName = request.Data.Order.Remark;
         logger.LogInformation("UserName:{name}", request.Data.Order.Remark);
         string tradeNumber = request.Data.Order.OutTradeNo;
@@ -108,7 +98,7 @@ public class WebhookController : ControllerBase
             }
             else
             {
-                logger.LogInformation("SKU [{id}] not supported", skuDetail.SkuId);
+                logger.LogInformation("SKU Id:[{id}] not supported", skuDetail.SkuId);
             }
         }
         else
@@ -122,7 +112,7 @@ public class WebhookController : ControllerBase
     private async Task<bool> ValidateTradeAsync(string tradeNumber, string skuId, int count)
     {
         QueryOrder query = QueryOrder.Create(UserId, tradeNumber, afdianToken);
-        logger.LogInformation("Fetch data for trade: {trade}", tradeNumber);
+        logger.LogInformation("Fetch data for trade: [{trade}]", tradeNumber);
         HttpResponseMessage response = await httpClient.PostAsJsonAsync("https://afdian.net/api/open/query-order", query).ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
         AfdianResponse<ListWrapper<Order>>? resp = await response.Content.ReadFromJsonAsync<AfdianResponse<ListWrapper<Order>>>().ConfigureAwait(false);
