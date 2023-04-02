@@ -29,6 +29,12 @@ public class SimpleRecord
     public List<SimpleAvatar> Avatars { get; set; } = default!;
 
     /// <summary>
+    /// 保留属性
+    /// 用户名称
+    /// </summary>
+    public string? ReservedUserName { get; set; }
+
+    /// <summary>
     /// 验证记录有效性
     /// </summary>
     /// <returns>有效性</returns>
@@ -55,6 +61,23 @@ public class SimpleRecord
             return false;
         }
 
+        // 上下半不完整的楼层
+        foreach (SimpleFloor floor in SpiralAbyss.Floors)
+        {
+            foreach (SimpleLevel level in floor.Levels)
+            {
+                if (level.Battles.Count < 2)
+                {
+                    return false;
+                }
+            }
+        }
+
+        return ValidateRequiredAvatars();
+    }
+
+    private bool ValidateRequiredAvatars()
+    {
         int traveller = 1;
         int passMainQuest = 3;
         foreach (SimpleAvatar a in Avatars)

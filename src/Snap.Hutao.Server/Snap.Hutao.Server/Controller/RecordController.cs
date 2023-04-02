@@ -28,6 +28,7 @@ public class RecordController : ControllerBase
     private static readonly ConcurrentDictionary<string, UploadToken> UidUploading = new();
     private readonly AppDbContext appDbContext;
     private readonly RankService rankService;
+    private readonly ExpireService expireService;
     private readonly IMemoryCache memoryCache;
 
     /// <summary>
@@ -35,11 +36,13 @@ public class RecordController : ControllerBase
     /// </summary>
     /// <param name="appDbContext">数据库上下文</param>
     /// <param name="rankService">排行服务</param>
+    /// <param name="expireService">续期服务</param>
     /// <param name="memoryCache">内存缓存</param>
-    public RecordController(AppDbContext appDbContext, RankService rankService, IMemoryCache memoryCache)
+    public RecordController(AppDbContext appDbContext, RankService rankService, ExpireService expireService, IMemoryCache memoryCache)
     {
         this.appDbContext = appDbContext;
         this.rankService = rankService;
+        this.expireService = expireService;
         this.memoryCache = memoryCache;
     }
 
@@ -58,9 +61,7 @@ public class RecordController : ControllerBase
         }
 
         string recordUid = record.Uid;
-        bool isBanned = appDbContext.BannedList.Any(banned => banned.Uid == recordUid);
-
-        if (isBanned)
+        if (appDbContext.BannedList.Any(banned => banned.Uid == recordUid))
         {
             return Model.Response.Response.Fail(ReturnCode.BannedUid, "Uid 已被数据库封禁");
         }
@@ -75,30 +76,26 @@ public class RecordController : ControllerBase
             return Model.Response.Response.Fail(ReturnCode.PreviousRequestNotCompleted, "该UID的请求尚在处理");
         }
 
-        if (UidUploading.TryAdd(record.Uid, new()))
+        if (!UidUploading.TryAdd(record.Uid, new()))
         {
-            await RecordHelper.SaveRecordAsync(appDbContext, rankService, record).ConfigureAwait(false);
+            return Model.Response.Response.Fail(ReturnCode.InternalStateException, "提交状态异常");
+        }
 
-            if (UidUploading.TryRemove(record.Uid, out _))
-            {
-                if (returningRank)
-                {
-                    Rank rank = await rankService.RetriveRankAsync(record.Uid).ConfigureAwait(false);
-                    return Response<Rank>.Success("获取排行数据成功", rank);
-                }
-                else
-                {
-                    return Model.Response.Response.Success("数据提交成功");
-                }
-            }
-            else
-            {
-                return Model.Response.Response.Fail(ReturnCode.InternalStateException, "提交状态异常");
-            }
+        await RecordHelper.SaveRecordAsync(appDbContext, rankService, expireService, record).ConfigureAwait(false);
+
+        if (!UidUploading.TryRemove(record.Uid, out _))
+        {
+            return Model.Response.Response.Fail(ReturnCode.InternalStateException, "提交状态异常");
+        }
+
+        if (returningRank)
+        {
+            Rank rank = await rankService.RetriveRankAsync(record.Uid).ConfigureAwait(false);
+            return Response<Rank>.Success("获取排行数据成功", rank);
         }
         else
         {
-            return Model.Response.Response.Fail(ReturnCode.InternalStateException, "提交状态异常");
+            return Model.Response.Response.Success("数据提交成功");
         }
     }
 

@@ -4,6 +4,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Snap.Hutao.Server.Controller.Filter;
+using Snap.Hutao.Server.Extension;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity;
 using Snap.Hutao.Server.Model.Response;
@@ -77,8 +78,7 @@ public class HutaoLogController : ControllerBase
             DeviceId = uploadLog.Id,
             Time = uploadLog.Time,
         };
-        appDbContext.HutaoLogSingleItems.Add(singleItem);
-        appDbContext.SaveChanges();
+        appDbContext.HutaoLogSingleItems.AddAndSave(singleItem);
 
         return Model.Response.Response.Success("日志上传成功");
     }
@@ -98,54 +98,7 @@ public class HutaoLogController : ControllerBase
             .Take(3)
             .ToList();
 
-        List<HutaoLog> logs = new(3);
-
-        foreach (HutaoLogSingleItem item in items)
-        {
-            long logId = item.LogId;
-            HutaoLog log = appDbContext.HutaoLogs.AsNoTracking().Single(x => x.PrimaryId == logId);
-            logs.Add(log);
-        }
-
+        List<HutaoLog> logs = items.SelectList(item => appDbContext.HutaoLogs.AsNoTracking().Single(x => x.PrimaryId == item.LogId));
         return Response<List<HutaoLog>>.Success("获取记录成功", logs);
-    }
-
-    /// <summary>
-    /// 获取未完成的列表
-    /// </summary>
-    /// <returns>未完成的列表</returns>
-    [HttpGet("Unresolved")]
-    public IActionResult Unresolved()
-    {
-        List<HutaoLog> result = appDbContext.HutaoLogs
-            .AsNoTracking()
-            .OrderByDescending(log => log.Count)
-            .Where(log => log.Resolved == false)
-            .Take(10)
-            .ToList();
-
-        return Response<List<HutaoLog>>.Success("获取记录成功", result);
-    }
-
-    /// <summary>
-    /// 标记为已经解决
-    /// </summary>
-    /// <param name="pid">主键Id</param>
-    /// <returns>结果</returns>
-    [HttpGet("Resolve")]
-    public IActionResult Resolve([FromQuery] long pid)
-    {
-        HutaoLog? log = appDbContext.HutaoLogs.SingleOrDefault(l => l.PrimaryId == pid);
-
-        if (log != null)
-        {
-            log.Resolved = true;
-            appDbContext.SaveChanges();
-            return Model.Response.Response.Success("成功标记");
-        }
-        else
-        {
-            return Model.Response.Response.Fail(ReturnCode.NoMatchedLogId, "无对应的日志Id");
-        }
     }
 }

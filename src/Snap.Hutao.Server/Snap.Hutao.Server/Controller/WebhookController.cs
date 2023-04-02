@@ -1,12 +1,9 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Snap.Hutao.Server.Model.Afdian;
-using Snap.Hutao.Server.Model.Entity;
 using Snap.Hutao.Server.Service;
-using System.Text.Json;
 
 namespace Snap.Hutao.Server.Controller;
 
@@ -19,7 +16,7 @@ namespace Snap.Hutao.Server.Controller;
 public class WebhookController : ControllerBase
 {
     private const string UserId = "8f9ed3e87f4911ebacb652540025c377";
-    private readonly UserManager<HutaoUser> userManager;
+    private readonly ExpireService expireService;
     private readonly MailService mailService;
     private readonly HttpClient httpClient;
     private readonly ILogger<WebhookController> logger;
@@ -31,7 +28,7 @@ public class WebhookController : ControllerBase
     /// <param name="serviceProvider">服务提供器</param>
     public WebhookController(IServiceProvider serviceProvider)
     {
-        userManager = serviceProvider.GetRequiredService<UserManager<HutaoUser>>();
+        expireService = serviceProvider.GetRequiredService<ExpireService>();
         mailService = serviceProvider.GetRequiredService<MailService>();
         httpClient = serviceProvider.GetRequiredService<HttpClient>();
         logger = serviceProvider.GetRequiredService<ILogger<WebhookController>>();
@@ -41,15 +38,14 @@ public class WebhookController : ControllerBase
     /// <summary>
     /// 爱发电
     /// </summary>
-    /// <param name="raw">请求</param>
+    /// <param name="request">请求</param>
     /// <returns>结果</returns>
     [HttpGet("Incoming/Afdian")]
     [HttpPost("Incoming/Afdian")]
-    public async Task<IActionResult> IncomingAfdianAsync([FromBody] JsonElement raw)
+    public async Task<IActionResult> IncomingAfdianAsync([FromBody] AfdianResponse<OrderWrapper> request)
     {
-        AfdianResponse<OrderWrapper> request = JsonSerializer.Deserialize<AfdianResponse<OrderWrapper>>(raw)!;
         string userName = request.Data.Order.Remark;
-        logger.LogInformation("UserName:{name}", request.Data.Order.Remark);
+        logger.LogInformation("UserName: {name}", request.Data.Order.Remark);
         string tradeNumber = request.Data.Order.OutTradeNo;
 
         if (request.Data.Order.SkuDetail.FirstOrDefault() is SkuDetail skuDetail)
@@ -62,34 +58,11 @@ public class WebhookController : ControllerBase
 
                 if (await ValidateTradeAsync(tradeNumber, skuId, count).ConfigureAwait(false))
                 {
-                    HutaoUser? user = await userManager.FindByNameAsync(userName).ConfigureAwait(false);
-
-                    if (user != null)
+                    await expireService.ExtendGachaLogTermAsync(userName, 30, async user =>
                     {
-                        long now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-                        if (user.GachaLogExpireAt < now)
-                        {
-                            user.GachaLogExpireAt = now;
-                        }
-
-                        user.GachaLogExpireAt += (long)TimeSpan.FromDays(30 * count).TotalSeconds;
-
-                        IdentityResult result = await userManager.UpdateAsync(user).ConfigureAwait(false);
-
-                        if (result.Succeeded)
-                        {
-                            string expireAt = DateTimeOffset.FromUnixTimeSeconds(user.GachaLogExpireAt).ToString("yyy MM dd HH:mm:ss");
-                            await mailService.SendPurchaseGachaLogStorageServiceAsync(userName, expireAt, tradeNumber).ConfigureAwait(false);
-                        }
-                        else
-                        {
-                            logger.LogInformation("Update db failed");
-                        }
-                    }
-                    else
-                    {
-                        logger.LogInformation("No such user: {user}", userName);
-                    }
+                        string expireAt = DateTimeOffset.FromUnixTimeSeconds(user.GachaLogExpireAt).ToString("yyy MM dd HH:mm:ss");
+                        await mailService.SendPurchaseGachaLogStorageServiceAsync(userName, expireAt, tradeNumber).ConfigureAwait(false);
+                    }).ConfigureAwait(false);
                 }
                 else
                 {

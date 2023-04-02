@@ -69,6 +69,6 @@ public class QueryOrder
         /// 订单编号
         /// </summary>
         [JsonPropertyName("out_trade_no")]
-        public string OutTradeNo { get; set; }
+        public string OutTradeNo { get; set; } = default!;
     }
 }

@@ -19,8 +19,6 @@ namespace Snap.Hutao.Server.Service.Legacy;
 /// </summary>
 public class StatisticsTracker
 {
-    private readonly ILogger logger;
-
     #region Counters
 
     // 对应层满星 | 出场
@@ -79,15 +77,6 @@ public class StatisticsTracker
     private int totalSpiralAbyssStarCounter;
     private long totalSpiralAbyssBattleTimesCounter;
     #endregion
-
-    /// <summary>
-    /// 构造一个新的追踪器
-    /// </summary>
-    /// <param name="logger">日志器</param>
-    public StatisticsTracker(ILogger logger)
-    {
-        this.logger = logger;
-    }
 
     /// <summary>
     /// 最后处理的Id
@@ -170,28 +159,17 @@ public class StatisticsTracker
             {
                 ref SimpleLevel level = ref Unsafe.Add(ref levelAtZero, j);
 
-                // 最多仅能出现两次战斗
-                // 所以我们在此处避免了额外的一层 for
-                SimpleBattle battleUp = level.Battles[0];
-                Team teamUp = StatisticsHelper.AsTeam(battleUp.Avatars);
-                IncreaseCurrentFloorUpDownTeamCount(floor.Index, battleUp.Index, teamUp);
-                IncreaseAvatarAvatarBuild(teamUp);
-                StatisticsHelper.AddTeamAvatarToHashSet(teamUp, recordPresentAvatars);
-                StatisticsHelper.AddTeamAvatarToHashSet(teamUp, floorPresentAvatars);
+                Span<SimpleBattle> battles = CollectionsMarshal.AsSpan(level.Battles);
+                ref SimpleBattle battleAtZero = ref MemoryMarshal.GetReference(battles);
+                for (int k = 0; k < battles.Length; k++)
+                {
+                    ref SimpleBattle battle = ref Unsafe.Add(ref battleAtZero, k);
 
-                if (level.Battles.Count > 1)
-                {
-                    SimpleBattle battleDown = level.Battles[1];
-                    Team teamDown = StatisticsHelper.AsTeam(battleDown.Avatars);
-                    IncreaseCurrentFloorUpDownTeamCount(floor.Index, battleDown.Index, teamDown);
-                    IncreaseAvatarAvatarBuild(teamDown);
-                    StatisticsHelper.AddTeamAvatarToHashSet(teamDown, recordPresentAvatars);
-                    StatisticsHelper.AddTeamAvatarToHashSet(teamDown, floorPresentAvatars);
-                }
-                else
-                {
-                    // we will ban those who upload fake data.
-                    logger.LogWarning("Incompleted record: {uid}", record.Uid);
+                    Team team = StatisticsHelper.AsTeam(battle.Avatars);
+                    IncreaseCurrentFloorUpDownTeamCount(floor.Index, battle.Index, team);
+                    IncreaseAvatarAvatarBuild(team);
+                    StatisticsHelper.AddTeamAvatarToHashSet(team, recordPresentAvatars);
+                    StatisticsHelper.AddTeamAvatarToHashSet(team, floorPresentAvatars);
                 }
             }
 

@@ -7,6 +7,7 @@ using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity;
 using Snap.Hutao.Server.Model.Upload;
 using Snap.Hutao.Server.Service;
+using System.Runtime.CompilerServices;
 
 namespace Snap.Hutao.Server.Controller.Helper;
 
@@ -20,68 +21,76 @@ public static class RecordHelper
     /// </summary>
     /// <param name="appDbContext">数据库上下文</param>
     /// <param name="rankService">排行服务</param>
+    /// <param name="expireService">续期服务</param>
     /// <param name="record">记录</param>
-    /// <returns>任务</returns>
-    public static async Task SaveRecordAsync(AppDbContext appDbContext, RankService rankService, SimpleRecord record)
+    /// <returns>是否触发了赠送时长</returns>
+    public static async Task<bool> SaveRecordAsync(AppDbContext appDbContext, RankService rankService, ExpireService expireService, SimpleRecord record)
     {
+        bool gachaLogExtended = false;
         EntityRecord? entityRecord = await appDbContext.Records.SingleOrDefaultAsync(r => r.Uid == record.Uid).ConfigureAwait(false);
 
         if (entityRecord != null)
         {
-            appDbContext.Records.Remove(entityRecord);
-            await appDbContext.SaveChangesAsync().ConfigureAwait(false);
+            await appDbContext.Records.RemoveAndSaveAsync(entityRecord).ConfigureAwait(false);
+        }
+        else
+        {
+            if (record.Identity == UploaderIdentities.SnapHutao && record.ReservedUserName != null)
+            {
+                await expireService.ExtendGachaLogTermAsync(record.ReservedUserName, 7).ConfigureAwait(false);
+                gachaLogExtended = true;
+            }
         }
 
-        entityRecord = new();
-        appDbContext.Records.Add(entityRecord);
-
         // EntityRecord
-        entityRecord.Uid = record.Uid;
-        entityRecord.Uploader = record.Identity;
-        entityRecord.UploadTime = DateTimeOffset.Now.ToUnixTimeSeconds();
-        await appDbContext.SaveChangesAsync().ConfigureAwait(false);
+        entityRecord = ToEntity(record);
+        await appDbContext.Records.AddAndSaveAsync(entityRecord).ConfigureAwait(false);
 
         long recordId = entityRecord.PrimaryId;
 
         // EntityAvatars
-        List<EntityAvatar> entityAvatars = record.Avatars.Select(a => ToEntity(a, recordId)).ToList();
-        await appDbContext.Avatars.AddRangeAsync(entityAvatars).ConfigureAwait(false);
-        await appDbContext.SaveChangesAsync().ConfigureAwait(false);
+        List<EntityAvatar> entityAvatars = record.Avatars.SelectList(a => ToEntity(a, recordId));
+        await appDbContext.Avatars.AddRangeAndSaveAsync(entityAvatars).ConfigureAwait(false);
 
         // EntitySpiralAbyss
-        EntitySpiralAbyss entitySpiralAbyss = new()
-        {
-            RecordId = entityRecord.PrimaryId,
-            TotalBattleTimes = record.SpiralAbyss.TotalBattleTimes,
-            TotalWinTimes = record.SpiralAbyss.TotalWinTimes,
-        };
-        appDbContext.SpiralAbysses.Add(entitySpiralAbyss);
-        await appDbContext.SaveChangesAsync().ConfigureAwait(false);
+        EntitySpiralAbyss entitySpiralAbyss = ToEntity(record.SpiralAbyss, entityRecord.PrimaryId);
+        await appDbContext.SpiralAbysses.AddAndSaveAsync(entitySpiralAbyss).ConfigureAwait(false);
 
         long spiralAbyssId = entitySpiralAbyss.PrimaryId;
 
         // EntityFloors
         List<EntityFloor> entityFloors = record.SpiralAbyss.Floors.Where(f => f.Index >= 9).Select(f => ToEntity(f, spiralAbyssId)).ToList();
-        await appDbContext.SpiralAbyssFloors.AddRangeAsync(entityFloors).ConfigureAwait(false);
-        await appDbContext.SaveChangesAsync().ConfigureAwait(false);
+        await appDbContext.SpiralAbyssFloors.AddRangeAndSaveAsync(entityFloors).ConfigureAwait(false);
 
         // EntityDamageRank
         EntityDamageRank entityDamageRank = ToEntityDamageRank(record.SpiralAbyss.Damage, spiralAbyssId, record.Uid);
-        appDbContext.DamageRanks.Add(entityDamageRank);
-        await appDbContext.SaveChangesAsync().ConfigureAwait(false);
+        await appDbContext.DamageRanks.AddAndSaveAsync(entityDamageRank).ConfigureAwait(false);
 
         // EntityTakeDamageRank
         if (record.SpiralAbyss.TakeDamage != null)
         {
             EntityTakeDamageRank entityTakeDamageRank = ToEntityTakeDamageRank(record.SpiralAbyss.TakeDamage, spiralAbyssId, record.Uid);
-            appDbContext.TakeDamageRanks.Add(entityTakeDamageRank);
-            await appDbContext.SaveChangesAsync().ConfigureAwait(false);
+            await appDbContext.TakeDamageRanks.AddAndSaveAsync(entityTakeDamageRank).ConfigureAwait(false);
         }
 
         // Redis rank sync
         await rankService.SaveRankAsync(record.Uid, record.SpiralAbyss.Damage, record.SpiralAbyss.TakeDamage).ConfigureAwait(false);
+
+        return gachaLogExtended;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static EntityRecord ToEntity(SimpleRecord simpleRecord)
+    {
+        return new()
+        {
+            Uid = simpleRecord.Uid,
+            Uploader = simpleRecord.Identity,
+            UploadTime = DateTimeOffset.Now.ToUnixTimeSeconds(),
+        };
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static EntityAvatar ToEntity(SimpleAvatar simpleAvatar, long recordId)
     {
         Dictionary<int, int> relicSetCounter = new();
@@ -116,6 +125,18 @@ public static class RecordHelper
         };
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static EntitySpiralAbyss ToEntity(SimpleSpiralAbyss simpleSpiralAbyss, long recordId)
+    {
+        return new()
+        {
+            RecordId = recordId,
+            TotalBattleTimes = simpleSpiralAbyss.TotalBattleTimes,
+            TotalWinTimes = simpleSpiralAbyss.TotalWinTimes,
+        };
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static EntityFloor ToEntity(SimpleFloor simpleFloor, long spiralAbyssId)
     {
         // Sort team avatars.
@@ -136,6 +157,7 @@ public static class RecordHelper
         };
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static EntityDamageRank ToEntityDamageRank(SimpleRank rank, long spiralAbyssId, string uid)
     {
         return new()
@@ -147,6 +169,7 @@ public static class RecordHelper
         };
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static EntityTakeDamageRank ToEntityTakeDamageRank(SimpleRank rank, long spiralAbyssId, string uid)
     {
         return new()

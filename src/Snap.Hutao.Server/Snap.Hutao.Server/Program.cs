@@ -43,7 +43,8 @@ public class Program
             .AddTransient<RequestFilter>()
             .AddScoped<PassportService>()
             .AddSingleton<RankService>()
-            .AddSingleton<MailService>();
+            .AddSingleton<MailService>()
+            .AddSingleton<ExpireService>();
 
         services
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -78,7 +79,11 @@ public class Program
 
         services
             .AddResponseCompression()
-            .AddControllers()
+            .AddControllers(options =>
+            {
+                // Disable non-nullable as [Required]
+                options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
+            })
             .AddJsonOptions(o =>
             {
                 JsonSerializerOptions options = o.JsonSerializerOptions;

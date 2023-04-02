@@ -68,4 +68,25 @@ public static class EnumerableExtension
 
         return false;
     }
+
+    /// <summary>
+    /// 转换到新类型的列表
+    /// </summary>
+    /// <typeparam name="TSource">原始类型</typeparam>
+    /// <typeparam name="TResult">新类型</typeparam>
+    /// <param name="list">列表</param>
+    /// <param name="selector">选择器</param>
+    /// <returns>新类型的列表</returns>
+    public static List<TResult> SelectList<TSource, TResult>(this List<TSource> list, Func<TSource, TResult> selector)
+    {
+        Span<TSource> span = CollectionsMarshal.AsSpan(list);
+        ref TSource reference = ref MemoryMarshal.GetReference(span);
+        List<TResult> results = new(span.Length);
+        for (int i = 0; i < span.Length; i++)
+        {
+            results.Add(selector(Unsafe.Add(ref reference, i)));
+        }
+
+        return results;
+    }
 }

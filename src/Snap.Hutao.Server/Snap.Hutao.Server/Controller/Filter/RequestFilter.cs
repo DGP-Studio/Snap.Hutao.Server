@@ -28,13 +28,13 @@ public class RequestFilter : IAsyncActionFilter
     public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
     {
         string path = context.HttpContext.Request.Path;
-        string? ua = context.HttpContext.Request.Headers.UserAgent;
+        string? userAgent = context.HttpContext.Request.Headers.UserAgent;
 
         using (await appDbContext.OperationLock.EnterAsync().ConfigureAwait(false))
         {
             RequestStatistics? statistics = appDbContext.RequestStatistics
-                .Where(req => req.Path == path)
-                .SingleOrDefault(req => req.UserAgent == ua);
+                .Where(statistics => statistics.Path == path)
+                .SingleOrDefault(statistics => statistics.UserAgent == userAgent);
 
             if (statistics == null)
             {

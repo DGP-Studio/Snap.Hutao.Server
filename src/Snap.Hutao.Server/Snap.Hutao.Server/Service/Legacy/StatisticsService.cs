@@ -23,22 +23,22 @@ public class StatisticsService
     public const string Working = "StatisticsService.Working";
     private const int Partion = 256;
 
+    // Compile queries that used multiple times to increase performance
+    private static readonly Func<AppDbContext, long, IEnumerable<EntityRecord>> PartionQuery = EF.CompileQuery((AppDbContext context, long lastId) =>
+        context.Records.AsNoTracking().OrderBy(r => r.PrimaryId).Where(r => r.PrimaryId > lastId).Take(Partion));
+
+    private static readonly Func<AppDbContext, long, IEnumerable<EntityAvatar>> AvatarQuery = EF.CompileQuery((AppDbContext context, long recordId) =>
+        context.Avatars.AsNoTracking().Where(a => a.RecordId == recordId));
+
+    private static readonly Func<AppDbContext, long, EntitySpiralAbyss?> SpiralAbyssQuery = EF.CompileQuery((AppDbContext context, long recordId) =>
+        context.SpiralAbysses.AsNoTracking().SingleOrDefault(s => s.RecordId == recordId));
+
+    private static readonly Func<AppDbContext, long, IEnumerable<EntityFloor>> FloorQuery = EF.CompileQuery((AppDbContext context, long spiralAbyssId) =>
+        context.SpiralAbyssFloors.AsNoTracking().Where(f => f.SpiralAbyssId == spiralAbyssId));
+
     private readonly AppDbContext appDbContext;
     private readonly IMemoryCache memoryCache;
     private readonly ILogger<StatisticsService> logger;
-
-    // comple queries that used multiple times to increase performance
-    private readonly Func<AppDbContext, long, IEnumerable<EntityRecord>> partionQuery = EF.CompileQuery((AppDbContext context, long lastId) =>
-        context.Records.AsNoTracking().OrderBy(r => r.PrimaryId).Where(r => r.PrimaryId > lastId).Take(Partion));
-
-    private readonly Func<AppDbContext, long, IEnumerable<EntityAvatar>> avatarQuery = EF.CompileQuery((AppDbContext context, long recordId) =>
-        context.Avatars.AsNoTracking().Where(a => a.RecordId == recordId));
-
-    private readonly Func<AppDbContext, long, EntitySpiralAbyss?> spiralAbyssQuery = EF.CompileQuery((AppDbContext context, long recordId) =>
-        context.SpiralAbysses.AsNoTracking().SingleOrDefault(s => s.RecordId == recordId));
-
-    private readonly Func<AppDbContext, long, IEnumerable<EntityFloor>> floorQuery = EF.CompileQuery((AppDbContext context, long spiralAbyssId) =>
-        context.SpiralAbyssFloors.AsNoTracking().Where(f => f.SpiralAbyssId == spiralAbyssId));
 
     /// <summary>
     /// 构造一个新的统计服务
@@ -59,7 +59,7 @@ public class StatisticsService
     /// <returns>任务</returns>
     public async Task RunAsync()
     {
-        StatisticsTracker tracker = new(logger);
+        StatisticsTracker tracker = new();
 
         using (memoryCache.Flag(Working))
         {
@@ -76,27 +76,27 @@ public class StatisticsService
     {
         while (true)
         {
-            List<EntityRecord> partionRecords = partionQuery(appDbContext, tracker.LastId).ToList();
+            List<EntityRecord> partialRecords = PartionQuery(appDbContext, tracker.LastId).ToList();
 
-            Span<EntityRecord> partionRecordSpan = CollectionsMarshal.AsSpan(partionRecords);
-            ref EntityRecord recordAtZero = ref MemoryMarshal.GetReference(partionRecordSpan);
+            Span<EntityRecord> partialRecordSpan = CollectionsMarshal.AsSpan(partialRecords);
+            ref EntityRecord recordAtZero = ref MemoryMarshal.GetReference(partialRecordSpan);
 
-            for (int i = 0; i < partionRecordSpan.Length; i++)
+            for (int i = 0; i < partialRecordSpan.Length; i++)
             {
-                ref EntityRecord recordRef = ref Unsafe.Add(ref recordAtZero, i);
+                ref EntityRecord record = ref Unsafe.Add(ref recordAtZero, i);
 
-                recordRef.Avatars = avatarQuery(appDbContext, recordRef.PrimaryId).ToList();
-                recordRef.SpiralAbyss = spiralAbyssQuery(appDbContext, recordRef.PrimaryId);
+                record.Avatars = AvatarQuery(appDbContext, record.PrimaryId).ToList();
+                record.SpiralAbyss = SpiralAbyssQuery(appDbContext, record.PrimaryId);
 
-                if (recordRef.SpiralAbyss != null)
+                if (record.SpiralAbyss != null)
                 {
-                    recordRef.SpiralAbyss.Floors = floorQuery(appDbContext, recordRef.SpiralAbyss.PrimaryId).ToList();
+                    record.SpiralAbyss.Floors = FloorQuery(appDbContext, record.SpiralAbyss.PrimaryId).ToList();
                 }
 
-                tracker.Track(recordRef);
+                tracker.Track(record);
             }
 
-            if (partionRecordSpan.Length < Partion)
+            if (partialRecordSpan.Length < Partion)
             {
                 break;
             }

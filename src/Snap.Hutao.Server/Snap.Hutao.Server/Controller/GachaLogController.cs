@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Snap.Hutao.Server.Controller.Filter;
+using Snap.Hutao.Server.Extension;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity;
 using Snap.Hutao.Server.Model.GachaLog;
@@ -40,8 +41,8 @@ public class GachaLogController : ControllerBase
     /// </summary>
     /// <param name="uid">uid</param>
     /// <returns>各个卡池对应的最后Id</returns>
-    [HttpGet("EndId")]
-    public IActionResult GetEndId([FromQuery(Name = "Uid")] string uid)
+    [HttpGet("EndIds")]
+    public IActionResult GetEndIds([FromQuery(Name = "Uid")] string uid)
     {
         int userId = this.GetUserId();
         EndIds endIds = new();
@@ -105,11 +106,14 @@ public class GachaLogController : ControllerBase
     {
         int userId = this.GetUserId();
         string uid = gachaData.Uid;
+
         try
         {
             List<EntityGachaItem> entities = new();
             AppendModelsToEntities(gachaData.Items, entities, userId, gachaData.Uid, gachaData.IsTrusted);
-            await appDbContext.GachaItems.AddRangeAsync(entities).ConfigureAwait(false);
+            int count = await appDbContext.GachaItems.AddRangeAndSaveAsync(entities).ConfigureAwait(false);
+
+            return Model.Response.Response.Success($"成功上传了 {count} 条数据");
         }
         catch
         {
@@ -121,8 +125,6 @@ public class GachaLogController : ControllerBase
 
             return Model.Response.Response.Fail(ReturnCode.GachaLogDatabaseOperationFailed, "数据异常");
         }
-
-        return Model.Response.Response.Success("testing");
     }
 
     private static void AppendEntitiesToModels(List<EntityGachaItem> items, List<SimpleGachaItem> gachaItems)
@@ -132,6 +134,7 @@ public class GachaLogController : ControllerBase
         for (int i = 0; i < itemSpan.Length; i++)
         {
             ref EntityGachaItem item = ref Unsafe.Add(ref itemAtZero, i);
+
             SimpleGachaItem simple = new()
             {
                 GachaType = item.GachaType,
@@ -152,6 +155,7 @@ public class GachaLogController : ControllerBase
         for (int i = 0; i < gachaItemSpan.Length; i++)
         {
             ref SimpleGachaItem item = ref Unsafe.Add(ref itemAtZero, i);
+
             EntityGachaItem entity = new()
             {
                 UserId = userId,
