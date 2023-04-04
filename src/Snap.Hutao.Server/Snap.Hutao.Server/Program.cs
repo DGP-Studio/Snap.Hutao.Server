@@ -2,7 +2,6 @@
 // Licensed under the MIT license.
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.IdentityModel.Tokens;
@@ -105,18 +104,18 @@ public class Program
             })
             .AddTransient<SpialAbyssRecordCleanJob>()
             .AddTransient<LegacyStatisticsRefreshJob>()
-            .AddQuartzServer(config => config.WaitForJobsToComplete = true);
+            .AddQuartzServer(options => options.WaitForJobsToComplete = true);
 
-        services.AddCors(options => options.AddPolicy("CorsPolicy", builder =>
+        services.AddCors(options => options.AddPolicy("CorsPolicy", options =>
         {
-            builder.AllowAnyMethod().AllowAnyHeader().AllowAnyOrigin().AllowCredentials();
+            options.AllowAnyMethod().AllowAnyHeader().AllowAnyOrigin().AllowCredentials();
         }));
 
-        services.AddDbContextPool<AppDbContext>(optionsBuilder =>
+        services.AddDbContextPool<AppDbContext>(options =>
         {
             string connectionString = builder.Configuration.GetConnectionString("LocalDb")!;
             Console.WriteLine($"Using connection string:\n [{connectionString}]");
-            optionsBuilder
+            options
                 .UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
                 .ConfigureWarnings(c => c.Log((RelationalEventId.CommandExecuted, LogLevel.Debug)));
         });

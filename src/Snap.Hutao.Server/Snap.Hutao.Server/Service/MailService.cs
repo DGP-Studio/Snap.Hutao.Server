@@ -16,6 +16,7 @@ public sealed class MailService
     private readonly string server;
     private readonly string userName;
     private readonly string password;
+    private readonly string diagnosticEmailAddress;
 
     /// <summary>
     /// 构造一个新的邮件服务
@@ -30,6 +31,7 @@ public sealed class MailService
         server = smtp["Server"]!;
         userName = smtp["UserName"]!;
         password = smtp["Password"]!;
+        diagnosticEmailAddress = smtp["DiagnosticEmailAddress"]!;
 
         logger.LogInformation("Initialized with UserName:{userName} Password:{password}", userName, password);
     }
@@ -68,7 +70,20 @@ public sealed class MailService
     public Task SendPurchaseGachaLogStorageServiceAsync(string emailAddress, string expireAt, string tradeNumber)
     {
         logger.LogInformation("Send GachaLog Mail to [{email}] with [{code}]", emailAddress, tradeNumber);
-        return SendPurchaseServiceAsync(emailAddress, GetPurchaseGachaLogStorageServiceMailBody(expireAt, tradeNumber));
+        return SendPurchaseServiceMailAsync(emailAddress, GetPurchaseGachaLogStorageServiceMailBody(expireAt, tradeNumber));
+    }
+
+    /// <summary>
+    /// 异步发送深渊清理任务邮件
+    /// </summary>
+    /// <param name="task">任务名称</param>
+    /// <param name="deletedRecordsCount">删除记录个数</param>
+    /// <param name="deletedSpiralCount">删除深渊个数</param>
+    /// <param name="removedKeys">移除的 Redis key 个数</param>
+    /// <returns>任务</returns>
+    public Task SendDiagnosticSpiralAbyssCleanJobAsync(string task, int deletedRecordsCount, int deletedSpiralCount, long removedKeys)
+    {
+        return SendDiagnosticMailAsync(diagnosticEmailAddress, GetDiagnosticSpiralAbyssCleanJobMailBody(task, deletedRecordsCount, deletedSpiralCount, removedKeys));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -81,7 +96,7 @@ public sealed class MailService
                         div {
                             background: linear-gradient(120deg,#f1c40f,#f39c12);
                             box-shadow: 4px 4px 8px #e67e2280;
-                            max-width: 360px;
+                            max-width: 400px;
                             padding: 16px;
                         }
                         h3 {
@@ -121,7 +136,7 @@ public sealed class MailService
                         div {
                             background: linear-gradient(120deg,#f1c40f,#f39c12);
                             box-shadow: 4px 4px 8px #e67e2280;
-                            max-width: 360px;
+                            max-width: 400px;
                             padding: 16px;
                         }
                         h3 {
@@ -161,7 +176,7 @@ public sealed class MailService
                         div {
                             background: linear-gradient(120deg,#f1c40f,#f39c12);
                             box-shadow: 4px 4px 8px #e67e2280;
-                            max-width: 360px;
+                            max-width: 400px;
                             padding: 16px;
                         }
                         h3 {
@@ -186,6 +201,54 @@ public sealed class MailService
                         <p>请妥善保存此邮件，订单编号：{{tradeNumber}}</p>
                         <p style="margin: 0px;">DGP Studio 胡桃开发团队</p>
                     </div>
+            </body>
+            </html>
+            """;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static string GetDiagnosticSpiralAbyssCleanJobMailBody(string task, int deletedRecordsCount, int deletedSpiralCount, long removedKeys)
+    {
+        return $$"""
+            <html>
+            <head>
+                <style>
+                    div {
+                        background: linear-gradient(120deg, #f1c40f, #f39c12);
+                        box-shadow: 4px 4px 8px #e67e2280;
+                        max-width: 400px;
+                        padding: 16px;
+                    }
+                    hr {
+                        background-color: #2c3e50;
+                        height: 1px;
+                        border: none;
+                    }
+                    h3 {
+                        margin: 0px;
+                        color: #2c3e50;
+                    }
+                    h2 {
+                        background-color: #2c3e50;
+                        padding: 12px;
+                        color: #ecf0f1;
+                    }
+                    p {
+                        color: #34495e;
+                    }
+                </style>
+            </head>
+            <body>
+                <div>
+                    <h3>Snap Hutao 服务端运行报告</h3>
+                    <hr style="margin-top: 16px;"/>
+                    <p>任务：<b>{{task}}</b></p>
+                    <p>删除超时记录 <b>{{deletedRecordsCount}}</b> 条</p>
+                    <p>删除深渊数据 <b>{{deletedSpiralCount}}</b> 条</p>
+                    <p>删除 Redis 键 <b>{{removedKeys}}</b> 个</p>
+                    <hr style="margin-top: 16px;"/>
+                    <p style="margin: 0px;">DGP Studio 胡桃开发团队</p>
+                </div>
             </body>
             </html>
             """;
@@ -219,7 +282,35 @@ public sealed class MailService
         }
     }
 
-    private async Task SendPurchaseServiceAsync(string emailAddress, string text)
+    private async Task SendPurchaseServiceMailAsync(string emailAddress, string text)
+    {
+        MimeMessage mimeMessage = new()
+        {
+            Subject = "Snap Hutao 账号服务",
+            From =
+            {
+                new MailboxAddress("DGP Studio", userName),
+            },
+            To =
+            {
+                new MailboxAddress(emailAddress, emailAddress),
+            },
+            Body = new TextPart("html")
+            {
+                Text = text,
+            },
+        };
+
+        using (SmtpClient client = new())
+        {
+            await client.ConnectAsync(server).ConfigureAwait(false);
+            await client.AuthenticateAsync(userName, password).ConfigureAwait(false);
+            await client.SendAsync(mimeMessage).ConfigureAwait(false);
+            await client.DisconnectAsync(true).ConfigureAwait(false);
+        }
+    }
+
+    private async Task SendDiagnosticMailAsync(string emailAddress, string text)
     {
         MimeMessage mimeMessage = new()
         {

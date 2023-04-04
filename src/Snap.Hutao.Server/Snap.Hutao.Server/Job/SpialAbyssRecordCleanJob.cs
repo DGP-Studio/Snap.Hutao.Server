@@ -15,19 +15,19 @@ public class SpialAbyssRecordCleanJob : IJob
 {
     private readonly AppDbContext appDbContext;
     private readonly RankService rankService;
+    private readonly MailService mailService;
     private readonly ILogger<SpialAbyssRecordCleanJob> logger;
 
     /// <summary>
     /// 构造一个新的深渊记录清除任务
     /// </summary>
-    /// <param name="appDbContext">数据库上下文</param>
-    /// <param name="rankService">排行服务</param>
-    /// <param name="logger">日志器</param>
-    public SpialAbyssRecordCleanJob(AppDbContext appDbContext, RankService rankService, ILogger<SpialAbyssRecordCleanJob> logger)
+    /// <param name="serviceProvider">服务提供器</param>
+    public SpialAbyssRecordCleanJob(IServiceProvider serviceProvider)
     {
-        this.appDbContext = appDbContext;
-        this.rankService = rankService;
-        this.logger = logger;
+        appDbContext = serviceProvider.GetRequiredService<AppDbContext>();
+        rankService = serviceProvider.GetRequiredService<RankService>();
+        mailService = serviceProvider.GetRequiredService<MailService>();
+        logger = serviceProvider.GetRequiredService<ILogger<SpialAbyssRecordCleanJob>>();
     }
 
     /// <inheritdoc/>
@@ -52,5 +52,8 @@ public class SpialAbyssRecordCleanJob : IJob
         long removedKeys = await rankService.ClearRanksAsync().ConfigureAwait(false);
 
         logger.LogInformation("删除了 {count1} 条提交记录 | 删除了 {count2} 条深渊数据 | 删除了 {count3} 个 Redis 键", deletedRecordsCount, deletedSpiralCount, removedKeys);
+        await mailService
+            .SendDiagnosticSpiralAbyssCleanJobAsync(nameof(SpialAbyssRecordCleanJob), deletedRecordsCount, deletedSpiralCount, removedKeys)
+            .ConfigureAwait(false);
     }
 }

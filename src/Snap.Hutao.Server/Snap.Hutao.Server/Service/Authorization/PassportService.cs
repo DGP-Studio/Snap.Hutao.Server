@@ -71,7 +71,14 @@ public class PassportService
             }
             else
             {
-                return new(false, "数据库错误");
+                StringBuilder messageBuilder = new();
+
+                foreach (IdentityError error in result.Errors)
+                {
+                    messageBuilder.AppendLine($"[{error.Code}]: {error.Description}");
+                }
+
+                return new(false, $"注册失败:{messageBuilder}");
             }
         }
     }

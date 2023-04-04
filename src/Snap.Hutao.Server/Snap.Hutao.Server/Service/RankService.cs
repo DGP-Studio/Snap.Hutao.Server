@@ -26,7 +26,7 @@ public sealed class RankService : IDisposable
     public RankService(IServiceScopeFactory scopeFactory, IConfiguration configuration, ILogger<RankService> logger)
     {
         this.scopeFactory = scopeFactory;
-        string redisConfig = configuration["Redis"] ?? string.Empty;
+        string redisConfig = configuration["Redis"]!;
         logger.LogInformation("Using Redis: {config}", redisConfig);
         redis = ConnectionMultiplexer.Connect(redisConfig);
     }

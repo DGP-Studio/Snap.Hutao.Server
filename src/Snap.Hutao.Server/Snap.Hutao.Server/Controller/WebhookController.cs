@@ -16,6 +16,7 @@ namespace Snap.Hutao.Server.Controller;
 public class WebhookController : ControllerBase
 {
     private const string UserId = "8f9ed3e87f4911ebacb652540025c377";
+    private const string SkuGachaLogUploadService = "80d6dcb8cf9011ed9c3652540025c377";
     private readonly ExpireService expireService;
     private readonly MailService mailService;
     private readonly HttpClient httpClient;
@@ -51,7 +52,7 @@ public class WebhookController : ControllerBase
         if (request.Data.Order.SkuDetail.FirstOrDefault() is SkuDetail skuDetail)
         {
             // GachaLog Upload
-            if (skuDetail.SkuId == "80d6dcb8cf9011ed9c3652540025c377")
+            if (skuDetail.SkuId == SkuGachaLogUploadService)
             {
                 string skuId = skuDetail.SkuId;
                 int count = skuDetail.Count;
