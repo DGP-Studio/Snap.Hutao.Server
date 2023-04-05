@@ -37,14 +37,43 @@ public class GachaLogController : ControllerBase
     }
 
     /// <summary>
+    /// 获取 Uid 列表
+    /// </summary>
+    /// <returns>Uid 列表</returns>
+    [HttpGet("Uids")]
+    public async Task<IActionResult> GetUidsAsync()
+    {
+        int userId = this.GetUserId();
+
+        if (!await CanUseGachaLogServiceAsync(userId).ConfigureAwait(false))
+        {
+            return Model.Response.Response.Fail(ReturnCode.GachaLogServiceNotAllowed, "未开通祈愿记录上传服务或已到期");
+        }
+
+        List<string> uids = await appDbContext.GachaItems.AsNoTracking()
+            .Select(x => x.Uid)
+            .Distinct()
+            .ToListAsync()
+            .ConfigureAwait(false);
+
+        return Response<List<string>>.Success("获取 Uid 成功", uids);
+    }
+
+    /// <summary>
     /// 获取各个卡池对应的最后Id
     /// </summary>
     /// <param name="uid">uid</param>
     /// <returns>各个卡池对应的最后Id</returns>
     [HttpGet("EndIds")]
-    public IActionResult GetEndIds([FromQuery(Name = "Uid")] string uid)
+    public async Task<IActionResult> GetEndIdsAsync([FromQuery(Name = "Uid")] string uid)
     {
         int userId = this.GetUserId();
+
+        if (!await CanUseGachaLogServiceAsync(userId).ConfigureAwait(false))
+        {
+            return Model.Response.Response.Fail(ReturnCode.GachaLogServiceNotAllowed, "未开通祈愿记录上传服务或已到期");
+        }
+
         EndIds endIds = new();
         foreach (GachaConfigType type in EndIds.QueryTypes)
         {
@@ -71,6 +100,12 @@ public class GachaLogController : ControllerBase
     public async Task<IActionResult> RetrieveAsync([FromBody] UidAndEndIds uidAndEndIds)
     {
         int userId = this.GetUserId();
+
+        if (!await CanUseGachaLogServiceAsync(userId).ConfigureAwait(false))
+        {
+            return Model.Response.Response.Fail(ReturnCode.GachaLogServiceNotAllowed, "未开通祈愿记录上传服务或已到期");
+        }
+
         string uid = uidAndEndIds.Uid;
         EndIds endIds = uidAndEndIds.EndIds;
         List<SimpleGachaItem> gachaItems = new();
@@ -102,29 +137,53 @@ public class GachaLogController : ControllerBase
     /// <param name="gachaData">祈愿数据</param>
     /// <returns>上传成功</returns>
     [HttpPost("Upload")]
-    public async Task<IActionResult> UploadAsync([FromBody] SimpleGachaData gachaData)
+    public async Task<IActionResult> UploadAsync([FromBody] UidAndItems gachaData)
     {
         int userId = this.GetUserId();
+
+        if (!await CanUseGachaLogServiceAsync(userId).ConfigureAwait(false))
+        {
+            return Model.Response.Response.Fail(ReturnCode.GachaLogServiceNotAllowed, "当前胡桃账号未开通祈愿记录上传服务，或服务已到期");
+        }
+
         string uid = gachaData.Uid;
 
         try
         {
             List<EntityGachaItem> entities = new();
-            AppendModelsToEntities(gachaData.Items, entities, userId, gachaData.Uid, gachaData.IsTrusted);
+            AppendModelsToEntities(gachaData.Items, entities, userId, gachaData.Uid, true);
             int count = await appDbContext.GachaItems.AddRangeAndSaveAsync(entities).ConfigureAwait(false);
 
             return Model.Response.Response.Success($"成功上传了 {count} 条数据");
         }
         catch
         {
-            await appDbContext.GachaItems
-                .Where(i => i.UserId == userId)
-                .Where(i => i.Uid == uid)
-                .ExecuteDeleteAsync()
-                .ConfigureAwait(false);
-
-            return Model.Response.Response.Fail(ReturnCode.GachaLogDatabaseOperationFailed, "数据异常");
+            return Model.Response.Response.Fail(ReturnCode.GachaLogDatabaseOperationFailed, "数据异常，无法保存至云端");
         }
+    }
+
+    /// <summary>
+    /// 删除祈愿记录
+    /// </summary>
+    /// <param name="uid">uid</param>
+    /// <returns>响应</returns>
+    [HttpGet("Delete")]
+    public async Task<IActionResult> DeleteAsync([FromQuery(Name = "Uid")] string uid)
+    {
+        int userId = this.GetUserId();
+
+        if (!await CanUseGachaLogServiceAsync(userId).ConfigureAwait(false))
+        {
+            return Model.Response.Response.Fail(ReturnCode.GachaLogServiceNotAllowed, "当前胡桃账号未开通祈愿记录上传服务，或服务已到期");
+        }
+
+        int count = await appDbContext.GachaItems
+            .Where(i => i.UserId == userId)
+            .Where(i => i.Uid == uid)
+            .ExecuteDeleteAsync()
+            .ConfigureAwait(false);
+
+        return Model.Response.Response.Success($"删除了 {count} 条记录");
     }
 
     private static void AppendEntitiesToModels(List<EntityGachaItem> items, List<SimpleGachaItem> gachaItems)
@@ -169,6 +228,23 @@ public class GachaLogController : ControllerBase
             };
 
             items.Add(entity);
+        }
+    }
+
+    private async Task<bool> CanUseGachaLogServiceAsync(int userId)
+    {
+        HutaoUser? user = await appDbContext.Users
+            .AsNoTracking()
+            .SingleOrDefaultAsync(user => user.Id == userId)
+            .ConfigureAwait(false);
+
+        if (user != null)
+        {
+            return user.GachaLogExpireAt > DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        }
+        else
+        {
+            return false;
         }
     }
 }

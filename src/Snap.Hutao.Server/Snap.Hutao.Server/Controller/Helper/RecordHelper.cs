@@ -37,7 +37,7 @@ public static class RecordHelper
         {
             if (record.Identity == UploaderIdentities.SnapHutao && record.ReservedUserName != null)
             {
-                await expireService.ExtendGachaLogTermAsync(record.ReservedUserName, 7).ConfigureAwait(false);
+                await expireService.ExtendGachaLogTermAsync(record.ReservedUserName, 5).ConfigureAwait(false);
                 gachaLogExtended = true;
             }
         }

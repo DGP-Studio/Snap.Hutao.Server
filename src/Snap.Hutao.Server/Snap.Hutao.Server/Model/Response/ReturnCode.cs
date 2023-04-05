@@ -72,4 +72,9 @@ public enum ReturnCode
     /// 祈愿记录数据库操作失败
     /// </summary>
     GachaLogDatabaseOperationFailed = 500040,
+
+    /// <summary>
+    /// 祈愿记录服务无法使用
+    /// </summary>
+    GachaLogServiceNotAllowed = 500041,
 }

@@ -6,17 +6,12 @@ namespace Snap.Hutao.Server.Model.GachaLog;
 /// <summary>
 /// 卡池列表
 /// </summary>
-public class SimpleGachaData
+public class UidAndItems
 {
     /// <summary>
     /// Uid
     /// </summary>
     public string Uid { get; set; } = default!;
-
-    /// <summary>
-    /// 可以参与统计
-    /// </summary>
-    public bool IsTrusted { get; set; }
 
     /// <summary>
     /// 列表
