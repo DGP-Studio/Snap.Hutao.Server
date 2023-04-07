@@ -65,7 +65,7 @@ public class WebhookController : ControllerBase
 
                     if (await ValidateTradeAsync(tradeNumber, skuId, count).ConfigureAwait(false))
                     {
-                        await expireService.ExtendGachaLogTermAsync(userName, 30, async user =>
+                        await expireService.ExtendGachaLogTermAsync(userName, 30 * count, async user =>
                         {
                             string expireAt = DateTimeOffset.FromUnixTimeSeconds(user.GachaLogExpireAt).ToString("yyy MM dd HH:mm:ss");
                             await mailService.SendPurchaseGachaLogStorageServiceAsync(userName, expireAt, tradeNumber).ConfigureAwait(false);
