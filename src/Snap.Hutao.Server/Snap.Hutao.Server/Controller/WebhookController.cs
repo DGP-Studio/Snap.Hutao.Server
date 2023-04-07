@@ -35,7 +35,9 @@ public class WebhookController : ControllerBase
         expireService = serviceProvider.GetRequiredService<ExpireService>();
         mailService = serviceProvider.GetRequiredService<MailService>();
         httpClient = serviceProvider.GetRequiredService<HttpClient>();
+        memoryCache = serviceProvider.GetRequiredService<IMemoryCache>();
         logger = serviceProvider.GetRequiredService<ILogger<WebhookController>>();
+
         afdianToken = serviceProvider.GetRequiredService<IConfiguration>()["Afdian"]!;
     }
 
