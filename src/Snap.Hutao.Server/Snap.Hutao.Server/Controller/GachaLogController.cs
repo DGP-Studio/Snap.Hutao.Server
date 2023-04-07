@@ -51,6 +51,7 @@ public class GachaLogController : ControllerBase
         }
 
         List<string> uids = await appDbContext.GachaItems.AsNoTracking()
+            .Where(g => g.UserId == userId)
             .Select(x => x.Uid)
             .Distinct()
             .ToListAsync()

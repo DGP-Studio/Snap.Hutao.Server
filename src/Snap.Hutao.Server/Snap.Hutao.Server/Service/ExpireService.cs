@@ -44,7 +44,7 @@ public sealed class ExpireService
                 user.GachaLogExpireAt = now;
             }
 
-            user.GachaLogExpireAt += (long)TimeSpan.FromDays(30 * days).TotalSeconds;
+            user.GachaLogExpireAt += (long)TimeSpan.FromDays(days).TotalSeconds;
 
             IdentityResult result = await userManager.UpdateAsync(user).ConfigureAwait(false);
 

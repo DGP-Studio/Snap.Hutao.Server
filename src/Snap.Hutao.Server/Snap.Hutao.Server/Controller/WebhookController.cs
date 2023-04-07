@@ -4,6 +4,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Snap.Hutao.Server.Model.Afdian;
 using Snap.Hutao.Server.Service;
+using System.Collections.Concurrent;
 
 namespace Snap.Hutao.Server.Controller;
 
@@ -17,6 +18,9 @@ public class WebhookController : ControllerBase
 {
     private const string UserId = "8f9ed3e87f4911ebacb652540025c377";
     private const string SkuGachaLogUploadService = "80d6dcb8cf9011ed9c3652540025c377";
+
+    private static readonly ConcurrentDictionary<string, HookToken> ProcessingTrades = new();
+
     private readonly ExpireService expireService;
     private readonly MailService mailService;
     private readonly HttpClient httpClient;
@@ -24,7 +28,7 @@ public class WebhookController : ControllerBase
     private readonly string afdianToken;
 
     /// <summary>
-    /// 构造一个新的Webhook 控制器
+    /// 构造一个新的 Webhook 控制器
     /// </summary>
     /// <param name="serviceProvider">服务提供器</param>
     public WebhookController(IServiceProvider serviceProvider)
@@ -45,39 +49,44 @@ public class WebhookController : ControllerBase
     [HttpPost("Incoming/Afdian")]
     public async Task<IActionResult> IncomingAfdianAsync([FromBody] AfdianResponse<OrderWrapper> request)
     {
-        string userName = request.Data.Order.Remark;
-        logger.LogInformation("UserName: {name}", request.Data.Order.Remark);
         string tradeNumber = request.Data.Order.OutTradeNo;
-
-        if (request.Data.Order.SkuDetail.FirstOrDefault() is SkuDetail skuDetail)
+        if (ProcessingTrades.TryAdd(tradeNumber, new()))
         {
-            // GachaLog Upload
-            if (skuDetail.SkuId == SkuGachaLogUploadService)
-            {
-                string skuId = skuDetail.SkuId;
-                int count = skuDetail.Count;
+            string userName = request.Data.Order.Remark;
+            logger.LogInformation("UserName: {name}", request.Data.Order.Remark);
 
-                if (await ValidateTradeAsync(tradeNumber, skuId, count).ConfigureAwait(false))
+            if (request.Data.Order.SkuDetail.FirstOrDefault() is SkuDetail skuDetail)
+            {
+                // GachaLog Upload
+                if (skuDetail.SkuId == SkuGachaLogUploadService)
                 {
-                    await expireService.ExtendGachaLogTermAsync(userName, 30, async user =>
+                    string skuId = skuDetail.SkuId;
+                    int count = skuDetail.Count;
+
+                    if (await ValidateTradeAsync(tradeNumber, skuId, count).ConfigureAwait(false))
                     {
-                        string expireAt = DateTimeOffset.FromUnixTimeSeconds(user.GachaLogExpireAt).ToString("yyy MM dd HH:mm:ss");
-                        await mailService.SendPurchaseGachaLogStorageServiceAsync(userName, expireAt, tradeNumber).ConfigureAwait(false);
-                    }).ConfigureAwait(false);
+                        await expireService.ExtendGachaLogTermAsync(userName, 30, async user =>
+                        {
+                            string expireAt = DateTimeOffset.FromUnixTimeSeconds(user.GachaLogExpireAt).ToString("yyy MM dd HH:mm:ss");
+                            await mailService.SendPurchaseGachaLogStorageServiceAsync(userName, expireAt, tradeNumber).ConfigureAwait(false);
+                        }).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        logger.LogInformation("Validation failed");
+                    }
                 }
                 else
                 {
-                    logger.LogInformation("Validation failed");
+                    logger.LogInformation("SKU Id:[{id}] not supported", skuDetail.SkuId);
                 }
             }
             else
             {
-                logger.LogInformation("SKU Id:[{id}] not supported", skuDetail.SkuId);
+                logger.LogInformation("No SKU info");
             }
-        }
-        else
-        {
-            logger.LogInformation("No SKU info");
+
+            ProcessingTrades.TryRemove(tradeNumber, out _);
         }
 
         return new JsonResult(new AfdianResponse() { ErrorCode = 200, ErrorMessage = string.Empty });
@@ -122,5 +131,12 @@ public class WebhookController : ControllerBase
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// 并行Hook占位
+    /// </summary>
+    private struct HookToken
+    {
     }
 }
