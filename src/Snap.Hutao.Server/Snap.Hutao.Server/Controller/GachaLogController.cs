@@ -96,7 +96,7 @@ public class GachaLogController : ControllerBase
     /// </summary>
     /// <param name="uidAndEndIds">数据</param>
     /// <returns>祈愿记录</returns>
-    [HttpGet("Retrieve")]
+    [HttpPost("Retrieve")]
     public async Task<IActionResult> RetrieveAsync([FromBody] UidAndEndIds uidAndEndIds)
     {
         int userId = this.GetUserId();
@@ -117,7 +117,6 @@ public class GachaLogController : ControllerBase
 
             List<EntityGachaItem> items = await appDbContext.GachaItems
                 .AsNoTracking()
-                .OrderByDescending(i => i.Id)
                 .Where(i => i.UserId == userId)
                 .Where(i => i.Uid == uid)
                 .Where(i => i.QueryType == configType)
