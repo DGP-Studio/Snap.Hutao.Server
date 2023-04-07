@@ -2,9 +2,9 @@
 // Licensed under the MIT license.
 
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using Snap.Hutao.Server.Model.Afdian;
 using Snap.Hutao.Server.Service;
-using System.Collections.Concurrent;
 
 namespace Snap.Hutao.Server.Controller;
 
@@ -19,11 +19,10 @@ public class WebhookController : ControllerBase
     private const string UserId = "8f9ed3e87f4911ebacb652540025c377";
     private const string SkuGachaLogUploadService = "80d6dcb8cf9011ed9c3652540025c377";
 
-    private static readonly ConcurrentDictionary<string, HookToken> ProcessingTrades = new();
-
     private readonly ExpireService expireService;
     private readonly MailService mailService;
     private readonly HttpClient httpClient;
+    private readonly IMemoryCache memoryCache;
     private readonly ILogger<WebhookController> logger;
     private readonly string afdianToken;
 
@@ -50,10 +49,14 @@ public class WebhookController : ControllerBase
     public async Task<IActionResult> IncomingAfdianAsync([FromBody] AfdianResponse<OrderWrapper> request)
     {
         string tradeNumber = request.Data.Order.OutTradeNo;
-        if (ProcessingTrades.TryAdd(tradeNumber, new()))
+        string key = $"Afdian_Trade:{tradeNumber}";
+        if (!memoryCache.TryGetValue(key, out _))
         {
+            // prevent multiple activate
+            memoryCache.Set(key, new HookToken(), TimeSpan.FromHours(1));
+
             string userName = request.Data.Order.Remark;
-            logger.LogInformation("UserName: {name}", request.Data.Order.Remark);
+            logger.LogInformation("UserName:[{name}]", request.Data.Order.Remark);
 
             if (request.Data.Order.SkuDetail.FirstOrDefault() is SkuDetail skuDetail)
             {
@@ -67,7 +70,7 @@ public class WebhookController : ControllerBase
                     {
                         await expireService.ExtendGachaLogTermAsync(userName, 30 * count, async user =>
                         {
-                            string expireAt = DateTimeOffset.FromUnixTimeSeconds(user.GachaLogExpireAt).ToString("yyy MM dd HH:mm:ss");
+                            string expireAt = DateTimeOffset.FromUnixTimeSeconds(user.GachaLogExpireAt).ToString("yyy/MM/dd HH:mm:ss");
                             await mailService.SendPurchaseGachaLogStorageServiceAsync(userName, expireAt, tradeNumber).ConfigureAwait(false);
                         }).ConfigureAwait(false);
                     }
@@ -85,8 +88,6 @@ public class WebhookController : ControllerBase
             {
                 logger.LogInformation("No SKU info");
             }
-
-            ProcessingTrades.TryRemove(tradeNumber, out _);
         }
 
         return new JsonResult(new AfdianResponse() { ErrorCode = 200, ErrorMessage = string.Empty });
