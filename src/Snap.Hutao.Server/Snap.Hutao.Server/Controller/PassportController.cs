@@ -1,9 +1,13 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Snap.Hutao.Server.Controller.Filter;
+using Snap.Hutao.Server.Model.Context;
+using Snap.Hutao.Server.Model.Entity;
 using Snap.Hutao.Server.Model.Passport;
 using Snap.Hutao.Server.Model.Response;
 using Snap.Hutao.Server.Service;
@@ -23,6 +27,7 @@ public class PassportController : ControllerBase
 {
     private const string RandomRange = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
 
+    private readonly AppDbContext appDbContext;
     private readonly PassportService passportService;
     private readonly MailService mailService;
     private readonly IMemoryCache memoryCache;
@@ -30,11 +35,13 @@ public class PassportController : ControllerBase
     /// <summary>
     /// 构造一个新的通行证控制器
     /// </summary>
+    /// <param name="appDbContext">数据库上下文</param>
     /// <param name="passportService">通行证服务</param>
     /// <param name="mailService">邮件服务</param>
     /// <param name="memoryCache">内存缓存</param>
-    public PassportController(PassportService passportService, MailService mailService, IMemoryCache memoryCache)
+    public PassportController(AppDbContext appDbContext, PassportService passportService, MailService mailService, IMemoryCache memoryCache)
     {
+        this.appDbContext = appDbContext;
         this.passportService = passportService;
         this.mailService = mailService;
         this.memoryCache = memoryCache;
@@ -167,6 +174,26 @@ public class PassportController : ControllerBase
         {
             return Model.Response.Response.Fail(ReturnCode.RegisterFail, result.Message);
         }
+    }
+
+    /// <summary>
+    /// 获取用户信息
+    /// </summary>
+    /// <returns>用户信息</returns>
+    [Authorize]
+    [HttpGet("UserInfo")]
+    public async Task<IActionResult> GetUserInfoAsync()
+    {
+        int userId = this.GetUserId();
+        HutaoUser user = await appDbContext.Users
+            .AsNoTracking()
+            .SingleAsync(user => user.Id == userId)
+            .ConfigureAwait(false);
+
+        return Response<UserInfo>.Success("获取用户信息成功", new()
+        {
+            GachaLogExpireAt = DateTimeOffset.FromUnixTimeSeconds(user.GachaLogExpireAt),
+        });
     }
 
     private static string GetRandomStringWithChars()

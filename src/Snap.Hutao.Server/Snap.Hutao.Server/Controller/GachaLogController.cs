@@ -50,7 +50,8 @@ public class GachaLogController : ControllerBase
             return Model.Response.Response.Fail(ReturnCode.GachaLogServiceNotAllowed, "未开通祈愿记录上传服务或已到期");
         }
 
-        List<string> uids = await appDbContext.GachaItems.AsNoTracking()
+        List<string> uids = await appDbContext.GachaItems
+            .AsNoTracking()
             .Where(g => g.UserId == userId)
             .Select(x => x.Uid)
             .Distinct()

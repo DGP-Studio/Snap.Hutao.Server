@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.IdentityModel.Tokens;
@@ -74,7 +75,9 @@ public class Program
             })
             .AddEntityFrameworkStores<AppDbContext>();
 
-        services.AddAuthorization();
+        services
+            .AddAuthorization()
+            .AddSingleton<IAuthorizationMiddlewareResultHandler, ResponseAuthorizationMiddlewareResultHandler>();
 
         services
             .AddResponseCompression()
