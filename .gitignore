@@ -361,3 +361,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Sensive Configurations
+src/Snap.Hutao.Server/Snap.Hutao.Server/appsettings.json
