@@ -29,8 +29,3 @@ public class Rank
     /// </summary>
     public RankValue? TakeDamage { get; set; } = default!;
 }
-
-public class UploadResult
-{
-
-}

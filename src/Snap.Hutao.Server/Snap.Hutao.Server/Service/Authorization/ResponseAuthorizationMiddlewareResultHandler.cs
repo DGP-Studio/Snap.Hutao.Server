@@ -24,7 +24,11 @@ public class ResponseAuthorizationMiddlewareResultHandler : IAuthorizationMiddle
 
     private static async Task ForbidAsync(HttpContext context)
     {
+        if (!context.Response.HasStarted)
+        {
+            context.Response.StatusCode = StatusCodes.Status200OK;
+        }
+
         await context.Response.WriteAsJsonAsync(new Model.Response.Response(Model.Response.ReturnCode.LoginFail, "请先登录或注册胡桃账号")).ConfigureAwait(false);
-        context.Response.StatusCode = StatusCodes.Status200OK;
     }
 }
