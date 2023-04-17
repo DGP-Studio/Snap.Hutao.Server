@@ -111,7 +111,7 @@ public class Program
 
         services.AddCors(options => options.AddPolicy("CorsPolicy", options =>
         {
-            options.AllowAnyMethod().AllowAnyHeader().AllowAnyOrigin().AllowCredentials();
+            options.AllowAnyMethod().AllowAnyHeader().AllowAnyOrigin();
         }));
 
         services.AddDbContextPool<AppDbContext>(options =>
