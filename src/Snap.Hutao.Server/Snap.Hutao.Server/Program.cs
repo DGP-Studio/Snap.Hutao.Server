@@ -135,6 +135,7 @@ public class Program
         WebApplication app = builder.Build();
         MigrateDatabase(app);
 
+        // 中间件的顺序敏感
         app.UseResponseCompression();
 
         app.UseSwagger();
@@ -144,8 +145,7 @@ public class Program
         });
 
         app.UseHttpsRedirection();
-
-        // 顺序敏感
+        app.UseCors("CorsPolicy");
         app.UseAuthentication();
         app.UseAuthorization();
 
