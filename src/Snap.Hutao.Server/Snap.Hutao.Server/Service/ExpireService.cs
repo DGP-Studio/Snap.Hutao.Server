@@ -11,18 +11,17 @@ namespace Snap.Hutao.Server.Service;
 /// </summary>
 public sealed class ExpireService
 {
-    private readonly UserManager<HutaoUser> userManager;
+    private readonly IServiceProvider serviceProvider;
     private readonly ILogger<ExpireService> logger;
 
     /// <summary>
     /// 构造一个新的续期服务
     /// </summary>
-    /// <param name="userManager">用户管理器</param>
-    /// <param name="logger">日志器</param>
-    public ExpireService(UserManager<HutaoUser> userManager, ILogger<ExpireService> logger)
+    /// <param name="serviceProvider">服务提供器</param>
+    public ExpireService(IServiceProvider serviceProvider)
     {
-        this.userManager = userManager;
-        this.logger = logger;
+        logger = serviceProvider.GetRequiredService<ILogger<ExpireService>>();
+        this.serviceProvider = serviceProvider;
     }
 
     /// <summary>
@@ -34,39 +33,44 @@ public sealed class ExpireService
     /// <returns>任务</returns>
     public async Task<bool> ExtendGachaLogTermAsync(string userName, int days, Func<HutaoUser, Task>? onSucceed = null)
     {
-        HutaoUser? user = await userManager.FindByNameAsync(userName).ConfigureAwait(false);
-
-        if (user != null)
+        using (IServiceScope scope = serviceProvider.CreateScope())
         {
-            long now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            if (user.GachaLogExpireAt < now)
+            UserManager<HutaoUser> userManager = scope.ServiceProvider.GetRequiredService<UserManager<HutaoUser>>();
+
+            HutaoUser? user = await userManager.FindByNameAsync(userName).ConfigureAwait(false);
+
+            if (user != null)
             {
-                user.GachaLogExpireAt = now;
-            }
-
-            user.GachaLogExpireAt += (long)TimeSpan.FromDays(days).TotalSeconds;
-
-            IdentityResult result = await userManager.UpdateAsync(user).ConfigureAwait(false);
-
-            if (result.Succeeded)
-            {
-                if (onSucceed != null)
+                long now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                if (user.GachaLogExpireAt < now)
                 {
-                    await onSucceed(user).ConfigureAwait(false);
+                    user.GachaLogExpireAt = now;
                 }
 
-                return true;
+                user.GachaLogExpireAt += (long)TimeSpan.FromDays(days).TotalSeconds;
+
+                IdentityResult result = await userManager.UpdateAsync(user).ConfigureAwait(false);
+
+                if (result.Succeeded)
+                {
+                    if (onSucceed != null)
+                    {
+                        await onSucceed(user).ConfigureAwait(false);
+                    }
+
+                    return true;
+                }
+                else
+                {
+                    logger.LogInformation("Update db failed");
+                }
             }
             else
             {
-                logger.LogInformation("Update db failed");
+                logger.LogInformation("No such user: {user}", userName);
             }
-        }
-        else
-        {
-            logger.LogInformation("No such user: {user}", userName);
-        }
 
-        return false;
+            return false;
+        }
     }
 }

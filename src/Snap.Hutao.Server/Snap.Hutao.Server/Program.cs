@@ -3,6 +3,7 @@
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.IdentityModel.Tokens;
@@ -14,6 +15,7 @@ using Snap.Hutao.Server.Model.Entity;
 using Snap.Hutao.Server.Service;
 using Snap.Hutao.Server.Service.Authorization;
 using Snap.Hutao.Server.Service.Legacy;
+using Swashbuckle.AspNetCore.SwaggerUI;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -51,6 +53,7 @@ public class Program
             .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
             {
                 SymmetricSecurityKey key = new(Encoding.UTF8.GetBytes(builder.Configuration["Jwt"]!));
+
                 options.TokenValidationParameters = new()
                 {
                     ValidateIssuerSigningKey = true,
@@ -59,6 +62,7 @@ public class Program
                     ValidIssuer = "homa.snapgenshin.com",
                     ValidateAudience = false,
                     RequireExpirationTime = true,
+                    ValidateLifetime = true,
                     ClockSkew = TimeSpan.FromSeconds(10),
                 };
             });
@@ -66,12 +70,14 @@ public class Program
         services
             .AddIdentityCore<HutaoUser>(options =>
             {
-                options.Password.RequiredLength = 8;
-                options.Password.RequiredUniqueChars = 0;
-                options.Password.RequireLowercase = false;
-                options.Password.RequireUppercase = false;
-                options.Password.RequireNonAlphanumeric = false;
-                options.Password.RequireDigit = false;
+                PasswordOptions passwordOptions = options.Password;
+
+                passwordOptions.RequiredLength = 8;
+                passwordOptions.RequiredUniqueChars = 0;
+                passwordOptions.RequireLowercase = false;
+                passwordOptions.RequireUppercase = false;
+                passwordOptions.RequireNonAlphanumeric = false;
+                passwordOptions.RequireDigit = false;
             })
             .AddEntityFrameworkStores<AppDbContext>();
 
@@ -86,14 +92,14 @@ public class Program
                 // Disable non-nullable as [Required]
                 options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
             })
-            .AddJsonOptions(o =>
+            .AddJsonOptions(options =>
             {
-                JsonSerializerOptions options = o.JsonSerializerOptions;
+                JsonSerializerOptions jsonOptions = options.JsonSerializerOptions;
 
-                options.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
-                options.Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
-                options.PropertyNameCaseInsensitive = true;
-                options.WriteIndented = true;
+                jsonOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+                jsonOptions.Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
+                jsonOptions.PropertyNameCaseInsensitive = true;
+                jsonOptions.WriteIndented = true;
             });
 
         services
@@ -124,12 +130,12 @@ public class Program
         });
 
         services.AddEndpointsApiExplorer();
-        services.AddSwaggerGen(c =>
+        services.AddSwaggerGen(options =>
         {
-            c.SwaggerDoc("v1", new() { Version = "1.0.0.0", Title = "Hutao API", Description = "Genshin Impact Open API" });
-            string xmlFile = $"Snap.Hutao.Server.xml";
-            string xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-            c.IncludeXmlComments(xmlPath);
+            options.SwaggerDoc("v1", new() { Version = "1.0.0.0", Title = "Hutao API", Description = "Snap Hutao Open API" });
+
+            string xmlPath = Path.Combine(AppContext.BaseDirectory, "Snap.Hutao.Server.xml");
+            options.IncludeXmlComments(xmlPath);
         });
 
         WebApplication app = builder.Build();
@@ -141,7 +147,12 @@ public class Program
         app.UseSwagger();
         app.UseSwaggerUI(option =>
         {
-            option.SwaggerEndpoint("/swagger/v1/swagger.json", "Hutao API v2");
+            option.RoutePrefix = "doc";
+            option.DocumentTitle = "Hutao API Documentation";
+            option.SwaggerEndpoint("/swagger/v1/swagger.json", "Hutao API");
+
+            option.DefaultModelExpandDepth(-1);
+            option.DocExpansion(DocExpansion.None);
         });
 
         app.UseHttpsRedirection();
