@@ -40,8 +40,7 @@
                         <input type="text" class="form-control" id="projectUrlInput" placeholder="请输入项目地址">
                         <label for="floatingPassword">你维护的主要项目地址</label>
                     </div>
-                    <button id="openSourceDevLicenseButton" class="w-100 btn btn-lg btn-primary"
-                        type="submit">申请</button>
+                    <button id="openSourceDevLicenseButton" class="w-100 btn btn-lg btn-primary">申请</button>
                     <hr class="my-4">
                     <small class="text-body-secondary">申请后，我们将尽快通过邮件形式对你答复！</small>
                 </form>
@@ -57,6 +56,7 @@
 
     <script src="https://cdn.staticfile.org/bootstrap/5.2.3/js/bootstrap.bundle.min.js"></script>
     <script src="https://www.google.com/recaptcha/api.js?render=6Lc_TgomAAAAACMxQNidmC9G1dg9JbMN4b8r788A"></script>
+    <script src="https://cdn.staticfile.org/jquery/3.7.0/jquery.min.js"></script>
     <script>
         $('#openSourceDevLicenseButton').on('click', function (event) {
             grecaptcha.ready(function () {
