@@ -15,9 +15,10 @@ namespace Snap.Hutao.Server.Controller;
 /// <summary>
 /// 统计控制器
 /// </summary>
-[Route("[controller]")]
 [ApiController]
+[Route("[controller]")]
 [ServiceFilter(typeof(RequestFilter))]
+[ApiExplorerSettings(GroupName = "SpiralAbyss")]
 public class StatisticsController : ControllerBase
 {
     private readonly AppDbContext appDbContext;

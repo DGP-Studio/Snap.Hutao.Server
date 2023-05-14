@@ -14,4 +14,9 @@ public sealed class HutaoUser : IdentityUser<int>
     /// 祈愿记录过期时间
     /// </summary>
     public long GachaLogExpireAt { get; set; }
+
+    /// <summary>
+    /// 是否为获取了许可的开发者
+    /// </summary>
+    public bool IsLicensedDeveloper { get; set; }
 }

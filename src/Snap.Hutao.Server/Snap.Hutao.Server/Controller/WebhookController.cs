@@ -11,9 +11,9 @@ namespace Snap.Hutao.Server.Controller;
 /// <summary>
 /// Webhook 控制器
 /// </summary>
-[ApiExplorerSettings(IgnoreApi = true)]
-[Route("[controller]")]
 [ApiController]
+[Route("[controller]")]
+[ApiExplorerSettings(IgnoreApi = true)]
 public class WebhookController : ControllerBase
 {
     private const string UserId = "8f9ed3e87f4911ebacb652540025c377";

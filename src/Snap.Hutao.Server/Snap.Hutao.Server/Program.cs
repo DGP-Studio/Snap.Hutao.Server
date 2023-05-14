@@ -120,10 +120,12 @@ public class Program
             options.AllowAnyMethod().AllowAnyHeader().AllowAnyOrigin();
         }));
 
-        services.AddDbContextPool<AppDbContext>(options =>
+        // services.AddDbContextPool<AppDbContext>(options => options.UseInMemoryDatabase("temp"));
+        services.AddDbContextPool<AppDbContext>((serviceProvider, options) =>
         {
             string connectionString = builder.Configuration.GetConnectionString("LocalDb")!;
-            Console.WriteLine($"Using connection string:\n [{connectionString}]");
+            serviceProvider.GetRequiredService<ILogger<Program>>().LogInformation("Using connection string: [{constr}]", connectionString);
+
             options
                 .UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
                 .ConfigureWarnings(c => c.Log((RelationalEventId.CommandExecuted, LogLevel.Debug)));
@@ -132,7 +134,9 @@ public class Program
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen(options =>
         {
-            options.SwaggerDoc("v1", new() { Version = "1.0.0.0", Title = "Hutao API", Description = "Snap Hutao Open API" });
+            options.SwaggerDoc("SpiralAbyss", new() { Version = "1.0", Title = "深渊统计", Description = "深渊统计数据" });
+            options.SwaggerDoc("Passport", new() { Version = "1.0", Title = "胡桃账户", Description = "胡桃通行证" });
+            options.SwaggerDoc("GachaLog", new() { Version = "1.0", Title = "祈愿记录", Description = "账户祈愿记录" });
 
             string xmlPath = Path.Combine(AppContext.BaseDirectory, "Snap.Hutao.Server.xml");
             options.IncludeXmlComments(xmlPath);
@@ -142,6 +146,34 @@ public class Program
         MigrateDatabase(app);
 
         // 中间件的顺序敏感
+        // https://learn.microsoft.com/zh-cn/aspnet/core/fundamentals/middleware/?view=aspnetcore-6.0#middleware-order-1
+        // ExceptionHandler
+
+        // HSTS
+        // HttpsRedirection
+        app.UseHttpsRedirection();
+
+        // Static Files
+        app.UseDefaultFiles(new DefaultFilesOptions()
+        {
+            DefaultFileNames =
+            {
+                "index.html",
+            },
+        });
+        app.UseStaticFiles();
+
+        // Routes
+        // CORS
+        app.UseCors("CorsPolicy");
+
+        // Authentication
+        app.UseAuthentication();
+
+        // Authorization
+        app.UseAuthorization();
+
+        // Custom
         app.UseResponseCompression();
 
         app.UseSwagger();
@@ -149,17 +181,16 @@ public class Program
         {
             option.RoutePrefix = "doc";
             option.DocumentTitle = "Hutao API Documentation";
-            option.SwaggerEndpoint("/swagger/v1/swagger.json", "Hutao API");
+
+            option.SwaggerEndpoint("/swagger/SpiralAbyss/swagger.json", "深渊统计");
+            option.SwaggerEndpoint("/swagger/Passport/swagger.json", "胡桃账户");
+            option.SwaggerEndpoint("/swagger/GachaLog/swagger.json", "祈愿记录");
 
             option.DefaultModelExpandDepth(-1);
             option.DocExpansion(DocExpansion.None);
         });
 
-        app.UseHttpsRedirection();
-        app.UseCors("CorsPolicy");
-        app.UseAuthentication();
-        app.UseAuthorization();
-
+        // Endpoint
         app.MapControllers();
         app.Run();
     }
@@ -173,7 +204,7 @@ public class Program
         using (IServiceScope scope = app.Services.CreateScope())
         {
             AppDbContext context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            if (context.Database.GetPendingMigrations().Any())
+            if (context.Database.IsRelational() && context.Database.GetPendingMigrations().Any())
             {
                 context.Database.Migrate();
             }

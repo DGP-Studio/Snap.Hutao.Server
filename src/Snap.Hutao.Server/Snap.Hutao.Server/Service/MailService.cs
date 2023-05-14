@@ -74,6 +74,16 @@ public sealed class MailService
     }
 
     /// <summary>
+    /// 异步发送开发者申请邮件
+    /// </summary>
+    /// <param name="emailAddress">申请账号</param>
+    /// <returns>任务</returns>
+    public Task SendOpenSourceLicenseNotificationApprovalAsync(string emailAddress)
+    {
+        return SendOpenSourceApplicationMailAsync(emailAddress, GetOpenSourceLicenseApplicationApprovalBody(emailAddress));
+    }
+
+    /// <summary>
     /// 异步发送深渊清理任务邮件
     /// </summary>
     /// <param name="task">任务名称</param>
@@ -84,6 +94,18 @@ public sealed class MailService
     public Task SendDiagnosticSpiralAbyssCleanJobAsync(string task, int deletedRecordsCount, int deletedSpiralCount, long removedKeys)
     {
         return SendDiagnosticMailAsync(diagnosticEmailAddress, GetDiagnosticSpiralAbyssCleanJobMailBody(task, deletedRecordsCount, deletedSpiralCount, removedKeys));
+    }
+
+    /// <summary>
+    /// 异步发送开发者申请邮件
+    /// </summary>
+    /// <param name="userName">申请账号</param>
+    /// <param name="url">维护网站</param>
+    /// <param name="code">验证代码</param>
+    /// <returns>任务</returns>
+    public Task SendDiagnosticOpenSourceLicenseNotificationAsync(string userName, string url, string code)
+    {
+        return SendDiagnosticMailAsync(diagnosticEmailAddress, GetDiagnosticOpenSourceLicenseApplicationBody(userName, url, code));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -207,6 +229,51 @@ public sealed class MailService
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static string GetOpenSourceLicenseApplicationApprovalBody(string userName)
+    {
+        return $$"""
+            <html>
+            <head>
+                <style>
+                    div {
+                        background: linear-gradient(120deg, #f1c40f, #f39c12);
+                        box-shadow: 4px 4px 8px #e67e2280;
+                        max-width: 400px;
+                        padding: 16px;
+                    }
+                    hr {
+                        background-color: #2c3e50;
+                        height: 1px;
+                        border: none;
+                    }
+                    h3 {
+                        margin: 0px;
+                        color: #2c3e50;
+                    }
+                    h2 {
+                        background-color: #2c3e50;
+                        padding: 12px;
+                        color: #ecf0f1;
+                    }
+                    p {
+                        color: #34495e;
+                    }
+                </style>
+            </head>
+            <body>
+                <div>
+                    <h3>胡桃开放平台开发者申请</h3>
+                    <hr style="margin-top: 16px;"/>
+                    <p>{{userName}}，你的开发者许可申请已经通过</p>
+                    <hr style="margin-top: 16px;"/>
+                    <p style="margin: 0px;">DGP Studio 胡桃开发团队</p>
+                </div>
+            </body>
+            </html>
+            """;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static string GetDiagnosticSpiralAbyssCleanJobMailBody(string task, int deletedRecordsCount, int deletedSpiralCount, long removedKeys)
     {
         return $$"""
@@ -254,6 +321,53 @@ public sealed class MailService
             """;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static string GetDiagnosticOpenSourceLicenseApplicationBody(string userName, string url, string code)
+    {
+        return $$"""
+            <html>
+            <head>
+                <style>
+                    div {
+                        background: linear-gradient(120deg, #f1c40f, #f39c12);
+                        box-shadow: 4px 4px 8px #e67e2280;
+                        max-width: 400px;
+                        padding: 16px;
+                    }
+                    hr {
+                        background-color: #2c3e50;
+                        height: 1px;
+                        border: none;
+                    }
+                    h3 {
+                        margin: 0px;
+                        color: #2c3e50;
+                    }
+                    h2 {
+                        background-color: #2c3e50;
+                        padding: 12px;
+                        color: #ecf0f1;
+                    }
+                    p {
+                        color: #34495e;
+                    }
+                </style>
+            </head>
+            <body>
+                <div>
+                    <h3>胡桃开放平台开发者申请</h3>
+                    <hr style="margin-top: 16px;"/>
+                    <p>申请账号：<b>{{userName}}</b></p>
+                    <p>维护网站：<a href="{{url}}">{{url}}</a></p>
+                    <a href="https://homa.snapgenshin.com/Accession/ApproveOpenSourceLicense?userName={{userName}}&code={{code}}">批准</a>
+                    <hr style="margin-top: 16px;"/>
+                    <p style="margin: 0px;">DGP Studio 胡桃开发团队</p>
+                </div>
+            </body>
+            </html>
+            """;
+    }
+
     private async Task SendVerifyCodeMailAsync(string emailAddress, string text)
     {
         MimeMessage mimeMessage = new()
@@ -287,6 +401,34 @@ public sealed class MailService
         MimeMessage mimeMessage = new()
         {
             Subject = "Snap Hutao 账号服务",
+            From =
+            {
+                new MailboxAddress("DGP Studio", userName),
+            },
+            To =
+            {
+                new MailboxAddress(emailAddress, emailAddress),
+            },
+            Body = new TextPart("html")
+            {
+                Text = text,
+            },
+        };
+
+        using (SmtpClient client = new())
+        {
+            await client.ConnectAsync(server).ConfigureAwait(false);
+            await client.AuthenticateAsync(userName, password).ConfigureAwait(false);
+            await client.SendAsync(mimeMessage).ConfigureAwait(false);
+            await client.DisconnectAsync(true).ConfigureAwait(false);
+        }
+    }
+
+    private async Task SendOpenSourceApplicationMailAsync(string emailAddress, string text)
+    {
+        MimeMessage mimeMessage = new()
+        {
+            Subject = "胡桃开放平台",
             From =
             {
                 new MailboxAddress("DGP Studio", userName),

@@ -6,27 +6,25 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Snap.Hutao.Server.Controller.Filter;
+using Snap.Hutao.Server.Controller.Helper;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity;
 using Snap.Hutao.Server.Model.Passport;
 using Snap.Hutao.Server.Model.Response;
 using Snap.Hutao.Server.Service;
 using Snap.Hutao.Server.Service.Authorization;
-using System.Text;
 
 namespace Snap.Hutao.Server.Controller;
 
 /// <summary>
 /// 通行证控制器
 /// </summary>
-[ApiExplorerSettings(IgnoreApi = true)]
-[Route("[controller]")]
 [ApiController]
+[Route("[controller]")]
 [ServiceFilter(typeof(RequestFilter))]
+[ApiExplorerSettings(GroupName = "Passport")]
 public class PassportController : ControllerBase
 {
-    private const string RandomRange = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
-
     private readonly AppDbContext appDbContext;
     private readonly PassportService passportService;
     private readonly MailService mailService;
@@ -63,7 +61,7 @@ public class PassportController : ControllerBase
         }
         else
         {
-            string code = GetRandomStringWithChars();
+            string code = RandomHelper.GetRandomStringWithChars(8);
             memoryCache.Set($"VerifyCodeFor:{userName}", code, TimeSpan.FromMinutes(5));
 
             if (request.IsResetPassword)
@@ -194,18 +192,5 @@ public class PassportController : ControllerBase
         {
             GachaLogExpireAt = DateTimeOffset.FromUnixTimeSeconds(user.GachaLogExpireAt),
         });
-    }
-
-    private static string GetRandomStringWithChars()
-    {
-        StringBuilder sb = new(8);
-
-        for (int i = 0; i < 8; i++)
-        {
-            int pos = Random.Shared.Next(0, RandomRange.Length);
-            sb.Append(RandomRange[pos]);
-        }
-
-        return sb.ToString();
     }
 }

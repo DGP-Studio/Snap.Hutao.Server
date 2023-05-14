@@ -20,9 +20,10 @@ namespace Snap.Hutao.Server.Controller;
 /// <summary>
 /// 记录控制器
 /// </summary>
-[Route("[controller]")]
 [ApiController]
+[Route("[controller]")]
 [ServiceFilter(typeof(RequestFilter))]
+[ApiExplorerSettings(GroupName = "SpiralAbyss")]
 public class RecordController : ControllerBase
 {
     private static readonly ConcurrentDictionary<string, UploadToken> UidUploading = new();

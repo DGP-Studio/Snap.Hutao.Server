@@ -15,8 +15,8 @@ namespace Snap.Hutao.Server.Controller;
 /// <summary>
 /// 胡桃日志控制器
 /// </summary>
-[Route("[controller]")]
 [ApiController]
+[Route("[controller]")]
 [ServiceFilter(typeof(RequestFilter))]
 [ApiExplorerSettings(IgnoreApi = true)]
 public class HutaoLogController : ControllerBase

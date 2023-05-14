@@ -95,7 +95,7 @@ public class PassportService
             await userManager.RemovePasswordAsync(user).ConfigureAwait(false);
             await userManager.AddPasswordAsync(user, passport.Password).ConfigureAwait(false);
 
-            return new(true, "密码设置成功");
+            return new(true, "新密码设置成功");
         }
         else
         {

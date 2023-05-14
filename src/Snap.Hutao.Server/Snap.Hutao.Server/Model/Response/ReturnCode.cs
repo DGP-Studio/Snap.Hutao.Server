@@ -69,6 +69,21 @@ public enum ReturnCode
     VerifyCodeTooFrequently = 500032,
 
     /// <summary>
+    /// reCAPTCHA 验证失败
+    /// </summary>
+    ReCaptchaVerificationFailed = 500033,
+
+    /// <summary>
+    /// 已经申请了许可
+    /// </summary>
+    AlreadyAppliedForLicense = 500034,
+
+    /// <summary>
+    /// 许可批准失败
+    /// </summary>
+    LicenseApprovalFailed = 500035,
+
+    /// <summary>
     /// 祈愿记录数据库操作失败
     /// </summary>
     GachaLogDatabaseOperationFailed = 500040,

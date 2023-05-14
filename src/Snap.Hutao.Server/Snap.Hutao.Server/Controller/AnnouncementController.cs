@@ -9,10 +9,10 @@ namespace Snap.Hutao.Server.Controller;
 /// <summary>
 /// 公告控制器
 /// </summary>
-[ApiExplorerSettings(IgnoreApi = true)]
-[Route("[controller]")]
 [ApiController]
+[Route("[controller]")]
 [ServiceFilter(typeof(RequestFilter))]
+[ApiExplorerSettings(IgnoreApi = true)]
 public class AnnouncementController : ControllerBase
 {
     /// <summary>

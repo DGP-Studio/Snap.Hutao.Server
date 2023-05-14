@@ -86,6 +86,11 @@ public class AppDbContext : IdentityDbContext<HutaoUser, IdentityRole<int>, int>
     public DbSet<EntityGachaItem> GachaItems { get; set; } = default!;
 
     /// <summary>
+    /// 许可证记录
+    /// </summary>
+    public DbSet<LicenseApplicationRecord> Licenses { get; set; } = default!;
+
+    /// <summary>
     /// 操作锁
     /// </summary>
     public SemaphoreSlim OperationLock => operationLock;

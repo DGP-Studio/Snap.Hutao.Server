@@ -20,9 +20,10 @@ namespace Snap.Hutao.Server.Controller;
 /// 祈愿记录控制器
 /// </summary>
 [Authorize]
-[Route("[controller]")]
 [ApiController]
+[Route("[controller]")]
 [ServiceFilter(typeof(RequestFilter))]
+[ApiExplorerSettings(GroupName = "GachaLog")]
 public class GachaLogController : ControllerBase
 {
     private readonly AppDbContext appDbContext;
@@ -241,7 +242,7 @@ public class GachaLogController : ControllerBase
 
         if (user != null)
         {
-            return user.GachaLogExpireAt > DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            return user.IsLicensedDeveloper || user.GachaLogExpireAt > DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         }
         else
         {

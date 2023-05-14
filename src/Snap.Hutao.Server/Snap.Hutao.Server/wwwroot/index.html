@@ -1,0 +1,86 @@
+﻿<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="utf-8" />
+    <title>胡桃 API</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="/favicon.ico">
+    <link href="https://cdn.staticfile.org/bootstrap/5.2.3/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+
+<body>
+    <header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">
+        <a href="/" class="d-flex align-items-center mb-3 me-3 mb-md-0 me-md-auto text-dark text-decoration-none">
+            <img class="bi ms-3 me-3" src="favicon.ico" style="height: 32px;" />
+            <span class="fs-4">胡桃开放平台</span>
+        </a>
+
+        <ul class="nav me-3">
+            <li class="nav-item"><a href="https://hut.ao" class="nav-link">胡桃官网</a></li>
+            <li class="nav-item"><a href="https://uigf.org/" class="nav-link">UIGF 官网</a></li>
+            <li class="nav-item"><a href="https://afdian.net/a/DismissedLight" class="nav-link">赞助我们</a></li>
+            <li class="nav-item"><a href="/doc/index.html" class="nav-link active" aria-current="page">接口文档</a></li>
+        </ul>
+    </header>
+
+    <div class="container col-xl-10 col-xxl-8 px-4 py-5">
+        <div class="row align-items-center g-lg-5 py-5">
+            <div class="col-lg-7 text-center text-lg-start">
+                <h1 class="display-4 fw-bold lh-1 text-body-emphasis mb-3">开源开发者许可证</h1>
+                <p class="col-lg-10 fs-4">如果您正在开发原神相关的开源软件，就可以免费使用胡桃 API 提供的全部功能！</p>
+            </div>
+            <div class="col-md-10 mx-auto col-lg-5">
+                <form class="p-4 p-md-5 border rounded-3 bg-body-tertiary">
+                    <div class="form-floating mb-3">
+                        <input type="email" class="form-control" id="userNameInput" placeholder="name@example.com">
+                        <label for="floatingInput">你的胡桃通行证账号</label>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" id="projectUrlInput" placeholder="请输入项目地址">
+                        <label for="floatingPassword">你维护的主要项目地址</label>
+                    </div>
+                    <button id="openSourceDevLicenseButton" class="w-100 btn btn-lg btn-primary"
+                        type="submit">申请</button>
+                    <hr class="my-4">
+                    <small class="text-body-secondary">申请后，我们将尽快通过邮件形式对你答复！</small>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer mt-auto py-3 bg-body-tertiary">
+        <div class="container">
+            <span class="text-body-secondary">Copyright © 2022 - 2023 DGP Studio</span>
+        </div>
+    </footer>
+
+    <script src="https://cdn.staticfile.org/bootstrap/5.2.3/js/bootstrap.bundle.min.js"></script>
+    <script src="https://www.google.com/recaptcha/api.js?render=6Lc_TgomAAAAACMxQNidmC9G1dg9JbMN4b8r788A"></script>
+    <script>
+        $('#openSourceDevLicenseButton').on('click', function (event) {
+            grecaptcha.ready(function () {
+                grecaptcha
+                    .execute('6Lc_TgomAAAAACMxQNidmC9G1dg9JbMN4b8r788A', { action: 'ApplyOpenSourceLicense' })
+                    .then(function (token) {
+                        $.ajax({
+                            url: '/Accession/ApplyOpenSourceLicense',
+                            type: 'POST',
+                            data: {
+                                'UserName': $('#userNameInput').val(),
+                                'ProjectUrl': $('#projectUrlInput').val(),
+                                'Token': token,
+                            },
+                            dataType: 'json',
+                            contentType: 'application/json',
+                            success: function (resp) {
+                                alert(resp.message);
+                            }
+                        });
+                    });
+            });
+        })
+    </script>
+</body>
+
+</html>

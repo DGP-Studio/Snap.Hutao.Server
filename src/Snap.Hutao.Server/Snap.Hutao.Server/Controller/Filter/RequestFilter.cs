@@ -2,7 +2,6 @@
 // Licensed under the MIT license.
 
 using Microsoft.AspNetCore.Mvc.Filters;
-using Snap.Hutao.Server.Extension;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity;
 
@@ -30,21 +29,18 @@ public class RequestFilter : IAsyncActionFilter
         string path = context.HttpContext.Request.Path;
         string? userAgent = context.HttpContext.Request.Headers.UserAgent;
 
-        using (await appDbContext.OperationLock.EnterAsync().ConfigureAwait(false))
+        RequestStatistics? statistics = appDbContext.RequestStatistics
+            .Where(statistics => statistics.Path == path)
+            .SingleOrDefault(statistics => statistics.UserAgent == userAgent);
+
+        if (statistics == null)
         {
-            RequestStatistics? statistics = appDbContext.RequestStatistics
-                .Where(statistics => statistics.Path == path)
-                .SingleOrDefault(statistics => statistics.UserAgent == userAgent);
-
-            if (statistics == null)
-            {
-                statistics = new(context);
-                appDbContext.RequestStatistics.Add(statistics);
-            }
-
-            statistics.Count++;
-            appDbContext.SaveChanges();
+            statistics = new(context);
+            appDbContext.RequestStatistics.Add(statistics);
         }
+
+        statistics.Count++;
+        appDbContext.SaveChanges();
 
         // Execute next filter.
         ActionExecutedContext result = await next().ConfigureAwait(false);
