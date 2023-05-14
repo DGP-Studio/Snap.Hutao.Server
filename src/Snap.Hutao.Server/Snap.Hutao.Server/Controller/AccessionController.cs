@@ -29,7 +29,6 @@ public class AccessionController : ControllerBase
     private readonly AppDbContext appDbContext;
     private readonly HttpClient httpClient;
     private readonly MailService mailService;
-    private readonly JsonSerializerOptions options;
     private readonly UserManager<HutaoUser> userManager;
     private readonly string reCaptchaKey;
 
@@ -44,7 +43,6 @@ public class AccessionController : ControllerBase
         this.httpClient = httpClient;
         appDbContext = serviceProvider.GetRequiredService<AppDbContext>();
         mailService = serviceProvider.GetRequiredService<MailService>();
-        options = serviceProvider.GetRequiredService<JsonSerializerOptions>();
         userManager = serviceProvider.GetRequiredService<UserManager<HutaoUser>>();
 
         reCaptchaKey = configuration["ReCaptchaKey"]!;
@@ -60,7 +58,7 @@ public class AccessionController : ControllerBase
     {
         string url = $"https://www.google.com/recaptcha/api/siteverify?secret={reCaptchaKey}&response={info.Token}";
         HttpResponseMessage message = await httpClient.PostAsync(url, null).ConfigureAwait(false);
-        ReCaptchaResponse? response = await message.Content.ReadFromJsonAsync<ReCaptchaResponse>(options).ConfigureAwait(false);
+        ReCaptchaResponse? response = await message.Content.ReadFromJsonAsync<ReCaptchaResponse>().ConfigureAwait(false);
 
         if (response != null && response.Success && response.Action == "ApplyOpenSourceLicense" && response.Score > 0.5f)
         {
