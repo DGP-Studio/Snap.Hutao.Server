@@ -40,9 +40,9 @@
                         <input type="text" class="form-control" id="projectUrlInput" placeholder="请输入项目地址">
                         <label for="floatingPassword">你维护的主要项目地址</label>
                     </div>
-                    <button id="openSourceDevLicenseButton" class="w-100 btn btn-lg btn-primary">申请</button>
+                    <button type="button" id="openSourceDevLicenseButton" class="w-100 btn btn-lg btn-primary">申请</button>
                     <hr class="my-4">
-                    <small class="text-body-secondary">申请后，我们将尽快通过邮件形式对你答复！</small>
+                    <small class="text-body-secondary">申请后，我们将尽快通过邮件对你答复！</small>
                 </form>
             </div>
         </div>
@@ -59,6 +59,13 @@
     <script src="https://cdn.staticfile.org/jquery/3.7.0/jquery.min.js"></script>
     <script>
         $('#openSourceDevLicenseButton').on('click', function (event) {
+            var userName = $('#userNameInput').val();
+            var projectUrl = $('#projectUrlInput').val();
+
+            if (userName == '' || projectUrl == '') {
+                return;
+            }
+
             grecaptcha.ready(function () {
                 grecaptcha
                     .execute('6Lc_TgomAAAAACMxQNidmC9G1dg9JbMN4b8r788A', { action: 'ApplyOpenSourceLicense' })
@@ -67,8 +74,8 @@
                             url: '/Accession/ApplyOpenSourceLicense',
                             type: 'POST',
                             data: JSON.stringify({
-                                'UserName': $('#userNameInput').val(),
-                                'ProjectUrl': $('#projectUrlInput').val(),
+                                'UserName': userName,
+                                'ProjectUrl': projectUrl,
                                 'Token': token,
                             }),
                             dataType: 'json',
