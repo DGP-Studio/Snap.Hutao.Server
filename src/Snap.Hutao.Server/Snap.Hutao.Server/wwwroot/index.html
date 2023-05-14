@@ -67,6 +67,7 @@
             }
 
             grecaptcha.ready(function () {
+                $('#openSourceDevLicenseButton').prop('disabled', true);
                 grecaptcha
                     .execute('6Lc_TgomAAAAACMxQNidmC9G1dg9JbMN4b8r788A', { action: 'ApplyOpenSourceLicense' })
                     .then(function (token) {
@@ -82,6 +83,7 @@
                             contentType: 'application/json',
                             success: function (resp) {
                                 alert(resp.message);
+                                $('#openSourceDevLicenseButton').prop('disabled', false);
                             }
                         });
                     });
