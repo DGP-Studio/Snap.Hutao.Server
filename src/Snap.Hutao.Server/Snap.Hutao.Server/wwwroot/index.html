@@ -66,11 +66,11 @@
                         $.ajax({
                             url: '/Accession/ApplyOpenSourceLicense',
                             type: 'POST',
-                            data: {
+                            data: JSON.stringify({
                                 'UserName': $('#userNameInput').val(),
                                 'ProjectUrl': $('#projectUrlInput').val(),
                                 'Token': token,
-                            },
+                            }),
                             dataType: 'json',
                             contentType: 'application/json',
                             success: function (resp) {
