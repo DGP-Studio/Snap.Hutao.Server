@@ -1,9 +1,6 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Snap.Hutao.Server.Controller.Filter;
 using Snap.Hutao.Server.Controller.Helper;
 using Snap.Hutao.Server.Extension;
@@ -13,7 +10,7 @@ using Snap.Hutao.Server.Model.OpenSource;
 using Snap.Hutao.Server.Model.ReCaptcha;
 using Snap.Hutao.Server.Model.Response;
 using Snap.Hutao.Server.Service;
-using System.Text.Json;
+using Snap.Hutao.Server.Service.ReCaptcha;
 
 namespace Snap.Hutao.Server.Controller;
 
@@ -26,26 +23,21 @@ namespace Snap.Hutao.Server.Controller;
 [ApiExplorerSettings(IgnoreApi = true)]
 public class AccessionController : ControllerBase
 {
+    private readonly ReCaptchaService reCaptchaService;
     private readonly AppDbContext appDbContext;
-    private readonly HttpClient httpClient;
     private readonly MailService mailService;
     private readonly UserManager<HutaoUser> userManager;
-    private readonly string reCaptchaKey;
 
     /// <summary>
     /// 构造一个新的开源许可证控制器
     /// </summary>
     /// <param name="serviceProvider">服务提供器</param>
-    /// <param name="httpClient">Http客户端</param>
-    /// <param name="configuration">配置</param>
-    public AccessionController(IServiceProvider serviceProvider, HttpClient httpClient, IConfiguration configuration)
+    public AccessionController(IServiceProvider serviceProvider)
     {
-        this.httpClient = httpClient;
+        reCaptchaService = serviceProvider.GetRequiredService<ReCaptchaService>();
         appDbContext = serviceProvider.GetRequiredService<AppDbContext>();
         mailService = serviceProvider.GetRequiredService<MailService>();
         userManager = serviceProvider.GetRequiredService<UserManager<HutaoUser>>();
-
-        reCaptchaKey = configuration["ReCaptchaKey"]!;
     }
 
     /// <summary>
@@ -56,9 +48,7 @@ public class AccessionController : ControllerBase
     [HttpPost("ApplyOpenSourceLicense")]
     public async Task<IActionResult> ApplyOpenSourceLicenseAsync([FromBody] LicenseApplication info)
     {
-        string url = $"https://www.google.com/recaptcha/api/siteverify?secret={reCaptchaKey}&response={info.Token}";
-        HttpResponseMessage message = await httpClient.PostAsync(url, null).ConfigureAwait(false);
-        ReCaptchaResponse? response = await message.Content.ReadFromJsonAsync<ReCaptchaResponse>().ConfigureAwait(false);
+        ReCaptchaResponse? response = await reCaptchaService.VerifyAsync(info.Token).ConfigureAwait(false);
 
         if (response != null && response.Success && response.Action == "ApplyOpenSourceLicense" && response.Score > 0.5f)
         {

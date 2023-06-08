@@ -7,7 +7,6 @@ using Snap.Hutao.Server.Core;
 using Snap.Hutao.Server.Extension;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Snap.Hutao.Server.Service.Legacy;
@@ -15,13 +14,13 @@ namespace Snap.Hutao.Server.Service.Legacy;
 /// <summary>
 /// 统计服务
 /// </summary>
-public class StatisticsService
+public sealed class StatisticsService
 {
     /// <summary>
     /// 统计服务正在工作
     /// </summary>
     public const string Working = "StatisticsService.Working";
-    private const int Partion = 256;
+    private const int Partion = 512;
 
     // Compile queries that used multiple times to increase performance
     private static readonly Func<AppDbContext, long, IEnumerable<EntityRecord>> PartionQuery = EF.CompileQuery((AppDbContext context, long lastId) =>
@@ -38,19 +37,16 @@ public class StatisticsService
 
     private readonly AppDbContext appDbContext;
     private readonly IMemoryCache memoryCache;
-    private readonly ILogger<StatisticsService> logger;
 
     /// <summary>
     /// 构造一个新的统计服务
     /// </summary>
     /// <param name="appDbContext">数据库上下文</param>
     /// <param name="memoryCache">内存缓存</param>
-    /// <param name="logger">日志器</param>
-    public StatisticsService(AppDbContext appDbContext, IMemoryCache memoryCache, ILogger<StatisticsService> logger)
+    public StatisticsService(AppDbContext appDbContext, IMemoryCache memoryCache)
     {
         this.appDbContext = appDbContext;
         this.memoryCache = memoryCache;
-        this.logger = logger;
     }
 
     /// <summary>
@@ -63,12 +59,9 @@ public class StatisticsService
 
         using (memoryCache.Flag(Working))
         {
-            using (await appDbContext.OperationLock.EnterAsync().ConfigureAwait(false))
-            {
-                ValueStopwatch stopwatch = ValueStopwatch.StartNew();
-                await Task.Run(() => RunCore(tracker)).ConfigureAwait(false);
-                tracker.CompleteTracking(appDbContext, memoryCache, stopwatch);
-            }
+            ValueStopwatch stopwatch = ValueStopwatch.StartNew();
+            await Task.Run(() => RunCore(tracker)).ConfigureAwait(false);
+            tracker.CompleteTracking(appDbContext, memoryCache, stopwatch);
         }
     }
 
@@ -77,14 +70,8 @@ public class StatisticsService
         while (true)
         {
             List<EntityRecord> partialRecords = PartionQuery(appDbContext, tracker.LastId).ToList();
-
-            Span<EntityRecord> partialRecordSpan = CollectionsMarshal.AsSpan(partialRecords);
-            ref EntityRecord recordAtZero = ref MemoryMarshal.GetReference(partialRecordSpan);
-
-            for (int i = 0; i < partialRecordSpan.Length; i++)
+            foreach (ref EntityRecord record in CollectionsMarshal.AsSpan(partialRecords))
             {
-                ref EntityRecord record = ref Unsafe.Add(ref recordAtZero, i);
-
                 record.Avatars = AvatarQuery(appDbContext, record.PrimaryId).ToList();
                 record.SpiralAbyss = SpiralAbyssQuery(appDbContext, record.PrimaryId);
 
@@ -96,7 +83,7 @@ public class StatisticsService
                 tracker.Track(record);
             }
 
-            if (partialRecordSpan.Length < Partion)
+            if (partialRecords.Count < Partion)
             {
                 break;
             }

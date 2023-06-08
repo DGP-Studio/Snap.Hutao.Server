@@ -9,6 +9,7 @@ namespace Snap.Hutao.Server.Model.Entity;
 /// <summary>
 /// 开发者许可申请记录
 /// </summary>
+[Table("license_application_records")]
 public sealed class LicenseApplicationRecord
 {
     /// <summary>

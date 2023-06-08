@@ -1,7 +1,7 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
-namespace Snap.Hutao.Server.Model.Upload;
+namespace Snap.Hutao.Server.Model.Metadata;
 
 /// <summary>
 /// 祈愿配置类型

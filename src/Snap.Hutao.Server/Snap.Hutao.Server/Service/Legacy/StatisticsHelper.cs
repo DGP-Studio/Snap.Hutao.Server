@@ -1,12 +1,10 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
-using Microsoft.Extensions.Caching.Memory;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity;
 using Snap.Hutao.Server.Model.Legacy;
 using Snap.Hutao.Server.Service.Legacy.Primitive;
-using System.Text.Json;
 
 namespace Snap.Hutao.Server.Service.Legacy;
 

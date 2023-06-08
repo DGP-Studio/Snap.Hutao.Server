@@ -1,12 +1,6 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.IdentityModel.Tokens;
 using Quartz;
 using Snap.Hutao.Server.Controller.Filter;
 using Snap.Hutao.Server.Job;
@@ -14,12 +8,10 @@ using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity;
 using Snap.Hutao.Server.Service;
 using Snap.Hutao.Server.Service.Authorization;
+using Snap.Hutao.Server.Service.GachaLog;
 using Snap.Hutao.Server.Service.Legacy;
+using Snap.Hutao.Server.Service.ReCaptcha;
 using Swashbuckle.AspNetCore.SwaggerUI;
-using System.Text;
-using System.Text.Encodings.Web;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace Snap.Hutao.Server;
 
@@ -38,16 +30,59 @@ public class Program
 
         IServiceCollection services = builder.Services;
 
+        // Services
         services
+            .AddAuthorization()
+            .AddCors(options => options.AddPolicy("CorsPolicy", options => options.AllowAnyMethod().AllowAnyHeader().AllowAnyOrigin()))
+            .AddDbContextPool<AppDbContext>((serviceProvider, options) =>
+            {
+                string connectionString = builder.Configuration.GetConnectionString("LocalDb")!;
+                ILogger<AppDbContext> logger = serviceProvider.GetRequiredService<ILogger<AppDbContext>>();
+                logger.LogInformation("Using connection string: [{constr}]", connectionString);
+
+                options
+                    .UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
+                    .ConfigureWarnings(c => c.Log((RelationalEventId.CommandExecuted, LogLevel.Debug)));
+            })
+            .AddEndpointsApiExplorer()
             .AddHttpClient()
             .AddMemoryCache()
-            .AddTransient<StatisticsService>()
-            .AddTransient<RequestFilter>()
+            .AddQuartz(config =>
+            {
+                config
+                    .UseMicrosoftDependencyInjectionJobFactory();
+                config
+                    .ScheduleJob<GachaLogStatisticsRefreshJob>(t => t.StartNow().WithCronSchedule("0 30 */6 * * ?"))
+                    .ScheduleJob<LegacyStatisticsRefreshJob>(t => t.StartNow().WithCronSchedule("0 5 */1 * * ?"))
+                    .ScheduleJob<SpialAbyssRecordCleanJob>(t => t.StartNow().WithCronSchedule("0 0 4 1,16 * ?"));
+            })
+            .AddQuartzServer(options => options.WaitForJobsToComplete = true)
+            .AddResponseCompression()
             .AddScoped<PassportService>()
+            .AddSingleton<IAuthorizationMiddlewareResultHandler, ResponseAuthorizationMiddlewareResultHandler>()
             .AddSingleton<RankService>()
             .AddSingleton<MailService>()
-            .AddSingleton<ExpireService>();
+            .AddSingleton<ExpireService>()
+            .AddSingleton(builder.Configuration.Get<AppOptions>()!)
+            .AddSingleton(builder.Configuration.GetSection("Smtp").Get<SmtpOptions>()!)
+            .AddSwaggerGen(options =>
+            {
+                options.SwaggerDoc("SpiralAbyss", new() { Version = "1.0", Title = "深渊统计", Description = "深渊统计数据" });
+                options.SwaggerDoc("Passport", new() { Version = "1.0", Title = "胡桃账户", Description = "胡桃通行证" });
+                options.SwaggerDoc("GachaLog", new() { Version = "1.0", Title = "祈愿记录", Description = "账户祈愿记录" });
 
+                string xmlPath = Path.Combine(AppContext.BaseDirectory, "Snap.Hutao.Server.xml");
+                options.IncludeXmlComments(xmlPath);
+            })
+            .AddTransient<GachaLogStatisticsRefreshJob>()
+            .AddTransient<GachaLogStatisticsService>()
+            .AddTransient<LegacyStatisticsRefreshJob>()
+            .AddTransient<StatisticsService>()
+            .AddTransient<ReCaptchaService>()
+            .AddTransient<RequestFilter>()
+            .AddTransient<SpialAbyssRecordCleanJob>();
+
+        // Authentication
         services
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
@@ -67,6 +102,7 @@ public class Program
                 };
             });
 
+        // Identity
         services
             .AddIdentityCore<HutaoUser>(options =>
             {
@@ -81,12 +117,8 @@ public class Program
             })
             .AddEntityFrameworkStores<AppDbContext>();
 
+        // Mvc
         services
-            .AddAuthorization()
-            .AddSingleton<IAuthorizationMiddlewareResultHandler, ResponseAuthorizationMiddlewareResultHandler>();
-
-        services
-            .AddResponseCompression()
             .AddControllers(options =>
             {
                 // Disable non-nullable as [Required]
@@ -101,46 +133,6 @@ public class Program
                 jsonOptions.PropertyNameCaseInsensitive = true;
                 jsonOptions.WriteIndented = true;
             });
-
-        services
-            .AddQuartz(config =>
-            {
-                config
-                    .UseMicrosoftDependencyInjectionJobFactory();
-                config
-                    .ScheduleJob<SpialAbyssRecordCleanJob>(t => t.StartNow().WithCronSchedule("0 0 4 1,16 * ?"))
-                    .ScheduleJob<LegacyStatisticsRefreshJob>(t => t.StartNow().WithCronSchedule("0 5 */1 * * ?"));
-            })
-            .AddTransient<SpialAbyssRecordCleanJob>()
-            .AddTransient<LegacyStatisticsRefreshJob>()
-            .AddQuartzServer(options => options.WaitForJobsToComplete = true);
-
-        services.AddCors(options => options.AddPolicy("CorsPolicy", options =>
-        {
-            options.AllowAnyMethod().AllowAnyHeader().AllowAnyOrigin();
-        }));
-
-        // services.AddDbContextPool<AppDbContext>(options => options.UseInMemoryDatabase("temp"));
-        services.AddDbContextPool<AppDbContext>((serviceProvider, options) =>
-        {
-            string connectionString = builder.Configuration.GetConnectionString("LocalDb")!;
-            serviceProvider.GetRequiredService<ILogger<Program>>().LogInformation("Using connection string: [{constr}]", connectionString);
-
-            options
-                .UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
-                .ConfigureWarnings(c => c.Log((RelationalEventId.CommandExecuted, LogLevel.Debug)));
-        });
-
-        services.AddEndpointsApiExplorer();
-        services.AddSwaggerGen(options =>
-        {
-            options.SwaggerDoc("SpiralAbyss", new() { Version = "1.0", Title = "深渊统计", Description = "深渊统计数据" });
-            options.SwaggerDoc("Passport", new() { Version = "1.0", Title = "胡桃账户", Description = "胡桃通行证" });
-            options.SwaggerDoc("GachaLog", new() { Version = "1.0", Title = "祈愿记录", Description = "账户祈愿记录" });
-
-            string xmlPath = Path.Combine(AppContext.BaseDirectory, "Snap.Hutao.Server.xml");
-            options.IncludeXmlComments(xmlPath);
-        });
 
         WebApplication app = builder.Build();
         MigrateDatabase(app);
@@ -181,6 +173,7 @@ public class Program
         {
             option.RoutePrefix = "doc";
             option.DocumentTitle = "Hutao API Documentation";
+            option.InjectStylesheet("/css/style.css");
 
             option.SwaggerEndpoint("/swagger/SpiralAbyss/swagger.json", "深渊统计");
             option.SwaggerEndpoint("/swagger/Passport/swagger.json", "胡桃账户");

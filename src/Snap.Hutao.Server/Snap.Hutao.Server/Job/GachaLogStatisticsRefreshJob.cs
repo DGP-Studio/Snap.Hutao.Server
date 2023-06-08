@@ -2,24 +2,22 @@
 // Licensed under the MIT license.
 
 using Quartz;
+using Snap.Hutao.Server.Service.GachaLog;
 using Snap.Hutao.Server.Service.Legacy;
 
 namespace Snap.Hutao.Server.Job;
 
-/// <summary>
-/// 统计刷新任务
-/// </summary>
-public class LegacyStatisticsRefreshJob : IJob
+public class GachaLogStatisticsRefreshJob : IJob
 {
-    private readonly StatisticsService statisticsService;
-    private readonly ILogger<LegacyStatisticsRefreshJob> logger;
+    private readonly GachaLogStatisticsService statisticsService;
+    private readonly ILogger<GachaLogStatisticsRefreshJob> logger;
 
     /// <summary>
     /// 构造一个新的统计刷新任务
     /// </summary>
     /// <param name="statisticsService">统计服务</param>
     /// <param name="logger">日志器</param>
-    public LegacyStatisticsRefreshJob(StatisticsService statisticsService, ILogger<LegacyStatisticsRefreshJob> logger)
+    public GachaLogStatisticsRefreshJob(GachaLogStatisticsService statisticsService, ILogger<GachaLogStatisticsRefreshJob> logger)
     {
         this.statisticsService = statisticsService;
         this.logger = logger;
@@ -28,8 +26,8 @@ public class LegacyStatisticsRefreshJob : IJob
     /// <inheritdoc/>
     public async Task Execute(IJobExecutionContext context)
     {
-        logger.LogInformation("[{time:yyyy.MM.dd HH:mm:ss.fffffff}] 自动统计数据更新开始", DateTimeOffset.Now);
+        logger.LogInformation("[{time:yyyy.MM.dd HH:mm:ss.fffffff}] 祈愿统计数据更新开始", DateTimeOffset.Now);
         await statisticsService.RunAsync().ConfigureAwait(false);
-        logger.LogInformation("[{time:yyyy.MM.dd HH:mm:ss.fffffff}] 自动统计数据更新结束", DateTimeOffset.Now);
+        logger.LogInformation("[{time:yyyy.MM.dd HH:mm:ss.fffffff}] 祈愿统计数据更新结束", DateTimeOffset.Now);
     }
 }

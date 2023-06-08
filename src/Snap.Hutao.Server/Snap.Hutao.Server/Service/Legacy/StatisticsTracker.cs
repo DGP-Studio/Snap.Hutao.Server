@@ -1,14 +1,13 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
-using Microsoft.Extensions.Caching.Memory;
+using Snap.Hutao.Server.Core;
 using Snap.Hutao.Server.Extension;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity;
 using Snap.Hutao.Server.Model.Legacy;
 using Snap.Hutao.Server.Model.Upload;
 using Snap.Hutao.Server.Service.Legacy.Primitive;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Snap.Hutao.Server.Service.Legacy;
@@ -95,20 +94,16 @@ public class StatisticsTracker
         Map<AvatarId, EntityAvatar> holdingAvatarMap = new();
 
         // 遍历角色
-        Span<EntityAvatar> recordAvatars = CollectionsMarshal.AsSpan(record.Avatars);
-        ref EntityAvatar recordAvatarAtZero = ref MemoryMarshal.GetReference(recordAvatars);
-        for (int i = 0; i < recordAvatars.Length; i++)
+        foreach (ref EntityAvatar avatar in CollectionsMarshal.AsSpan(record.Avatars))
         {
-            ref EntityAvatar avatar = ref Unsafe.Add(ref recordAvatarAtZero, i);
-
-            // 在 for 循环中顺便填充了Id -> Entity 映射
+            // 在循环中顺便填充了 Id -> Entity 映射
             holdingAvatarMap.Add(avatar.AvatarId, avatar);
 
             // 递增角色持有数
-            avatarHoldingCounter.Increase(avatar.AvatarId);
+            avatarHoldingCounter.IncreaseOne(avatar.AvatarId);
 
             // 递增角色命座持有数
-            avatarConstellationCounter.GetOrAdd(avatar.AvatarId, Maps.ForConstellation).Increase(avatar.ActivedConstellationNumber);
+            avatarConstellationCounter.GetOrAdd(avatar.AvatarId, Maps.ForConstellation).IncreaseOne(avatar.ActivedConstellationNumber);
         }
 
         // 仅当深渊记录存在时，下方的统计才有意义
@@ -124,11 +119,8 @@ public class StatisticsTracker
         HashSet<AvatarId> recordPresentAvatars = new();
 
         // 遍历楼层
-        Span<EntityFloor> floorSpan = CollectionsMarshal.AsSpan(record.SpiralAbyss.Floors);
-        ref EntityFloor floorAtZero = ref MemoryMarshal.GetReference(floorSpan);
-        for (int i = 0; i < floorSpan.Length; i++)
+        foreach (ref EntityFloor floor in CollectionsMarshal.AsSpan(record.SpiralAbyss.Floors))
         {
-            ref EntityFloor floor = ref Unsafe.Add(ref floorAtZero, i);
             totalSpiralAbyssStarCounter += floor.Star;
 
             if (floor.Index == 12 && floor.Levels.Count == 3)
@@ -146,25 +138,15 @@ public class StatisticsTracker
 
             IncreaseCurrentFloorRecordCount(floor.Index);
 
-            // reuse the ref variable
-            for (int j = 0; j < recordAvatars.Length; j++)
+            foreach (ref EntityAvatar avatar in CollectionsMarshal.AsSpan(record.Avatars))
             {
-                ref EntityAvatar avatar = ref Unsafe.Add(ref recordAvatarAtZero, j);
                 IncreaseCurrentFloorHoldingAvatarCount(floor.Index, avatar.AvatarId);
             }
 
-            Span<SimpleLevel> levels = CollectionsMarshal.AsSpan(floor.Levels);
-            ref SimpleLevel levelAtZero = ref MemoryMarshal.GetReference(levels);
-            for (int j = 0; j < levels.Length; j++)
+            foreach (ref SimpleLevel level in CollectionsMarshal.AsSpan(floor.Levels))
             {
-                ref SimpleLevel level = ref Unsafe.Add(ref levelAtZero, j);
-
-                Span<SimpleBattle> battles = CollectionsMarshal.AsSpan(level.Battles);
-                ref SimpleBattle battleAtZero = ref MemoryMarshal.GetReference(battles);
-                for (int k = 0; k < battles.Length; k++)
+                foreach (ref SimpleBattle battle in CollectionsMarshal.AsSpan(level.Battles))
                 {
-                    ref SimpleBattle battle = ref Unsafe.Add(ref battleAtZero, k);
-
                     Team team = StatisticsHelper.AsTeam(battle.Avatars);
                     IncreaseCurrentFloorUpDownTeamCount(floor.Index, battle.Index, team);
                     IncreaseAvatarAvatarBuild(team);
@@ -183,10 +165,10 @@ public class StatisticsTracker
         {
             EntityAvatar avatar = holdingAvatarMap[recordAvatarId];
 
-            avatarWeaponBuildCounter.GetOrNew(recordAvatarId).Increase(avatar.WeaponId);
-            avatarReliquaryBuildCounter.GetOrNew(recordAvatarId).Increase(avatar.ReliquarySet);
+            avatarWeaponBuildCounter.GetOrNew(recordAvatarId).IncreaseOne(avatar.WeaponId);
+            avatarReliquaryBuildCounter.GetOrNew(recordAvatarId).IncreaseOne(avatar.ReliquarySet);
 
-            wepaonAvatarBuildCounter.GetOrNew(avatar.WeaponId).Increase(recordAvatarId);
+            wepaonAvatarBuildCounter.GetOrNew(avatar.WeaponId).IncreaseOne(recordAvatarId);
         }
     }
 
@@ -196,7 +178,7 @@ public class StatisticsTracker
     /// <param name="appDbContext">数据库上下文</param>
     /// <param name="memoryCache">内存缓存</param>
     /// <param name="stopwatch">停表</param>
-    public void CompleteTracking(AppDbContext appDbContext, IMemoryCache memoryCache, Core.ValueStopwatch stopwatch)
+    public void CompleteTracking(AppDbContext appDbContext, IMemoryCache memoryCache, ValueStopwatch stopwatch)
     {
         int scheduleId = StatisticsHelper.GetScheduleId();
 
@@ -327,10 +309,10 @@ public class StatisticsTracker
         // 递增当前层且持有对应角色的记录数
         switch (index)
         {
-            case 09: level09RecordwithAvatarCounter.Increase(avatarId); break;
-            case 10: level10RecordwithAvatarCounter.Increase(avatarId); break;
-            case 11: level11RecordwithAvatarCounter.Increase(avatarId); break;
-            case 12: level12RecordwithAvatarCounter.Increase(avatarId); break;
+            case 09: level09RecordwithAvatarCounter.IncreaseOne(avatarId); break;
+            case 10: level10RecordwithAvatarCounter.IncreaseOne(avatarId); break;
+            case 11: level11RecordwithAvatarCounter.IncreaseOne(avatarId); break;
+            case 12: level12RecordwithAvatarCounter.IncreaseOne(avatarId); break;
         }
     }
 
@@ -344,14 +326,14 @@ public class StatisticsTracker
     {
         switch ((floor, battle))
         {
-            case (09, 1): level09Battle1TeamCounter.Increase(team); break;
-            case (09, 2): level09Battle2TeamCounter.Increase(team); break;
-            case (10, 1): level10Battle1TeamCounter.Increase(team); break;
-            case (10, 2): level10Battle2TeamCounter.Increase(team); break;
-            case (11, 1): level11Battle1TeamCounter.Increase(team); break;
-            case (11, 2): level11Battle2TeamCounter.Increase(team); break;
-            case (12, 1): level12Battle1TeamCounter.Increase(team); break;
-            case (12, 2): level12Battle2TeamCounter.Increase(team); break;
+            case (09, 1): level09Battle1TeamCounter.IncreaseOne(team); break;
+            case (09, 2): level09Battle2TeamCounter.IncreaseOne(team); break;
+            case (10, 1): level10Battle1TeamCounter.IncreaseOne(team); break;
+            case (10, 2): level10Battle2TeamCounter.IncreaseOne(team); break;
+            case (11, 1): level11Battle1TeamCounter.IncreaseOne(team); break;
+            case (11, 2): level11Battle2TeamCounter.IncreaseOne(team); break;
+            case (12, 1): level12Battle1TeamCounter.IncreaseOne(team); break;
+            case (12, 2): level12Battle2TeamCounter.IncreaseOne(team); break;
         }
     }
 
@@ -364,10 +346,10 @@ public class StatisticsTracker
     {
         switch (index)
         {
-            case 09: level09PresentCounter.Increase(avatarId); break;
-            case 10: level10PresentCounter.Increase(avatarId); break;
-            case 11: level11PresentCounter.Increase(avatarId); break;
-            case 12: level12PresentCounter.Increase(avatarId); break;
+            case 09: level09PresentCounter.IncreaseOne(avatarId); break;
+            case 10: level10PresentCounter.IncreaseOne(avatarId); break;
+            case 11: level11PresentCounter.IncreaseOne(avatarId); break;
+            case 12: level12PresentCounter.IncreaseOne(avatarId); break;
         }
     }
 
@@ -379,29 +361,29 @@ public class StatisticsTracker
     {
         if (team.Count == 4)
         {
-            avatarAvatarBuildCounter.GetOrNew(team.Position1).Increase(team.Position2);
-            avatarAvatarBuildCounter.GetOrNew(team.Position1).Increase(team.Position3);
-            avatarAvatarBuildCounter.GetOrNew(team.Position1).Increase(team.Position4);
-            avatarAvatarBuildCounter.GetOrNew(team.Position2).Increase(team.Position1);
-            avatarAvatarBuildCounter.GetOrNew(team.Position2).Increase(team.Position3);
-            avatarAvatarBuildCounter.GetOrNew(team.Position2).Increase(team.Position4);
-            avatarAvatarBuildCounter.GetOrNew(team.Position3).Increase(team.Position1);
-            avatarAvatarBuildCounter.GetOrNew(team.Position3).Increase(team.Position2);
-            avatarAvatarBuildCounter.GetOrNew(team.Position3).Increase(team.Position4);
+            avatarAvatarBuildCounter.GetOrNew(team.Position1).IncreaseOne(team.Position2);
+            avatarAvatarBuildCounter.GetOrNew(team.Position1).IncreaseOne(team.Position3);
+            avatarAvatarBuildCounter.GetOrNew(team.Position1).IncreaseOne(team.Position4);
+            avatarAvatarBuildCounter.GetOrNew(team.Position2).IncreaseOne(team.Position1);
+            avatarAvatarBuildCounter.GetOrNew(team.Position2).IncreaseOne(team.Position3);
+            avatarAvatarBuildCounter.GetOrNew(team.Position2).IncreaseOne(team.Position4);
+            avatarAvatarBuildCounter.GetOrNew(team.Position3).IncreaseOne(team.Position1);
+            avatarAvatarBuildCounter.GetOrNew(team.Position3).IncreaseOne(team.Position2);
+            avatarAvatarBuildCounter.GetOrNew(team.Position3).IncreaseOne(team.Position4);
         }
         else if (team.Count == 3)
         {
-            avatarAvatarBuildCounter.GetOrNew(team.Position1).Increase(team.Position2);
-            avatarAvatarBuildCounter.GetOrNew(team.Position1).Increase(team.Position3);
-            avatarAvatarBuildCounter.GetOrNew(team.Position2).Increase(team.Position1);
-            avatarAvatarBuildCounter.GetOrNew(team.Position2).Increase(team.Position3);
-            avatarAvatarBuildCounter.GetOrNew(team.Position3).Increase(team.Position1);
-            avatarAvatarBuildCounter.GetOrNew(team.Position3).Increase(team.Position2);
+            avatarAvatarBuildCounter.GetOrNew(team.Position1).IncreaseOne(team.Position2);
+            avatarAvatarBuildCounter.GetOrNew(team.Position1).IncreaseOne(team.Position3);
+            avatarAvatarBuildCounter.GetOrNew(team.Position2).IncreaseOne(team.Position1);
+            avatarAvatarBuildCounter.GetOrNew(team.Position2).IncreaseOne(team.Position3);
+            avatarAvatarBuildCounter.GetOrNew(team.Position3).IncreaseOne(team.Position1);
+            avatarAvatarBuildCounter.GetOrNew(team.Position3).IncreaseOne(team.Position2);
         }
         else if (team.Count == 2)
         {
-            avatarAvatarBuildCounter.GetOrNew(team.Position1).Increase(team.Position2);
-            avatarAvatarBuildCounter.GetOrNew(team.Position2).Increase(team.Position1);
+            avatarAvatarBuildCounter.GetOrNew(team.Position1).IncreaseOne(team.Position2);
+            avatarAvatarBuildCounter.GetOrNew(team.Position2).IncreaseOne(team.Position1);
         }
     }
 }

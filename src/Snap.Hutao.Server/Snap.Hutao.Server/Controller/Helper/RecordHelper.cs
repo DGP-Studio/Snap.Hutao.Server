@@ -96,7 +96,7 @@ public static class RecordHelper
         Dictionary<int, int> relicSetCounter = new();
         foreach (int id in simpleAvatar.ReliquarySetIds)
         {
-            relicSetCounter.Increase(id);
+            relicSetCounter.IncreaseOne(id);
         }
 
         foreach (int id in relicSetCounter.Keys.ToList())

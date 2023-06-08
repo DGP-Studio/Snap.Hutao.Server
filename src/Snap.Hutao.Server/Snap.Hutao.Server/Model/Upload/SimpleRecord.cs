@@ -1,6 +1,8 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
+using System.Runtime.InteropServices;
+
 namespace Snap.Hutao.Server.Model.Upload;
 
 /// <summary>
@@ -62,12 +64,29 @@ public class SimpleRecord
         }
 
         // 上下半不完整的楼层
-        foreach (SimpleFloor floor in SpiralAbyss.Floors)
+        foreach (ref SimpleFloor floor in CollectionsMarshal.AsSpan(SpiralAbyss.Floors))
         {
-            foreach (SimpleLevel level in floor.Levels)
+            foreach (ref SimpleLevel level in CollectionsMarshal.AsSpan(floor.Levels))
             {
-                if (level.Battles.Count < 2)
+                if (level.Battles.Count != 2)
                 {
+                    return false;
+                }
+
+                HashSet<int> up = level.Battles[0].Avatars.ToHashSet();
+                HashSet<int> down = level.Battles[1].Avatars.ToHashSet();
+
+                if (up.Count < level.Battles[0].Avatars.Count || down.Count < level.Battles[1].Avatars.Count)
+                {
+                    // 上下半中某一半存在重复角色
+                    return false;
+                }
+
+                up.IntersectWith(down);
+
+                if (up.Count > 0)
+                {
+                    // 上下半存在重复角色
                     return false;
                 }
             }

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Memory;
 using Snap.Hutao.Server.Model.Afdian;
 using Snap.Hutao.Server.Service;
 
@@ -38,7 +36,7 @@ public class WebhookController : ControllerBase
         memoryCache = serviceProvider.GetRequiredService<IMemoryCache>();
         logger = serviceProvider.GetRequiredService<ILogger<WebhookController>>();
 
-        afdianToken = serviceProvider.GetRequiredService<IConfiguration>()["Afdian"]!;
+        afdianToken = serviceProvider.GetRequiredService<AppOptions>().Afdian;
     }
 
     /// <summary>
@@ -137,7 +135,7 @@ public class WebhookController : ControllerBase
     }
 
     /// <summary>
-    /// 并行Hook占位
+    /// 并行 Hook 占位
     /// </summary>
     private struct HookToken
     {

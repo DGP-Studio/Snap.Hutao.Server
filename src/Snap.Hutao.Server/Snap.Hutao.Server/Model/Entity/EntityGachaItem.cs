@@ -2,7 +2,7 @@
 // Licensed under the MIT license.
 
 using Microsoft.EntityFrameworkCore;
-using Snap.Hutao.Server.Model.Upload;
+using Snap.Hutao.Server.Model.Metadata;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Snap.Hutao.Server.Model.Entity;

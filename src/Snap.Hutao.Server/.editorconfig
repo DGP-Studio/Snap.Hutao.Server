@@ -165,6 +165,9 @@ csharp_style_prefer_top_level_statements = true:silent
 dotnet_analyzer_diagnostic.category-StyleCop.CSharp.ReadabilityRules.severity = none
 
 dotnet_diagnostic.CS1591.severity = none
+csharp_style_prefer_readonly_struct = true:suggestion
+csharp_style_prefer_readonly_struct_member = true:suggestion
+dotnet_diagnostic.SA1600.severity = silent
 
 [*.vb]
 #### 命名样式 ####

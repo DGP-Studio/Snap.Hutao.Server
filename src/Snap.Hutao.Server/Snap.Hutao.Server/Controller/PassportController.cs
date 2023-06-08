@@ -1,10 +1,6 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
 using Snap.Hutao.Server.Controller.Filter;
 using Snap.Hutao.Server.Controller.Helper;
 using Snap.Hutao.Server.Model.Context;
@@ -190,6 +186,7 @@ public class PassportController : ControllerBase
 
         return Response<UserInfo>.Success("获取用户信息成功", new()
         {
+            IsLicensedDeveloper = user.IsLicensedDeveloper,
             GachaLogExpireAt = DateTimeOffset.FromUnixTimeSeconds(user.GachaLogExpireAt),
         });
     }

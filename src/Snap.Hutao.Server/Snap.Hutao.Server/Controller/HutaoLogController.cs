@@ -1,8 +1,6 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Snap.Hutao.Server.Controller.Filter;
 using Snap.Hutao.Server.Extension;
 using Snap.Hutao.Server.Model.Context;

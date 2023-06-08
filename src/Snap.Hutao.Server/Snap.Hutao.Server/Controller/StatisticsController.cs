@@ -1,8 +1,6 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Memory;
 using Snap.Hutao.Server.Controller.Filter;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity;
@@ -66,7 +64,7 @@ public class StatisticsController : ControllerBase
     }
 
     /// <summary>
-    /// 获取使用率
+    /// 获取角色持有率
     /// </summary>
     /// <returns>使用率</returns>
     [HttpGet("Avatar/HoldingRate")]
@@ -111,6 +109,6 @@ public class StatisticsController : ControllerBase
         int scheduleId = StatisticsHelper.GetScheduleId();
         T? data = StatisticsHelper.FromCacheOrDb<T>(appDbContext, memoryCache, scheduleId, name);
 
-        return Response<T>.Success("获取统计数据成功", data!);
+        return Response<T>.Success("获取深渊统计数据成功", data!);
     }
 }

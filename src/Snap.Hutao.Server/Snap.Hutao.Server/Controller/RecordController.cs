@@ -1,11 +1,8 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Memory;
 using Snap.Hutao.Server.Controller.Filter;
 using Snap.Hutao.Server.Controller.Helper;
-using Snap.Hutao.Server.Extension;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity;
 using Snap.Hutao.Server.Model.Legacy;
@@ -118,23 +115,20 @@ public class RecordController : ControllerBase
             return Model.Response.Response.Fail(ReturnCode.InvalidQueryString, $"{uid}不是合法的uid");
         }
 
-        using (await appDbContext.OperationLock.EnterAsync().ConfigureAwait(false))
+        EntityRecord? record = appDbContext.Records.SingleOrDefault(r => r.Uid == uid);
+
+        if (record != null)
         {
-            EntityRecord? record = appDbContext.Records.SingleOrDefault(r => r.Uid == uid);
+            long recordId = record.PrimaryId;
+            EntitySpiralAbyss? spiralAbyss = await appDbContext.SpiralAbysses.SingleOrDefaultAsync(r => r.RecordId == recordId).ConfigureAwait(false);
 
-            if (record != null)
+            if (spiralAbyss != null)
             {
-                long recordId = record.PrimaryId;
-                EntitySpiralAbyss? spiralAbyss = appDbContext.SpiralAbysses.SingleOrDefault(r => r.RecordId == recordId);
-
-                if (spiralAbyss != null)
-                {
-                    return Response<bool>.Success("查询成功", true);
-                }
+                return Response<bool>.Success("查询成功", true);
             }
-
-            return Response<bool>.Success("查询成功", false);
         }
+
+        return Response<bool>.Success("查询成功", false);
     }
 
     /// <summary>

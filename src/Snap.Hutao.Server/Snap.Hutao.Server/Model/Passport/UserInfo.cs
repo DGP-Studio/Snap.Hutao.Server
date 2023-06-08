@@ -9,6 +9,11 @@ namespace Snap.Hutao.Server.Model.Passport;
 public class UserInfo
 {
     /// <summary>
+    /// 是否为开发者
+    /// </summary>
+    public bool IsLicensedDeveloper { get; set; }
+
+    /// <summary>
     /// 祈愿记录服务到期时间
     /// </summary>
     public DateTimeOffset GachaLogExpireAt { get; set; }

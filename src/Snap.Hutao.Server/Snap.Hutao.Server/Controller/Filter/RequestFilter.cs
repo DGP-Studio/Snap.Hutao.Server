@@ -1,7 +1,6 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
-using Microsoft.AspNetCore.Mvc.Filters;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity;
 
@@ -29,9 +28,10 @@ public class RequestFilter : IAsyncActionFilter
         string path = context.HttpContext.Request.Path;
         string? userAgent = context.HttpContext.Request.Headers.UserAgent;
 
-        RequestStatistics? statistics = appDbContext.RequestStatistics
+        RequestStatistics? statistics = await appDbContext.RequestStatistics
             .Where(statistics => statistics.Path == path)
-            .SingleOrDefault(statistics => statistics.UserAgent == userAgent);
+            .SingleOrDefaultAsync(statistics => statistics.UserAgent == userAgent)
+            .ConfigureAwait(false);
 
         if (statistics == null)
         {
@@ -40,7 +40,7 @@ public class RequestFilter : IAsyncActionFilter
         }
 
         statistics.Count++;
-        appDbContext.SaveChanges();
+        await appDbContext.SaveChangesAsync().ConfigureAwait(false);
 
         // Execute next filter.
         ActionExecutedContext result = await next().ConfigureAwait(false);

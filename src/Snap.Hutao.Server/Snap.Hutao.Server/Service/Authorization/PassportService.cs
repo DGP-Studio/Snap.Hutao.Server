@@ -1,37 +1,29 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
-using Microsoft.AspNetCore.Identity;
-using Microsoft.IdentityModel.Tokens;
 using Snap.Hutao.Server.Model.Entity;
 using Snap.Hutao.Server.Model.Passport;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
-using System.Text;
 
 namespace Snap.Hutao.Server.Service.Authorization;
 
 /// <summary>
 /// 通行证服务
 /// </summary>
-public class PassportService
+public sealed class PassportService
 {
     private readonly UserManager<HutaoUser> userManager;
     private readonly string rsaPrivateKey;
     private readonly SymmetricSecurityKey jwtSigningKey;
 
-    /// <summary>
-    /// 构造一个新的通行证服务
-    /// </summary>
-    /// <param name="userManager">用户管理器</param>
-    /// <param name="configuration">配置</param>
-    public PassportService(UserManager<HutaoUser> userManager, IConfiguration configuration)
+    public PassportService(UserManager<HutaoUser> userManager, AppOptions appOptions)
     {
         this.userManager = userManager;
 
-        rsaPrivateKey = configuration["RSAPrivateKey"]!;
-        jwtSigningKey = new(Encoding.UTF8.GetBytes(configuration["Jwt"]!));
+        rsaPrivateKey = appOptions.RSAPrivateKey;
+        jwtSigningKey = appOptions.JwtSecurityKey;
     }
 
     /// <summary>

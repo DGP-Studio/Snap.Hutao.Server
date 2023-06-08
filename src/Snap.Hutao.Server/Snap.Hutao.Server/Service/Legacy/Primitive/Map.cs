@@ -16,6 +16,11 @@ public class Map<TKey, TValue> : Dictionary<TKey, TValue>
     {
     }
 
+    public Map(int size)
+        : base(size)
+    {
+    }
+
     /// <summary>
     /// 初始化一个新的映射
     /// </summary>

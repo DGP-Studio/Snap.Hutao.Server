@@ -1,7 +1,7 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
-using Snap.Hutao.Server.Model.Upload;
+using Snap.Hutao.Server.Model.Metadata;
 
 namespace Snap.Hutao.Server.Model.GachaLog;
 

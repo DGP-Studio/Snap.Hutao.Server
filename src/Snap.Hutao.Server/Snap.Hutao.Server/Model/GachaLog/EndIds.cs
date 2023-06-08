@@ -1,7 +1,7 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
-using Snap.Hutao.Server.Model.Upload;
+using Snap.Hutao.Server.Model.Metadata;
 using System.Collections.Immutable;
 
 namespace Snap.Hutao.Server.Model.GachaLog;
@@ -29,6 +29,6 @@ public sealed class EndIds : Dictionary<string, long>
     /// <param name="id">id</param>
     public void Add(GachaConfigType type, long id)
     {
-        Add($"{(int)type}", id);
+        Add($"{type:D}", id);
     }
 }

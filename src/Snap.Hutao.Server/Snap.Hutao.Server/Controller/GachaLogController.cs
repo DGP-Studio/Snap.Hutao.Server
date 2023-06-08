@@ -1,17 +1,13 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Snap.Hutao.Server.Controller.Filter;
 using Snap.Hutao.Server.Extension;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity;
 using Snap.Hutao.Server.Model.GachaLog;
+using Snap.Hutao.Server.Model.Metadata;
 using Snap.Hutao.Server.Model.Response;
-using Snap.Hutao.Server.Model.Upload;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Snap.Hutao.Server.Controller;
@@ -27,14 +23,36 @@ namespace Snap.Hutao.Server.Controller;
 public class GachaLogController : ControllerBase
 {
     private readonly AppDbContext appDbContext;
+    private readonly IMemoryCache memoryCache;
 
-    /// <summary>
-    /// 构造一个新的祈愿记录控制器
-    /// </summary>
-    /// <param name="appDbContext">数据库上下文</param>
-    public GachaLogController(AppDbContext appDbContext)
+    public GachaLogController(AppDbContext appDbContext, IMemoryCache memoryCache)
     {
         this.appDbContext = appDbContext;
+        this.memoryCache = memoryCache;
+    }
+
+    [HttpGet("Statistics/CurrentEventStatistics")]
+    public IActionResult CurrentEventStatistics()
+    {
+        return GetStatistics<GachaEventStatistics>(GachaStatistics.GachaEventStatistics);
+    }
+
+    [HttpGet("Statistics/Distribution/AvatarEvent")]
+    public IActionResult AvatarEventDistribution()
+    {
+        return GetStatistics<GachaDistribution>(GachaStatistics.AvaterEventGachaDistribution);
+    }
+
+    [HttpGet("Statistics/Distribution/WeaponEvent")]
+    public IActionResult WeaponEventDistribution()
+    {
+        return GetStatistics<GachaDistribution>(GachaStatistics.WeaponEventGachaDistribution);
+    }
+
+    [HttpGet("Statistics/Distribution/Standard")]
+    public IActionResult StandardDistribution()
+    {
+        return GetStatistics<GachaDistribution>(GachaStatistics.StandardGachaDistribution);
     }
 
     /// <summary>
@@ -156,7 +174,7 @@ public class GachaLogController : ControllerBase
             AppendModelsToEntities(gachaData.Items, entities, userId, gachaData.Uid, true);
             int count = await appDbContext.GachaItems.AddRangeAndSaveAsync(entities).ConfigureAwait(false);
 
-            return Model.Response.Response.Success($"成功上传了 {count} 条数据");
+            return Model.Response.Response.Success($"上传了 {gachaData.Items.Count} 条数据，存储了 {count} 条数据");
         }
         catch
         {
@@ -188,14 +206,10 @@ public class GachaLogController : ControllerBase
         return Model.Response.Response.Success($"删除了 {count} 条记录");
     }
 
-    private static void AppendEntitiesToModels(List<EntityGachaItem> items, List<SimpleGachaItem> gachaItems)
+    private static void AppendEntitiesToModels(List<EntityGachaItem> entities, List<SimpleGachaItem> models)
     {
-        Span<EntityGachaItem> itemSpan = CollectionsMarshal.AsSpan(items);
-        ref EntityGachaItem itemAtZero = ref MemoryMarshal.GetReference(itemSpan);
-        for (int i = 0; i < itemSpan.Length; i++)
+        foreach (ref EntityGachaItem item in CollectionsMarshal.AsSpan(entities))
         {
-            ref EntityGachaItem item = ref Unsafe.Add(ref itemAtZero, i);
-
             SimpleGachaItem simple = new()
             {
                 GachaType = item.GachaType,
@@ -205,18 +219,14 @@ public class GachaLogController : ControllerBase
                 Id = item.Id,
             };
 
-            gachaItems.Add(simple);
+            models.Add(simple);
         }
     }
 
-    private static void AppendModelsToEntities(List<SimpleGachaItem> gachaItems, List<EntityGachaItem> items, int userId, string uid, bool isTrusted)
+    private static void AppendModelsToEntities(List<SimpleGachaItem> models, List<EntityGachaItem> entites, int userId, string uid, bool isTrusted)
     {
-        Span<SimpleGachaItem> gachaItemSpan = CollectionsMarshal.AsSpan(gachaItems);
-        ref SimpleGachaItem itemAtZero = ref MemoryMarshal.GetReference(gachaItemSpan);
-        for (int i = 0; i < gachaItemSpan.Length; i++)
+        foreach (ref SimpleGachaItem item in CollectionsMarshal.AsSpan(models))
         {
-            ref SimpleGachaItem item = ref Unsafe.Add(ref itemAtZero, i);
-
             EntityGachaItem entity = new()
             {
                 UserId = userId,
@@ -229,8 +239,40 @@ public class GachaLogController : ControllerBase
                 Time = item.Time,
             };
 
-            items.Add(entity);
+            entites.Add(entity);
         }
+    }
+
+    private static T? FromCacheOrDb<T>(AppDbContext appDbContext, IMemoryCache memoryCache, string name)
+        where T : class
+    {
+        if (memoryCache.TryGetValue(name, out object? data))
+        {
+            return (T)data!;
+        }
+
+        GachaStatistics? statistics = appDbContext.GachaStatistics
+            .SingleOrDefault(s => s.Name == name);
+
+        if (statistics != null)
+        {
+            T? tdata = JsonSerializer.Deserialize<T>(statistics.Data);
+            memoryCache.Set(name, tdata);
+
+            return tdata;
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+    private IActionResult GetStatistics<T>(string name)
+        where T : class
+    {
+        T? data = FromCacheOrDb<T>(appDbContext, memoryCache, name);
+
+        return Response<T>.Success("获取祈愿统计数据成功", data!);
     }
 
     private async Task<bool> CanUseGachaLogServiceAsync(int userId)

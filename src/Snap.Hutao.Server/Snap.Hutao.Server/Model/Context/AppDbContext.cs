@@ -14,8 +14,6 @@ namespace Snap.Hutao.Server.Model.Context;
 /// </summary>
 public class AppDbContext : IdentityDbContext<HutaoUser, IdentityRole<int>, int>
 {
-    private readonly SemaphoreSlim operationLock = new(1);
-
     /// <summary>
     /// 构造一个新的数据库上下文
     /// </summary>
@@ -34,6 +32,11 @@ public class AppDbContext : IdentityDbContext<HutaoUser, IdentityRole<int>, int>
     /// 统计信息
     /// </summary>
     public DbSet<LegacyStatistics> Statistics { get; set; } = default!;
+
+    /// <summary>
+    /// 祈愿统计信息
+    /// </summary>
+    public DbSet<GachaStatistics> GachaStatistics { get; set; } = default!;
 
     /// <summary>
     /// 封禁的用户列表
@@ -89,11 +92,6 @@ public class AppDbContext : IdentityDbContext<HutaoUser, IdentityRole<int>, int>
     /// 许可证记录
     /// </summary>
     public DbSet<LicenseApplicationRecord> Licenses { get; set; } = default!;
-
-    /// <summary>
-    /// 操作锁
-    /// </summary>
-    public SemaphoreSlim OperationLock => operationLock;
 
     /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
