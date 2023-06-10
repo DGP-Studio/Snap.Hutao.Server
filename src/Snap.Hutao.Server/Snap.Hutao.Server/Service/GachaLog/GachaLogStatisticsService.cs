@@ -28,8 +28,9 @@ public sealed class GachaLogStatisticsService
     private static readonly Func<AppDbContext, IEnumerable<string>> UidsQuery = EF.CompileQuery((AppDbContext context) =>
         context.GachaItems.AsNoTracking().Select(g => g.Uid).Distinct());
 
+    // .AsQueryable() make sure the compiler use the correct overload.
     private static readonly Func<AppDbContext, string, IEnumerable<EntityGachaItem>> GachaItemsQuery = EF.CompileQuery((AppDbContext context, string uid) =>
-        context.GachaItems.AsNoTracking().Where(g => g.Uid == uid).OrderBy(g => g.Id));
+        context.GachaItems.AsNoTracking().Where(g => g.Uid == uid).OrderBy(g => g.Id).AsQueryable());
 
     private readonly AppDbContext appDbContext;
     private readonly IMemoryCache memoryCache;

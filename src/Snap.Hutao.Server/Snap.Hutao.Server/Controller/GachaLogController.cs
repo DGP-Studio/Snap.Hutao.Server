@@ -15,7 +15,6 @@ namespace Snap.Hutao.Server.Controller;
 /// <summary>
 /// 祈愿记录控制器
 /// </summary>
-[Authorize]
 [ApiController]
 [Route("[controller]")]
 [ServiceFilter(typeof(RequestFilter))]
@@ -59,6 +58,7 @@ public class GachaLogController : ControllerBase
     /// 获取 Uid 列表
     /// </summary>
     /// <returns>Uid 列表</returns>
+    [Authorize]
     [HttpGet("Uids")]
     public async Task<IActionResult> GetUidsAsync()
     {
@@ -85,6 +85,7 @@ public class GachaLogController : ControllerBase
     /// </summary>
     /// <param name="uid">uid</param>
     /// <returns>各个卡池对应的最后Id</returns>
+    [Authorize]
     [HttpGet("EndIds")]
     public async Task<IActionResult> GetEndIdsAsync([FromQuery(Name = "Uid")] string uid)
     {
@@ -117,6 +118,7 @@ public class GachaLogController : ControllerBase
     /// </summary>
     /// <param name="uidAndEndIds">数据</param>
     /// <returns>祈愿记录</returns>
+    [Authorize]
     [HttpPost("Retrieve")]
     public async Task<IActionResult> RetrieveAsync([FromBody] UidAndEndIds uidAndEndIds)
     {
@@ -156,6 +158,7 @@ public class GachaLogController : ControllerBase
     /// </summary>
     /// <param name="gachaData">祈愿数据</param>
     /// <returns>上传成功</returns>
+    [Authorize]
     [HttpPost("Upload")]
     public async Task<IActionResult> UploadAsync([FromBody] UidAndItems gachaData)
     {
@@ -187,6 +190,7 @@ public class GachaLogController : ControllerBase
     /// </summary>
     /// <param name="uid">uid</param>
     /// <returns>响应</returns>
+    [Authorize]
     [HttpGet("Delete")]
     public async Task<IActionResult> DeleteAsync([FromQuery(Name = "Uid")] string uid)
     {
