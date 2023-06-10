@@ -92,4 +92,9 @@ public enum ReturnCode
     /// 祈愿记录服务无法使用
     /// </summary>
     GachaLogServiceNotAllowed = 500041,
+
+    /// <summary>
+    /// 祈愿记录服务无法使用
+    /// </summary>
+    InvalidGachaLogItems = 500042,
 }

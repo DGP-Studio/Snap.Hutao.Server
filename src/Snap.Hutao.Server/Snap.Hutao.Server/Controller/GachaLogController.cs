@@ -169,6 +169,11 @@ public class GachaLogController : ControllerBase
             return Model.Response.Response.Fail(ReturnCode.GachaLogServiceNotAllowed, "当前胡桃账号未开通祈愿记录上传服务，或服务已到期");
         }
 
+        if (!ValidateSimpleGachaItems(gachaData.Items))
+        {
+            return Model.Response.Response.Fail(ReturnCode.InvalidGachaLogItems, "无效的数据，无法保存至云端");
+        }
+
         string uid = gachaData.Uid;
 
         try
@@ -177,7 +182,7 @@ public class GachaLogController : ControllerBase
             AppendModelsToEntities(gachaData.Items, entities, userId, gachaData.Uid, true);
             int count = await appDbContext.GachaItems.AddRangeAndSaveAsync(entities).ConfigureAwait(false);
 
-            return Model.Response.Response.Success($"上传了 {gachaData.Items.Count} 条数据，存储了 {count} 条数据");
+            return Model.Response.Response.Success($"上传了 {gachaData.Uid} 的 {gachaData.Items.Count} 条数据，存储了 {count} 条数据");
         }
         catch
         {
@@ -269,6 +274,19 @@ public class GachaLogController : ControllerBase
         {
             return null;
         }
+    }
+
+    private static bool ValidateSimpleGachaItems(List<SimpleGachaItem> entities)
+    {
+        foreach (ref SimpleGachaItem item in CollectionsMarshal.AsSpan(entities))
+        {
+            if (item.Id == 0 || item.ItemId == 0)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private IActionResult GetStatistics<T>(string name)
