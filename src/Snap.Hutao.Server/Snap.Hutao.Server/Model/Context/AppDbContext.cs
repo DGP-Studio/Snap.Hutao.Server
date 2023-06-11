@@ -44,6 +44,11 @@ public class AppDbContext : IdentityDbContext<HutaoUser, IdentityRole<int>, int>
     public DbSet<Banned> BannedList { get; set; } = default!;
 
     /// <summary>
+    /// 无效的祈愿记录Uid
+    /// </summary>
+    public DbSet<InvalidGachaUid> InvalidGachaUids { get; set; } = default!;
+
+    /// <summary>
     /// 深渊记录
     /// </summary>
     public DbSet<EntityRecord> Records { get; set; } = default!;

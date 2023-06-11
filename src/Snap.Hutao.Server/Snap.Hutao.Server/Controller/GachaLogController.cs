@@ -174,8 +174,6 @@ public class GachaLogController : ControllerBase
             return Model.Response.Response.Fail(ReturnCode.InvalidGachaLogItems, "无效的数据，无法保存至云端");
         }
 
-        string uid = gachaData.Uid;
-
         try
         {
             List<EntityGachaItem> entities = new();
@@ -276,9 +274,9 @@ public class GachaLogController : ControllerBase
         }
     }
 
-    private static bool ValidateSimpleGachaItems(List<SimpleGachaItem> entities)
+    private static bool ValidateSimpleGachaItems(List<SimpleGachaItem> items)
     {
-        foreach (ref SimpleGachaItem item in CollectionsMarshal.AsSpan(entities))
+        foreach (ref SimpleGachaItem item in CollectionsMarshal.AsSpan(items))
         {
             if (item.Id == 0 || item.ItemId == 0)
             {

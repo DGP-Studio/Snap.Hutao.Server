@@ -19,6 +19,8 @@ public sealed class GachaLogStatisticsTracker
     private readonly GachaEvent currentAvatarEvent2;
     private readonly GachaEvent currentWeaponEvent;
 
+    private readonly HashSet<string> invalidGachaUids = new();
+
     // itemId -> count
     private readonly Map<int, long> currentAvatarEvent1Counter = new();
     private readonly Map<int, long> currentAvatarEvent2Counter = new();
@@ -40,6 +42,11 @@ public sealed class GachaLogStatisticsTracker
         this.currentAvatarEvent2 = currentAvatarEvent2;
         this.currentWeaponEvent = currentWeaponEvent;
     }
+
+    /// <summary>
+    /// 当前处理的 Uid
+    /// </summary>
+    public string Uid { get; set; } = string.Empty;
 
     /// <summary>
     /// 追踪记录
@@ -65,7 +72,8 @@ public sealed class GachaLogStatisticsTracker
                         ref avatarEventFirstStar5Found,
                         ref currentAvatarEventCountToLastStar5,
                         ref totalAvatarEventValidPullsCounter,
-                        avatarEventStar5Distribution);
+                        avatarEventStar5Distribution,
+                        90);
                     break;
                 case GachaConfigType.WeaponEventWish:
                     TrackForSpecficQueryTypeWish(
@@ -73,7 +81,8 @@ public sealed class GachaLogStatisticsTracker
                         ref weaponEventFirstStar5Found,
                         ref currentWeaponEventCountToLastStar5,
                         ref totalWeaponEventValidPullsCounter,
-                        weaponEventStar5Distribution);
+                        weaponEventStar5Distribution,
+                        80);
                     break;
                 case GachaConfigType.StandardWish:
                     TrackForSpecficQueryTypeWish(
@@ -81,7 +90,8 @@ public sealed class GachaLogStatisticsTracker
                         ref standardFirstStar5Found,
                         ref currentStandardCountToLastStar5,
                         ref totalStandardValidPullsCounter,
-                        standardStar5Distribution);
+                        standardStar5Distribution,
+                        90);
                     break;
             }
         }
@@ -116,8 +126,9 @@ public sealed class GachaLogStatisticsTracker
         GachaEventStatistics gachaEventStatistics = new()
         {
             AvatarEvent = currentAvatarEvent1Counter.Select(kvp => new ItemCount() { Item = kvp.Key, Count = kvp.Value }).ToList(),
-            AvatarEvent2 = currentAvatarEvent1Counter.Select(kvp => new ItemCount() { Item = kvp.Key, Count = kvp.Value }).ToList(),
-            WeaponEvent = currentAvatarEvent1Counter.Select(kvp => new ItemCount() { Item = kvp.Key, Count = kvp.Value }).ToList(),
+            AvatarEvent2 = currentAvatarEvent2Counter.Select(kvp => new ItemCount() { Item = kvp.Key, Count = kvp.Value }).ToList(),
+            WeaponEvent = currentWeaponEventCounter.Select(kvp => new ItemCount() { Item = kvp.Key, Count = kvp.Value }).ToList(),
+            InvalidUids = invalidGachaUids,
         };
 
         SaveStatistics(appDbContext, memoryCache, GachaStatistics.GachaEventStatistics, gachaEventStatistics);
@@ -140,7 +151,7 @@ public sealed class GachaLogStatisticsTracker
         appDbContext.SaveChanges();
     }
 
-    private void TrackForSpecficQueryTypeWish(EntityGachaItem item, ref bool star5Found, ref int lastStar5Counter, ref long totalPullsCounter, Map<int, long> distribution)
+    private void TrackForSpecficQueryTypeWish(EntityGachaItem item, ref bool star5Found, ref int lastStar5Counter, ref long totalPullsCounter, Map<int, long> distribution, int pullMaxThreshold)
     {
         switch (idQualityMap[item.ItemId])
         {
@@ -168,6 +179,12 @@ public sealed class GachaLogStatisticsTracker
                     ++lastStar5Counter;
                     ++totalPullsCounter;
                     TryIncreaseCurrentWishItemCounter(item);
+
+                    if (lastStar5Counter > pullMaxThreshold)
+                    {
+                        invalidGachaUids.Add(Uid);
+                    }
+
                     distribution.IncreaseOne(lastStar5Counter);
 
                     lastStar5Counter = 0; // reset

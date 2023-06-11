@@ -36,12 +36,6 @@ public sealed class GachaLogStatisticsService
     private readonly IMemoryCache memoryCache;
     private readonly HttpClient httpClient;
 
-    /// <summary>
-    /// 创建一个新的祈愿记录统计服务
-    /// </summary>
-    /// <param name="appDbContext">数据库上下文</param>
-    /// <param name="memoryCache">内存缓存</param>
-    /// <param name="httpClient">Http 客户端</param>
     public GachaLogStatisticsService(AppDbContext appDbContext, IMemoryCache memoryCache, HttpClient httpClient)
     {
         this.appDbContext = appDbContext;
@@ -91,17 +85,25 @@ public sealed class GachaLogStatisticsService
     private static void GetCurrentGachaEvent(List<GachaEvent> gachaEvents, out GachaEvent avatarEvent1, out GachaEvent avatarEvent2, out GachaEvent weaponEvent)
     {
         gachaEvents.Sort((x, y) => x.From.CompareTo(y.From));
-
-        avatarEvent1 = gachaEvents.Last(g => g.Type == GachaConfigType.AvatarEventWish);
-        avatarEvent2 = gachaEvents.Last(g => g.Type == GachaConfigType.AvatarEventWish2);
-        weaponEvent = gachaEvents.Last(g => g.Type == GachaConfigType.WeaponEventWish);
+        DateTimeOffset now = DateTimeOffset.Now;
+        avatarEvent1 = gachaEvents.First(g => g.From < now && g.To > now && g.Type == GachaConfigType.AvatarEventWish);
+        avatarEvent2 = gachaEvents.First(g => g.From < now && g.To > now && g.Type == GachaConfigType.AvatarEventWish2);
+        weaponEvent = gachaEvents.First(g => g.From < now && g.To > now && g.Type == GachaConfigType.WeaponEventWish);
     }
 
     private void RunCore(GachaLogStatisticsTracker tracker)
     {
         List<string> uids = UidsQuery(appDbContext).ToList();
+        HashSet<string> invalidUids = appDbContext.InvalidGachaUids.Select(i => i.Uid).ToHashSet();
         foreach (ref string uid in CollectionsMarshal.AsSpan(uids))
         {
+            if (invalidUids.Contains(uid))
+            {
+                continue;
+            }
+
+            tracker.Uid = uid;
+
             // 按 Id 递增
             List<EntityGachaItem> gachaItems = GachaItemsQuery(appDbContext, uid).ToList();
             tracker.Track(gachaItems);

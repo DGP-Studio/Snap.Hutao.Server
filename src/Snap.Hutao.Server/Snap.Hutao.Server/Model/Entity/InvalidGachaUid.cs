@@ -6,14 +6,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Snap.Hutao.Server.Model.Entity;
 
-/// <summary>
-/// 封禁的Uid集合
-/// </summary>
-[Table("banned")]
-public class Banned
+[Table("invalid_gacha_uids")]
+public class InvalidGachaUid
 {
     /// <summary>
-    /// 封禁的Uid
+    /// 无效祈愿记录的Uid
     /// </summary>
     [Key]
     [StringLength(9, MinimumLength = 9)]
