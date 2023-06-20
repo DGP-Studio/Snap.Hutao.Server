@@ -1,7 +1,6 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
-using Microsoft.EntityFrameworkCore;
 using Snap.Hutao.Server.Extension;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity;
@@ -24,22 +23,34 @@ public static class RecordHelper
     /// <param name="expireService">续期服务</param>
     /// <param name="record">记录</param>
     /// <returns>是否触发了赠送时长</returns>
-    public static async Task<bool> SaveRecordAsync(AppDbContext appDbContext, RankService rankService, ExpireService expireService, SimpleRecord record)
+    public static async Task<RecordUploadResult> SaveRecordAsync(AppDbContext appDbContext, RankService rankService, ExpireService expireService, SimpleRecord record)
     {
-        bool gachaLogExtended = false;
+        RecordUploadResult result = RecordUploadResult.None;
         EntityRecord? entityRecord = await appDbContext.Records.SingleOrDefaultAsync(r => r.Uid == record.Uid).ConfigureAwait(false);
 
-        if (entityRecord != null)
+        if (entityRecord == null)
         {
-            await appDbContext.Records.RemoveAndSaveAsync(entityRecord).ConfigureAwait(false);
+            if (record.Identity != UploaderIdentities.SnapHutao)
+            {
+                result = RecordUploadResult.NotSnapHutao;
+            }
+            else
+            {
+                if (record.ReservedUserName != null)
+                {
+                    await expireService.ExtendGachaLogTermAsync(record.ReservedUserName, 5).ConfigureAwait(false);
+                    result = RecordUploadResult.GachaLogExtented;
+                }
+                else
+                {
+                    result = RecordUploadResult.NoUserNamePresented;
+                }
+            }
         }
         else
         {
-            if (record.Identity == UploaderIdentities.SnapHutao && record.ReservedUserName != null)
-            {
-                await expireService.ExtendGachaLogTermAsync(record.ReservedUserName, 5).ConfigureAwait(false);
-                gachaLogExtended = true;
-            }
+            result = RecordUploadResult.NotFirstAttempt;
+            await appDbContext.Records.RemoveAndSaveAsync(entityRecord).ConfigureAwait(false);
         }
 
         // EntityRecord
@@ -76,7 +87,7 @@ public static class RecordHelper
         // Redis rank sync
         await rankService.SaveRankAsync(record.Uid, record.SpiralAbyss.Damage, record.SpiralAbyss.TakeDamage).ConfigureAwait(false);
 
-        return gachaLogExtended;
+        return result;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
