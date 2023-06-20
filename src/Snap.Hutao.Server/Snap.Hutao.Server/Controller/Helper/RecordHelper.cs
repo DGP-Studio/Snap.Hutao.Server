@@ -28,7 +28,22 @@ public static class RecordHelper
         RecordUploadResult result = RecordUploadResult.None;
         EntityRecord? entityRecord = await appDbContext.Records.SingleOrDefaultAsync(r => r.Uid == record.Uid).ConfigureAwait(false);
 
+        bool hasSpiralAbysses = true;
         if (entityRecord == null)
+        {
+            hasSpiralAbysses = false;
+        }
+        else
+        {
+            if (await appDbContext.SpiralAbysses.AnyAsync(s => s.RecordId == entityRecord.PrimaryId).ConfigureAwait(false))
+            {
+                hasSpiralAbysses = false;
+            }
+
+            await appDbContext.Records.RemoveAndSaveAsync(entityRecord).ConfigureAwait(false);
+        }
+
+        if (!hasSpiralAbysses)
         {
             if (record.Identity != UploaderIdentities.SnapHutao)
             {
@@ -50,7 +65,6 @@ public static class RecordHelper
         else
         {
             result = RecordUploadResult.NotFirstAttempt;
-            await appDbContext.Records.RemoveAndSaveAsync(entityRecord).ConfigureAwait(false);
         }
 
         // EntityRecord
