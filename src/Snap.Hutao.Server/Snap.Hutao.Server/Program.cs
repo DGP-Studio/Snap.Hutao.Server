@@ -128,6 +128,7 @@ public class Program
             {
                 JsonSerializerOptions jsonOptions = options.JsonSerializerOptions;
 
+                jsonOptions.PropertyNamingPolicy = null;
                 jsonOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
                 jsonOptions.Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
                 jsonOptions.PropertyNameCaseInsensitive = true;
