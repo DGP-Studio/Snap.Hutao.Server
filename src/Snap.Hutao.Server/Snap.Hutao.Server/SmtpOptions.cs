@@ -3,7 +3,7 @@
 
 namespace Snap.Hutao.Server;
 
-internal sealed class SmtpOptions
+public sealed class SmtpOptions
 {
     public string Server { get; set; } = default!;
 

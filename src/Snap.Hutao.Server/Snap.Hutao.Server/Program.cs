@@ -18,7 +18,7 @@ namespace Snap.Hutao.Server;
 /// <summary>
 /// 主程序
 /// </summary>
-public class Program
+public static class Program
 {
     /// <summary>
     /// 入口
@@ -26,19 +26,19 @@ public class Program
     /// <param name="args">参数</param>
     public static void Main(string[] args)
     {
-        WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+        WebApplicationBuilder appBuilder = WebApplication.CreateBuilder(args);
 
-        IServiceCollection services = builder.Services;
+        IServiceCollection services = appBuilder.Services;
 
         // Services
         services
             .AddAuthorization()
-            .AddCors(options => options.AddPolicy("CorsPolicy", options => options.AllowAnyMethod().AllowAnyHeader().AllowAnyOrigin()))
+            .AddCors(options => options.AddPolicy("CorsPolicy", builder => builder.AllowAnyMethod().AllowAnyHeader().AllowAnyOrigin()))
             .AddDbContextPool<AppDbContext>((serviceProvider, options) =>
             {
-                string connectionString = builder.Configuration.GetConnectionString("LocalDb")!;
+                string connectionString = appBuilder.Configuration.GetConnectionString("LocalDb")!;
                 ILogger<AppDbContext> logger = serviceProvider.GetRequiredService<ILogger<AppDbContext>>();
-                logger.LogInformation("Using connection string: [{constr}]", connectionString);
+                logger.LogInformation("Using connection string: [{Constr}]", connectionString);
 
                 options
                     .UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
@@ -63,8 +63,8 @@ public class Program
             .AddSingleton<RankService>()
             .AddSingleton<MailService>()
             .AddSingleton<ExpireService>()
-            .AddSingleton(builder.Configuration.Get<AppOptions>()!)
-            .AddSingleton(builder.Configuration.GetSection("Smtp").Get<SmtpOptions>()!)
+            .AddSingleton(appBuilder.Configuration.Get<AppOptions>()!)
+            .AddSingleton(appBuilder.Configuration.GetSection("Smtp").Get<SmtpOptions>()!)
             .AddSwaggerGen(options =>
             {
                 options.SwaggerDoc("SpiralAbyss", new() { Version = "1.0", Title = "深渊统计", Description = "深渊统计数据" });
@@ -87,7 +87,7 @@ public class Program
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
             {
-                SymmetricSecurityKey key = new(Encoding.UTF8.GetBytes(builder.Configuration["Jwt"]!));
+                SymmetricSecurityKey key = new(Encoding.UTF8.GetBytes(appBuilder.Configuration["Jwt"]!));
 
                 options.TokenValidationParameters = new()
                 {
@@ -128,19 +128,18 @@ public class Program
             {
                 JsonSerializerOptions jsonOptions = options.JsonSerializerOptions;
 
-                // TODO：Apply this
-                // jsonOptions.PropertyNamingPolicy = null;
+                jsonOptions.PropertyNamingPolicy = null;
                 jsonOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
                 jsonOptions.Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
                 jsonOptions.PropertyNameCaseInsensitive = true;
                 jsonOptions.WriteIndented = true;
             });
 
-        WebApplication app = builder.Build();
+        WebApplication app = appBuilder.Build();
         MigrateDatabase(app);
 
         // 中间件的顺序敏感
-        // https://learn.microsoft.com/zh-cn/aspnet/core/fundamentals/middleware/?view=aspnetcore-6.0#middleware-order-1
+        // https://learn.microsoft.com/zh-cn/aspnet/core/fundamentals/middleware/#middleware-order
         // ExceptionHandler
 
         // HSTS
@@ -194,7 +193,7 @@ public class Program
     /// 迁移数据库
     /// </summary>
     /// <param name="app">app</param>
-    public static void MigrateDatabase(WebApplication app)
+    private static void MigrateDatabase(IHost app)
     {
         using (IServiceScope scope = app.Services.CreateScope())
         {

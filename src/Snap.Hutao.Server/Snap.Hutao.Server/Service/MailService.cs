@@ -13,27 +13,19 @@ namespace Snap.Hutao.Server.Service;
 public sealed class MailService
 {
     private readonly ILogger<MailService> logger;
-    private readonly string server;
-    private readonly string userName;
-    private readonly string password;
-    private readonly string diagnosticEmailAddress;
+    private readonly SmtpOptions smtpOptions;
 
     /// <summary>
     /// 构造一个新的邮件服务
     /// </summary>
     /// <param name="configuration">配置</param>
     /// <param name="logger">日志器</param>
-    public MailService(IConfiguration configuration, ILogger<MailService> logger)
+    public MailService(SmtpOptions smtpOptions, ILogger<MailService> logger)
     {
         this.logger = logger;
+        this.smtpOptions = smtpOptions;
 
-        IConfigurationSection smtp = configuration.GetSection("Smtp");
-        server = smtp["Server"]!;
-        userName = smtp["UserName"]!;
-        password = smtp["Password"]!;
-        diagnosticEmailAddress = smtp["DiagnosticEmailAddress"]!;
-
-        logger.LogInformation("Initialized with UserName:{userName} Password:{password}", userName, password);
+        logger.LogInformation("Initialized with UserName:{UserName} Password:{Password}", smtpOptions.UserName, smtpOptions.Password);
     }
 
     /// <summary>
@@ -44,7 +36,7 @@ public sealed class MailService
     /// <returns>任务</returns>
     public Task SendRegistrationVerifyCodeAsync(string emailAddress, string code)
     {
-        logger.LogInformation("Send Registration Mail to [{email}] with [{code}]", emailAddress, code);
+        logger.LogInformation("Send Registration Mail to [{Email}] with [{Code}]", emailAddress, code);
         return SendVerifyCodeMailAsync(emailAddress, GetRegistrationVerifyCodeMailBody(code));
     }
 
@@ -56,7 +48,7 @@ public sealed class MailService
     /// <returns>任务</returns>
     public Task SendResetPasswordVerifyCodeAsync(string emailAddress, string code)
     {
-        logger.LogInformation("Send ResetPassword Mail to [{email}] with [{code}]", emailAddress, code);
+        logger.LogInformation("Send ResetPassword Mail to [{Email}] with [{Code}]", emailAddress, code);
         return SendVerifyCodeMailAsync(emailAddress, GetResetPasswordVerifyCodeMailBody(code));
     }
 
@@ -69,7 +61,7 @@ public sealed class MailService
     /// <returns>任务</returns>
     public Task SendPurchaseGachaLogStorageServiceAsync(string emailAddress, string expireAt, string tradeNumber)
     {
-        logger.LogInformation("Send GachaLog Mail to [{email}] with [{code}]", emailAddress, tradeNumber);
+        logger.LogInformation("Send GachaLog Mail to [{Email}] with [{Number}]", emailAddress, tradeNumber);
         return SendPurchaseServiceMailAsync(emailAddress, GetPurchaseGachaLogStorageServiceMailBody(expireAt, tradeNumber));
     }
 
@@ -93,7 +85,7 @@ public sealed class MailService
     /// <returns>任务</returns>
     public Task SendDiagnosticSpiralAbyssCleanJobAsync(string task, int deletedRecordsCount, int deletedSpiralCount, long removedKeys)
     {
-        return SendDiagnosticMailAsync(diagnosticEmailAddress, GetDiagnosticSpiralAbyssCleanJobMailBody(task, deletedRecordsCount, deletedSpiralCount, removedKeys));
+        return SendDiagnosticMailAsync(smtpOptions.DiagnosticEmailAddress, GetDiagnosticSpiralAbyssCleanJobMailBody(task, deletedRecordsCount, deletedSpiralCount, removedKeys));
     }
 
     /// <summary>
@@ -105,7 +97,7 @@ public sealed class MailService
     /// <returns>任务</returns>
     public Task SendDiagnosticOpenSourceLicenseNotificationAsync(string userName, string url, string code)
     {
-        return SendDiagnosticMailAsync(diagnosticEmailAddress, GetDiagnosticOpenSourceLicenseApplicationBody(userName, url, code));
+        return SendDiagnosticMailAsync(smtpOptions.DiagnosticEmailAddress, GetDiagnosticOpenSourceLicenseApplicationBody(userName, url, code));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -375,7 +367,7 @@ public sealed class MailService
             Subject = "Snap Hutao 账号安全",
             From =
             {
-                new MailboxAddress("DGP Studio", userName),
+                new MailboxAddress("DGP Studio", smtpOptions.UserName),
             },
             To =
             {
@@ -389,8 +381,8 @@ public sealed class MailService
 
         using (SmtpClient client = new())
         {
-            await client.ConnectAsync(server).ConfigureAwait(false);
-            await client.AuthenticateAsync(userName, password).ConfigureAwait(false);
+            await client.ConnectAsync(smtpOptions.Server).ConfigureAwait(false);
+            await client.AuthenticateAsync(smtpOptions.UserName, smtpOptions.Password).ConfigureAwait(false);
             await client.SendAsync(mimeMessage).ConfigureAwait(false);
             await client.DisconnectAsync(true).ConfigureAwait(false);
         }
@@ -400,10 +392,10 @@ public sealed class MailService
     {
         MimeMessage mimeMessage = new()
         {
-            Subject = "Snap Hutao 账号服务",
+            Subject = "胡桃云服务",
             From =
             {
-                new MailboxAddress("DGP Studio", userName),
+                new MailboxAddress("DGP Studio", smtpOptions.UserName),
             },
             To =
             {
@@ -417,8 +409,8 @@ public sealed class MailService
 
         using (SmtpClient client = new())
         {
-            await client.ConnectAsync(server).ConfigureAwait(false);
-            await client.AuthenticateAsync(userName, password).ConfigureAwait(false);
+            await client.ConnectAsync(smtpOptions.Server).ConfigureAwait(false);
+            await client.AuthenticateAsync(smtpOptions.UserName, smtpOptions.Password).ConfigureAwait(false);
             await client.SendAsync(mimeMessage).ConfigureAwait(false);
             await client.DisconnectAsync(true).ConfigureAwait(false);
         }
@@ -431,7 +423,7 @@ public sealed class MailService
             Subject = "胡桃开放平台",
             From =
             {
-                new MailboxAddress("DGP Studio", userName),
+                new MailboxAddress("DGP Studio", smtpOptions.UserName),
             },
             To =
             {
@@ -445,8 +437,8 @@ public sealed class MailService
 
         using (SmtpClient client = new())
         {
-            await client.ConnectAsync(server).ConfigureAwait(false);
-            await client.AuthenticateAsync(userName, password).ConfigureAwait(false);
+            await client.ConnectAsync(smtpOptions.Server).ConfigureAwait(false);
+            await client.AuthenticateAsync(smtpOptions.UserName, smtpOptions.Password).ConfigureAwait(false);
             await client.SendAsync(mimeMessage).ConfigureAwait(false);
             await client.DisconnectAsync(true).ConfigureAwait(false);
         }
@@ -459,7 +451,7 @@ public sealed class MailService
             Subject = "Snap Hutao 账号服务",
             From =
             {
-                new MailboxAddress("DGP Studio", userName),
+                new MailboxAddress("DGP Studio", smtpOptions.UserName),
             },
             To =
             {
@@ -473,8 +465,8 @@ public sealed class MailService
 
         using (SmtpClient client = new())
         {
-            await client.ConnectAsync(server).ConfigureAwait(false);
-            await client.AuthenticateAsync(userName, password).ConfigureAwait(false);
+            await client.ConnectAsync(smtpOptions.Server).ConfigureAwait(false);
+            await client.AuthenticateAsync(smtpOptions.UserName, smtpOptions.Password).ConfigureAwait(false);
             await client.SendAsync(mimeMessage).ConfigureAwait(false);
             await client.DisconnectAsync(true).ConfigureAwait(false);
         }
