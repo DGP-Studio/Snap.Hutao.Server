@@ -97,7 +97,7 @@ public sealed class GachaLogStatisticsTracker
         }
     }
 
-    public void CompleteTracking(AppDbContext appDbContext, IMemoryCache memoryCache, ValueStopwatch stopwatch)
+    public void CompleteTracking(AppDbContext appDbContext, IMemoryCache memoryCache)
     {
         GachaDistribution avatarEventDistribution = new()
         {
@@ -137,7 +137,7 @@ public sealed class GachaLogStatisticsTracker
     private static void SaveStatistics<T>(AppDbContext appDbContext, IMemoryCache memoryCache, string name, T data)
     {
         GachaStatistics? statistics = appDbContext.GachaStatistics
-                .SingleOrDefault(s => s.Name == name);
+            .SingleOrDefault(s => s.Name == name);
 
         if (statistics == null)
         {

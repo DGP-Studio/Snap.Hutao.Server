@@ -57,9 +57,8 @@ public sealed class GachaLogStatisticsService
 
         using (memoryCache.Flag(Working))
         {
-            ValueStopwatch stopwatch = ValueStopwatch.StartNew();
             await Task.Run(() => RunCore(tracker)).ConfigureAwait(false);
-            tracker.CompleteTracking(appDbContext, memoryCache, stopwatch);
+            tracker.CompleteTracking(appDbContext, memoryCache);
         }
     }
 
