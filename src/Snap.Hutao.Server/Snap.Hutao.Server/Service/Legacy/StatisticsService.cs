@@ -1,8 +1,6 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
 using Snap.Hutao.Server.Core;
 using Snap.Hutao.Server.Extension;
 using Snap.Hutao.Server.Model.Context;

@@ -3,7 +3,6 @@
 
 using Quartz;
 using Snap.Hutao.Server.Service.GachaLog;
-using Snap.Hutao.Server.Service.Legacy;
 
 namespace Snap.Hutao.Server.Job;
 

@@ -1,9 +1,7 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
 using Snap.Hutao.Server.Model.Context.Configuration;
 using Snap.Hutao.Server.Model.Entity;
 

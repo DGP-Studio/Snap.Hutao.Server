@@ -1,7 +1,6 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
-using Microsoft.AspNetCore.Identity;
 using Snap.Hutao.Server.Model.Entity;
 
 namespace Snap.Hutao.Server.Service;

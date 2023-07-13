@@ -2,7 +2,6 @@
 // Licensed under the MIT license.
 
 using System.Diagnostics.CodeAnalysis;
-using System.Text.Json.Serialization;
 
 namespace Snap.Hutao.Server.Model.Afdian;
 

@@ -36,18 +36,21 @@ public class GachaLogController : ControllerBase
         return GetStatistics<GachaEventStatistics>(GachaStatistics.GachaEventStatistics);
     }
 
+    [Authorize]
     [HttpGet("Statistics/Distribution/AvatarEvent")]
     public IActionResult AvatarEventDistribution()
     {
         return GetStatistics<GachaDistribution>(GachaStatistics.AvaterEventGachaDistribution);
     }
 
+    [Authorize]
     [HttpGet("Statistics/Distribution/WeaponEvent")]
     public IActionResult WeaponEventDistribution()
     {
         return GetStatistics<GachaDistribution>(GachaStatistics.WeaponEventGachaDistribution);
     }
 
+    [Authorize]
     [HttpGet("Statistics/Distribution/Standard")]
     public IActionResult StandardDistribution()
     {

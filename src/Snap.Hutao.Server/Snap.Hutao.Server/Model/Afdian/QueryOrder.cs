@@ -2,9 +2,6 @@
 // Licensed under the MIT license.
 
 using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace Snap.Hutao.Server.Model.Afdian;
 
