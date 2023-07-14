@@ -84,6 +84,32 @@ public class GachaLogController : ControllerBase
     }
 
     /// <summary>
+    /// 获取 Entry 列表
+    /// </summary>
+    /// <returns>Entry 列表</returns>
+    [Authorize]
+    [HttpGet("Entries")]
+    public async Task<IActionResult> GetGachaEntriesAsync()
+    {
+        int userId = this.GetUserId();
+
+        if (!await CanUseGachaLogServiceAsync(userId).ConfigureAwait(false))
+        {
+            return Model.Response.Response.Fail(ReturnCode.GachaLogServiceNotAllowed, "未开通祈愿记录上传服务或已到期");
+        }
+
+        List<GachaEntry> entries = await appDbContext.GachaItems
+            .AsNoTracking()
+            .Where(g => g.UserId == userId)
+            .GroupBy(g => g.Uid)
+            .Select(x => new GachaEntry() { Uid = x.Key, ItemCount = x.AsQueryable().Count() })
+            .ToListAsync()
+            .ConfigureAwait(false);
+
+        return Response<List<GachaEntry>>.Success("获取 Entry 成功", entries);
+    }
+
+    /// <summary>
     /// 获取各个卡池对应的最后Id
     /// </summary>
     /// <param name="uid">uid</param>
