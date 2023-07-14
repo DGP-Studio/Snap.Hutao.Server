@@ -98,6 +98,14 @@ public sealed class GachaLogStatisticsTracker
 
     public void CompleteTracking(AppDbContext appDbContext, IMemoryCache memoryCache)
     {
+        if (invalidGachaUids.Any())
+        {
+            appDbContext.InvalidGachaUids.AddRangeAndSave(invalidGachaUids.Select(uid => new InvalidGachaUid() { Uid = uid }));
+
+            // Ignoring all results below.
+            return;
+        }
+
         GachaDistribution avatarEventDistribution = new()
         {
             TotalValidPulls = totalAvatarEventValidPullsCounter,

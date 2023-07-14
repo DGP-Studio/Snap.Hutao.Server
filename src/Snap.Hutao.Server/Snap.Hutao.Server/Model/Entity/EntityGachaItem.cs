@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 
 using Snap.Hutao.Server.Model.Metadata;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Snap.Hutao.Server.Model.Entity;
@@ -11,7 +12,7 @@ namespace Snap.Hutao.Server.Model.Entity;
 /// </summary>
 [Table("gacha_items")]
 [PrimaryKey(nameof(Uid), nameof(Id))]
-public class EntityGachaItem
+public sealed class EntityGachaItem
 {
     /// <summary>
     /// 用户Id

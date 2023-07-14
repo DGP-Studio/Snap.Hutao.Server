@@ -62,6 +62,7 @@ public class GachaLogController : ControllerBase
     /// </summary>
     /// <returns>Uid 列表</returns>
     [Authorize]
+    [Obsolete("使用 Entries 代替")]
     [HttpGet("Uids")]
     public async Task<IActionResult> GetUidsAsync()
     {

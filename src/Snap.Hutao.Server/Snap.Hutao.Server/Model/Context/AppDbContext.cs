@@ -92,6 +92,16 @@ public class AppDbContext : IdentityDbContext<HutaoUser, IdentityRole<int>, int>
     public DbSet<EntityGachaItem> GachaItems { get; set; } = default!;
 
     /// <summary>
+    /// 成就存档
+    /// </summary>
+    public DbSet<EntityAchievementArchive> AchievementArchives { get; set; } = default!;
+
+    /// <summary>
+    /// 成就
+    /// </summary>
+    public DbSet<EntityAchievement> Achievements { get; set; } = default!;
+
+    /// <summary>
     /// 许可证记录
     /// </summary>
     public DbSet<LicenseApplicationRecord> Licenses { get; set; } = default!;
