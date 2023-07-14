@@ -80,7 +80,7 @@ public class GachaLogController : ControllerBase
             .ToListAsync()
             .ConfigureAwait(false);
 
-        return Response<List<string>>.Success("获取 Uid 成功", uids);
+        return Response<List<string>>.Success("获取 Uid 列表成功", uids);
     }
 
     /// <summary>
