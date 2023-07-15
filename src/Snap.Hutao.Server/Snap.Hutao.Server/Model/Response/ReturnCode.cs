@@ -97,4 +97,9 @@ public enum ReturnCode
     /// 祈愿记录服务无法使用
     /// </summary>
     InvalidGachaLogItems = 500042,
+
+    /// <summary>
+    /// Uid 超出个数限制
+    /// </summary>
+    TooManyGachaLogUids = 500043,
 }
