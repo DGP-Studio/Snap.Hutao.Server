@@ -199,6 +199,7 @@ public class GachaLogController : ControllerBase
             return Model.Response.Response.Fail(ReturnCode.GachaLogServiceNotAllowed, "当前胡桃账号未开通祈愿记录上传服务，或服务已到期");
         }
 
+        // CountAsync is executed locally in EF 7
         if (await appDbContext.GachaItems.Where(i => i.UserId == userId).Select(i => i.Uid).Distinct().CountAsync().ConfigureAwait(false) >= 5)
         {
             // await appDbContext.Database.SqlQuery<int>($"""

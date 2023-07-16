@@ -95,7 +95,7 @@ public class RecordController : ControllerBase
         {
             return result switch
             {
-                RecordUploadResult.GachaLogExtented => Model.Response.Response.Success("数据提交成功，获赠 5 天祈愿记录上传服务时长"),
+                RecordUploadResult.GachaLogExtented => Model.Response.Response.Success("数据提交成功，获赠 3 天祈愿记录上传服务时长"),
                 RecordUploadResult.NotSnapHutao => Model.Response.Response.Success("数据提交成功，但不是由胡桃客户端发起，无法获赠祈愿记录上传服务时长"),
                 RecordUploadResult.NotFirstAttempt => Model.Response.Response.Success("数据提交成功，但不是本期首次提交，无法获赠祈愿记录上传服务时长"),
                 RecordUploadResult.NoUserNamePresented => Model.Response.Response.Success("数据提交成功，但未绑定胡桃账号，无法获赠祈愿记录上传服务时长"),

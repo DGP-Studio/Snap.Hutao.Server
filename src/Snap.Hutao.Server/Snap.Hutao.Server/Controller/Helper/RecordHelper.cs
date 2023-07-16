@@ -35,7 +35,7 @@ public static class RecordHelper
         }
         else
         {
-            if (await appDbContext.SpiralAbysses.AnyAsync(s => s.RecordId == entityRecord.PrimaryId).ConfigureAwait(false))
+            if (!await appDbContext.SpiralAbysses.AnyAsync(s => s.RecordId == entityRecord.PrimaryId).ConfigureAwait(false))
             {
                 hasSpiralAbysses = false;
             }
@@ -53,7 +53,7 @@ public static class RecordHelper
             {
                 if (record.ReservedUserName != null)
                 {
-                    await expireService.ExtendGachaLogTermAsync(record.ReservedUserName, 5).ConfigureAwait(false);
+                    await expireService.ExtendGachaLogTermAsync(record.ReservedUserName, 3).ConfigureAwait(false);
                     result = RecordUploadResult.GachaLogExtented;
                 }
                 else
