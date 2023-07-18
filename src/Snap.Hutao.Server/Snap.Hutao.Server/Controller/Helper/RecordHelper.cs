@@ -43,7 +43,11 @@ public static class RecordHelper
             await appDbContext.Records.RemoveAndSaveAsync(entityRecord).ConfigureAwait(false);
         }
 
-        if (!hasSpiralAbysses)
+        if (hasSpiralAbysses)
+        {
+            result = RecordUploadResult.NotFirstAttempt;
+        }
+        else
         {
             if (record.Identity != UploaderIdentities.SnapHutao)
             {
@@ -61,10 +65,6 @@ public static class RecordHelper
                     result = RecordUploadResult.NoUserNamePresented;
                 }
             }
-        }
-        else
-        {
-            result = RecordUploadResult.NotFirstAttempt;
         }
 
         // EntityRecord
