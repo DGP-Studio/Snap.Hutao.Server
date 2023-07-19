@@ -18,7 +18,7 @@ public sealed class MailService
     /// <summary>
     /// 构造一个新的邮件服务
     /// </summary>
-    /// <param name="configuration">配置</param>
+    /// <param name="smtpOptions">配置</param>
     /// <param name="logger">日志器</param>
     public MailService(SmtpOptions smtpOptions, ILogger<MailService> logger)
     {
@@ -448,7 +448,7 @@ public sealed class MailService
     {
         MimeMessage mimeMessage = new()
         {
-            Subject = "Snap Hutao 账号服务",
+            Subject = "Hutao Server Diagnostic",
             From =
             {
                 new MailboxAddress("DGP Studio", smtpOptions.UserName),
