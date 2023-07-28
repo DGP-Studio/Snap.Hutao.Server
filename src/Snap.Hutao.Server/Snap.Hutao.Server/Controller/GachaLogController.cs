@@ -38,22 +38,42 @@ public class GachaLogController : ControllerBase
 
     [Authorize]
     [HttpGet("Statistics/Distribution/AvatarEvent")]
-    public IActionResult AvatarEventDistribution()
+    public async Task<IActionResult> AvatarEventDistributionAsync()
     {
+        int userId = this.GetUserId();
+
+        if (!await CanUseGachaLogServiceAsync(userId).ConfigureAwait(false))
+        {
+            return Model.Response.Response.Fail(ReturnCode.GachaLogServiceNotAllowed, "未开通祈愿记录上传服务或已到期");
+        }
+
         return GetStatistics<GachaDistribution>(GachaStatistics.AvaterEventGachaDistribution);
     }
 
     [Authorize]
     [HttpGet("Statistics/Distribution/WeaponEvent")]
-    public IActionResult WeaponEventDistribution()
+    public async Task<IActionResult> WeaponEventDistributionAsync()
     {
+        int userId = this.GetUserId();
+
+        if (!await CanUseGachaLogServiceAsync(userId).ConfigureAwait(false))
+        {
+            return Model.Response.Response.Fail(ReturnCode.GachaLogServiceNotAllowed, "未开通祈愿记录上传服务或已到期");
+        }
+
         return GetStatistics<GachaDistribution>(GachaStatistics.WeaponEventGachaDistribution);
     }
 
     [Authorize]
     [HttpGet("Statistics/Distribution/Standard")]
-    public IActionResult StandardDistribution()
+    public async Task<IActionResult> StandardDistributionAsync()
     {
+        int userId = this.GetUserId();
+        if (!await CanUseGachaLogServiceAsync(userId).ConfigureAwait(false))
+        {
+            return Model.Response.Response.Fail(ReturnCode.GachaLogServiceNotAllowed, "未开通祈愿记录上传服务或已到期");
+        }
+
         return GetStatistics<GachaDistribution>(GachaStatistics.StandardGachaDistribution);
     }
 
