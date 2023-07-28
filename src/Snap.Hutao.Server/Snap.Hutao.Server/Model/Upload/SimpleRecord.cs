@@ -1,6 +1,7 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
+using Snap.Hutao.Server.Extension;
 using System.Runtime.InteropServices;
 
 namespace Snap.Hutao.Server.Model.Upload;
@@ -92,24 +93,36 @@ public class SimpleRecord
             }
         }
 
-        return ValidateRequiredAvatars();
+        return ValidateAvatars();
     }
 
-    private bool ValidateRequiredAvatars()
+    private bool ValidateAvatars()
     {
         int traveller = 1;
         int passMainQuest = 3;
-        foreach (SimpleAvatar a in Avatars)
+        foreach (SimpleAvatar avatar in Avatars)
         {
-            int avatarId = a.AvatarId;
+            if (avatar.WeaponId <= 0 || avatar.WeaponId.StringLength() != 5)
+            {
+                return false;
+            }
+
+            if (avatar.ReliquarySetIds.Any(id => id > 0 && id.StringLength() != 7))
+            {
+                return false;
+            }
+
+            int avatarId = avatar.AvatarId;
 
             // 男女主
+            // 没有主角的账号100%无效
             if (avatarId == 10000005 || avatarId == 10000007)
             {
                 --traveller;
             }
 
             // 丽莎/凯亚/安柏
+            // 没有御三家的账号可信度不高
             if (avatarId == 10000006 || avatarId == 10000015 || avatarId == 10000021)
             {
                 --passMainQuest;
