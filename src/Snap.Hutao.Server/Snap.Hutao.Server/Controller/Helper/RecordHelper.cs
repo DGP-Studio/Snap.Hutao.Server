@@ -6,6 +6,7 @@ using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity;
 using Snap.Hutao.Server.Model.Upload;
 using Snap.Hutao.Server.Service;
+using Snap.Hutao.Server.Service.Ranking;
 using System.Runtime.CompilerServices;
 
 namespace Snap.Hutao.Server.Controller.Helper;
@@ -13,7 +14,7 @@ namespace Snap.Hutao.Server.Controller.Helper;
 /// <summary>
 /// 记录帮助类
 /// </summary>
-public static class RecordHelper
+internal static class RecordHelper
 {
     /// <summary>
     /// 异步保存记录
@@ -23,7 +24,7 @@ public static class RecordHelper
     /// <param name="expireService">续期服务</param>
     /// <param name="record">记录</param>
     /// <returns>是否触发了赠送时长</returns>
-    public static async Task<RecordUploadResult> SaveRecordAsync(AppDbContext appDbContext, RankService rankService, ExpireService expireService, SimpleRecord record)
+    internal static async Task<RecordUploadResult> SaveRecordAsync(AppDbContext appDbContext, IRankService rankService, ExpireService expireService, SimpleRecord record)
     {
         RecordUploadResult result = RecordUploadResult.None;
         EntityRecord? entityRecord = await appDbContext.Records.SingleOrDefaultAsync(r => r.Uid == record.Uid).ConfigureAwait(false);

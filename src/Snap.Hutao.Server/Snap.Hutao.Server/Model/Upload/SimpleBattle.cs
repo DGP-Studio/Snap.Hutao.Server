@@ -15,7 +15,7 @@ public class SimpleBattle
 
     /// <summary>
     /// 角色列表
-    /// 已排序
+    /// 在写入数据库时会排序
     /// </summary>
     public List<int> Avatars { get; set; } = default!;
 }

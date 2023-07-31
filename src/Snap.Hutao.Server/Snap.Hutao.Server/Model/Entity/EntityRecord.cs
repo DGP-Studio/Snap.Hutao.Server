@@ -28,6 +28,7 @@ public class EntityRecord
     /// <summary>
     /// 上传方
     /// </summary>
+    [StringLength(64)]
     public string Uploader { get; set; } = null!;
 
     /// <summary>

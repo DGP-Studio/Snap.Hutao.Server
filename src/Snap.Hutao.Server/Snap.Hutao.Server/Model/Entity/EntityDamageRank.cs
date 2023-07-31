@@ -44,5 +44,6 @@ public class EntityDamageRank
     /// <summary>
     /// Uid
     /// </summary>
+    [StringLength(9, MinimumLength = 9)]
     public string Uid { get; set; } = default!;
 }

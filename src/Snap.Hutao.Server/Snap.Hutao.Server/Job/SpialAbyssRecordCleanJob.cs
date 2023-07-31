@@ -4,6 +4,7 @@
 using Quartz;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Service;
+using Snap.Hutao.Server.Service.Ranking;
 
 namespace Snap.Hutao.Server.Job;
 
@@ -13,7 +14,7 @@ namespace Snap.Hutao.Server.Job;
 public class SpialAbyssRecordCleanJob : IJob
 {
     private readonly AppDbContext appDbContext;
-    private readonly RankService rankService;
+    private readonly IRankService rankService;
     private readonly MailService mailService;
     private readonly ILogger<SpialAbyssRecordCleanJob> logger;
 
@@ -24,7 +25,7 @@ public class SpialAbyssRecordCleanJob : IJob
     public SpialAbyssRecordCleanJob(IServiceProvider serviceProvider)
     {
         appDbContext = serviceProvider.GetRequiredService<AppDbContext>();
-        rankService = serviceProvider.GetRequiredService<RankService>();
+        rankService = serviceProvider.GetRequiredService<IRankService>();
         mailService = serviceProvider.GetRequiredService<MailService>();
         logger = serviceProvider.GetRequiredService<ILogger<SpialAbyssRecordCleanJob>>();
     }

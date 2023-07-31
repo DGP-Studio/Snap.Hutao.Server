@@ -10,6 +10,8 @@ using Snap.Hutao.Server.Service;
 using Snap.Hutao.Server.Service.Authorization;
 using Snap.Hutao.Server.Service.GachaLog;
 using Snap.Hutao.Server.Service.Legacy;
+using Snap.Hutao.Server.Service.Legacy.PizzaHelper;
+using Snap.Hutao.Server.Service.Ranking;
 using Snap.Hutao.Server.Service.ReCaptcha;
 using Swashbuckle.AspNetCore.SwaggerUI;
 
@@ -60,11 +62,13 @@ public static class Program
             .AddResponseCompression()
             .AddScoped<PassportService>()
             .AddSingleton<IAuthorizationMiddlewareResultHandler, ResponseAuthorizationMiddlewareResultHandler>()
-            .AddSingleton<RankService>()
+            .AddSingleton<IRankService, RankService>()
             .AddSingleton<MailService>()
             .AddSingleton<ExpireService>()
+            .AddSingleton<PizzaHelperRecordService>()
             .AddSingleton(appBuilder.Configuration.Get<AppOptions>()!)
             .AddSingleton(appBuilder.Configuration.GetSection("Smtp").Get<SmtpOptions>()!)
+            .AddSingleton(appBuilder.Configuration.GetSection("GenshinPizzaHelper").Get<Service.Legacy.PizzaHelper.PizzaHelperOptions>()!)
             .AddSwaggerGen(options =>
             {
                 options.SwaggerDoc("SpiralAbyss", new() { Version = "1.0", Title = "深渊统计", Description = "深渊统计数据" });

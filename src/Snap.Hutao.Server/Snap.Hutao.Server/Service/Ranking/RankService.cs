@@ -7,12 +7,12 @@ using Snap.Hutao.Server.Model.Legacy;
 using Snap.Hutao.Server.Model.Upload;
 using StackExchange.Redis;
 
-namespace Snap.Hutao.Server.Service;
+namespace Snap.Hutao.Server.Service.Ranking;
 
 /// <summary>
 /// 排行服务
 /// </summary>
-public sealed class RankService : IDisposable
+internal sealed class RankService : IRankService, IDisposable
 {
     private readonly IServiceScopeFactory scopeFactory;
     private readonly ConnectionMultiplexer redis;

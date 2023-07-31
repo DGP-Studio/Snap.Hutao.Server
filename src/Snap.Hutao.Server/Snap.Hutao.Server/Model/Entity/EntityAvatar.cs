@@ -43,6 +43,7 @@ public class EntityAvatar
     /// <summary>
     /// 圣遗物套装Id
     /// </summary>
+    [StringLength(50)]
     public string ReliquarySet { get; set; } = default!;
 
     /// <summary>

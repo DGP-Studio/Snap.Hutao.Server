@@ -10,6 +10,8 @@ using Snap.Hutao.Server.Model.Response;
 using Snap.Hutao.Server.Model.Upload;
 using Snap.Hutao.Server.Service;
 using Snap.Hutao.Server.Service.Legacy;
+using Snap.Hutao.Server.Service.Legacy.PizzaHelper;
+using Snap.Hutao.Server.Service.Ranking;
 using System.Collections.Concurrent;
 
 namespace Snap.Hutao.Server.Controller;
@@ -25,23 +27,22 @@ public class RecordController : ControllerBase
 {
     private static readonly ConcurrentDictionary<string, UploadToken> UidUploading = new();
     private readonly AppDbContext appDbContext;
-    private readonly RankService rankService;
+    private readonly IRankService rankService;
     private readonly ExpireService expireService;
+    private readonly PizzaHelperRecordService pizzaHelperRecordService;
     private readonly IMemoryCache memoryCache;
 
     /// <summary>
     /// 构造一个新的记录控制器
     /// </summary>
-    /// <param name="appDbContext">数据库上下文</param>
-    /// <param name="rankService">排行服务</param>
-    /// <param name="expireService">续期服务</param>
-    /// <param name="memoryCache">内存缓存</param>
-    public RecordController(AppDbContext appDbContext, RankService rankService, ExpireService expireService, IMemoryCache memoryCache)
+    /// <param name="serviceProvider">服务提供器</param>
+    public RecordController(IServiceProvider serviceProvider)
     {
-        this.appDbContext = appDbContext;
-        this.rankService = rankService;
-        this.expireService = expireService;
-        this.memoryCache = memoryCache;
+        appDbContext = serviceProvider.GetRequiredService<AppDbContext>();
+        rankService = serviceProvider.GetRequiredService<IRankService>();
+        expireService = serviceProvider.GetRequiredService<ExpireService>();
+        pizzaHelperRecordService = serviceProvider.GetRequiredService<PizzaHelperRecordService>();
+        memoryCache = serviceProvider.GetRequiredService<IMemoryCache>();
     }
 
     /// <summary>
@@ -80,6 +81,7 @@ public class RecordController : ControllerBase
         }
 
         RecordUploadResult result = await RecordHelper.SaveRecordAsync(appDbContext, rankService, expireService, record).ConfigureAwait(false);
+        await pizzaHelperRecordService.TryPostRecordAsync(record);
 
         if (!UidUploading.TryRemove(record.Uid, out _))
         {

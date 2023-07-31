@@ -29,9 +29,24 @@ public class SimpleSpiralAbyss
     public SimpleRank Damage { get; set; } = default!;
 
     /// <summary>
+    /// 击破数
+    /// </summary>
+    public SimpleRank? Defeat { get; set; }
+
+    /// <summary>
+    /// Q 技能数
+    /// </summary>
+    public SimpleRank? EnergySkill { get; set; }
+
+    /// <summary>
+    /// E 技能数
+    /// </summary>
+    public SimpleRank? NormalSkill { get; set; }
+
+    /// <summary>
     /// 受到伤害
     /// </summary>
-    public SimpleRank? TakeDamage { get; set; } = default!;
+    public SimpleRank? TakeDamage { get; set; }
 
     /// <summary>
     /// 层

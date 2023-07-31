@@ -16,7 +16,7 @@ public class EntityFloorConfiguration : IEntityTypeConfiguration<EntityFloor>
     public void Configure(EntityTypeBuilder<EntityFloor> builder)
     {
         builder.Property(e => e.Levels)
-            .HasColumnType("TEXT")
+            .HasColumnType("longtext")
             .HasConversion<JsonTextValueConverter<List<SimpleLevel>>>();
     }
 }
