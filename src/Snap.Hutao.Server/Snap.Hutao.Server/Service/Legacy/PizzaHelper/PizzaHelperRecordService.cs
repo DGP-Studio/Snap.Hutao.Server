@@ -16,9 +16,9 @@ internal sealed class PizzaHelperRecordService
     private readonly PizzaHelperOptions options;
     private readonly ILogger<PizzaHelperRecordService> logger;
 
-    public PizzaHelperRecordService(IHttpClientFactory httpClientFactory, PizzaHelperOptions options, ILogger<PizzaHelperRecordService> logger)
+    public PizzaHelperRecordService(HttpClient httpClient, PizzaHelperOptions options, ILogger<PizzaHelperRecordService> logger)
     {
-        httpClient = httpClientFactory.CreateClient(nameof(PizzaHelperRecordService));
+        this.httpClient = httpClient;
         this.options = options;
         this.logger = logger;
     }
