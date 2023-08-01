@@ -102,4 +102,9 @@ public enum ReturnCode
     /// Uid 超出个数限制
     /// </summary>
     TooManyGachaLogUids = 500043,
+
+    /// <summary>
+    /// Key 不正确
+    /// </summary>
+    ServiceKeyInvalid = 500053,
 }
