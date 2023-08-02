@@ -39,7 +39,7 @@ public class ServiceController
         int seconds = days * 24 * 60 * 60;
 
         await appDbContext.Users
-            .ExecuteUpdateAsync(user => user.SetProperty(u => u.GachaLogExpireAt, u => nowTick))
+            .ExecuteUpdateAsync(user => user.SetProperty(u => u.GachaLogExpireAt, u => u.GachaLogExpireAt + seconds))
             .ConfigureAwait(false);
 
         nowTick += seconds;
