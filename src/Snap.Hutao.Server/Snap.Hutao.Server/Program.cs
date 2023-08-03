@@ -44,7 +44,7 @@ public static class Program
 
                 options
                     .UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
-                    /*.ConfigureWarnings(c => c.Log((RelationalEventId.CommandExecuted, LogLevel.Debug)))*/;
+                    .ConfigureWarnings(c => c.Log((RelationalEventId.CommandExecuted, LogLevel.Debug)));
             })
             .AddEndpointsApiExplorer()
             .AddHttpClient()
