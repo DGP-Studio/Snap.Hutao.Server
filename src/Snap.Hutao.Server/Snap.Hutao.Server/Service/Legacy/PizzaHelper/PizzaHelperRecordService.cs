@@ -58,7 +58,7 @@ internal sealed class PizzaHelperRecordService
         {
             Uid = obfuscatedUid,
             Server = region,
-            AbyssSeason = $"{DateTimeOffset.Now:yyyyMM}{(DateTimeOffset.Now.Day <= 15 ? 1 : 2)}",
+            AbyssSeason = $"{now:yyyyMM}{(now.Day <= 15 ? 0 : 1)}",
             OwningChars = owningChars,
             AbyssRank = new()
             {
