@@ -106,5 +106,10 @@ public enum ReturnCode
     /// <summary>
     /// Key 不正确
     /// </summary>
-    ServiceKeyInvalid = 500053,
+    ServiceKeyInvalid = 500050,
+
+    /// <summary>
+    /// 用户名不存在
+    /// </summary>
+    UserNameNotExists = 500051,
 }
