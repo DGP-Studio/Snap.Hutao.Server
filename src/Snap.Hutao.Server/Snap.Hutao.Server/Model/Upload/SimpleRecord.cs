@@ -100,14 +100,14 @@ public class SimpleRecord
     {
         int traveller = 1;
         int passMainQuest = 3;
-        foreach (SimpleAvatar avatar in Avatars)
+        foreach (ref readonly SimpleAvatar avatar in CollectionsMarshal.AsSpan(Avatars))
         {
             if (avatar.WeaponId <= 0 || avatar.WeaponId.StringLength() != 5)
             {
                 return false;
             }
 
-            if (avatar.ReliquarySetIds.Any(id => id > 0 && id.StringLength() != 7))
+            if (avatar.ReliquarySetIds.Any(id => id <= 0 || id.StringLength() != 7))
             {
                 return false;
             }
@@ -116,19 +116,19 @@ public class SimpleRecord
 
             // 男女主
             // 没有主角的账号100%无效
-            if (avatarId == 10000005 || avatarId == 10000007)
+            if (avatarId is 10000005 or 10000007)
             {
                 --traveller;
             }
 
             // 丽莎/凯亚/安柏
             // 没有御三家的账号可信度不高
-            if (avatarId == 10000006 || avatarId == 10000015 || avatarId == 10000021)
+            if (avatarId is 10000006 or 10000015 or 10000021)
             {
                 --passMainQuest;
             }
         }
 
-        return traveller == 0 && passMainQuest == 0;
+        return traveller is 0 && passMainQuest is 0;
     }
 }

@@ -81,7 +81,7 @@ public class RecordController : ControllerBase
         }
 
         RecordUploadResult result = await RecordHelper.SaveRecordAsync(appDbContext, rankService, expireService, record).ConfigureAwait(false);
-        await pizzaHelperRecordService.TryPostRecordAsync(record);
+        await pizzaHelperRecordService.TryPostRecordAsync(record).ConfigureAwait(false);
 
         if (!UidUploading.TryRemove(record.Uid, out _))
         {
