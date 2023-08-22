@@ -21,6 +21,7 @@ public class GeetestController : ControllerBase
         this.appOptions = appOptions;
     }
 
+    [Authorize]
     [HttpGet("Verify")]
     public async Task<IActionResult> VerifyAsync([FromQuery] string gt, [FromQuery] string challenge)
     {
