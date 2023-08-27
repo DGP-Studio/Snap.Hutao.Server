@@ -19,6 +19,4 @@ public sealed class AppOptions
     public string ReCaptchaKey { get; set; } = default!;
 
     public string RSAPrivateKey { get; set; } = default!;
-
-    public string GeetestImplementationFormat { get; set; } = default!;
 }
