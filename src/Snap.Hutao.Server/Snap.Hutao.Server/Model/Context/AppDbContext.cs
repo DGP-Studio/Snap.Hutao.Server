@@ -106,6 +106,11 @@ public class AppDbContext : IdentityDbContext<HutaoUser, IdentityRole<int>, int>
     /// </summary>
     public DbSet<LicenseApplicationRecord> Licenses { get; set; } = default!;
 
+    /// <summary>
+    /// 公告
+    /// </summary>
+    public DbSet<EntityAnnouncement> Announcements { get; set; } = default!;
+
     /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

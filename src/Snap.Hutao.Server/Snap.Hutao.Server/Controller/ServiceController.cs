@@ -12,25 +12,24 @@ namespace Snap.Hutao.Server.Controller;
 [Route("[controller]")]
 [ServiceFilter(typeof(RequestFilter))]
 [ApiExplorerSettings(IgnoreApi = true)]
-public class ServiceController
+public class ServiceController : ControllerBase
 {
     private readonly AppDbContext appDbContext;
     private readonly UserManager<HutaoUser> userManager;
-    private readonly string key;
 
-    public ServiceController(AppDbContext appDbContext, UserManager<HutaoUser> userManager, IConfiguration configuration)
+    public ServiceController(AppDbContext appDbContext, UserManager<HutaoUser> userManager)
     {
         this.appDbContext = appDbContext;
         this.userManager = userManager;
-        key = configuration["Jwt"]!;
     }
 
+    [Authorize]
     [HttpGet("GachaLog/Compensation")]
-    public async Task<IActionResult> GachaLogCompensationAsync([FromQuery] string key, [FromQuery] int days)
+    public async Task<IActionResult> GachaLogCompensationAsync([FromQuery] int days)
     {
-        if (this.key != key)
+        if (!await IsMaintainerAsync(this.GetUserId()).ConfigureAwait(false))
         {
-            return Response.Fail(ReturnCode.ServiceKeyInvalid, "密钥不正确");
+            return Model.Response.Response.Fail(ReturnCode.ServiceKeyInvalid, "只有官方人员可以这么做");
         }
 
         long nowTick = DateTimeOffset.Now.ToUnixTimeSeconds();
@@ -46,15 +45,16 @@ public class ServiceController
             .ConfigureAwait(false);
 
         nowTick += seconds;
-        return Response.Success($"操作成功，增加了 {days} 天时长，到期时间: {DateTimeOffset.FromUnixTimeSeconds(nowTick)}");
+        return Model.Response.Response.Success($"操作成功，增加了 {days} 天时长，到期时间: {DateTimeOffset.FromUnixTimeSeconds(nowTick)}");
     }
 
+    [Authorize]
     [HttpGet("GachaLog/Designation")]
-    public async Task<IActionResult> GachaLogDesignationAsync([FromQuery] string key, string userName, [FromQuery] int days)
+    public async Task<IActionResult> GachaLogDesignationAsync(string userName, [FromQuery] int days)
     {
-        if (this.key != key)
+        if (!await IsMaintainerAsync(this.GetUserId()).ConfigureAwait(false))
         {
-            return Response.Fail(ReturnCode.ServiceKeyInvalid, "密钥不正确");
+            return Model.Response.Response.Fail(ReturnCode.ServiceKeyInvalid, "只有官方人员可以这么做");
         }
 
         if (await userManager.FindByNameAsync(userName).ConfigureAwait(false) is { } user)
@@ -69,9 +69,26 @@ public class ServiceController
             user.GachaLogExpireAt += seconds;
             await userManager.UpdateAsync(user).ConfigureAwait(false);
             nowTick += seconds;
-            return Response.Success($"操作成功，增加了 {days} 天时长，到期时间: {DateTimeOffset.FromUnixTimeSeconds(nowTick)}");
+            return Model.Response.Response.Success($"操作成功，增加了 {days} 天时长，到期时间: {DateTimeOffset.FromUnixTimeSeconds(nowTick)}");
         }
 
-        return Response.Fail(ReturnCode.UserNameNotExists, $"用户名不存在");
+        return Model.Response.Response.Fail(ReturnCode.UserNameNotExists, $"用户名不存在");
+    }
+
+    private async Task<bool> IsMaintainerAsync(int userId)
+    {
+        HutaoUser? user = await appDbContext.Users
+            .AsNoTracking()
+            .SingleOrDefaultAsync(user => user.Id == userId)
+            .ConfigureAwait(false);
+
+        if (user != null)
+        {
+            return user.IsMaintainer;
+        }
+        else
+        {
+            return false;
+        }
     }
 }
