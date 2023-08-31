@@ -29,7 +29,7 @@ public class AnnouncementController : ControllerBase
     /// <param name="locale">语言</param>
     /// <param name="excludedIds">排除的Id</param>
     /// <returns>公告信息</returns>
-    [HttpGet("List")]
+    [HttpPost("List")]
     public IActionResult List([FromQuery] string locale, [FromBody] HashSet<long> excludedIds)
     {
         long limit = (DateTimeOffset.Now - TimeSpan.FromDays(30)).ToUnixTimeSeconds();
