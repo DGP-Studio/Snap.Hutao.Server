@@ -84,7 +84,7 @@ public class ServiceController : ControllerBase
     }
 
     [HttpPost("Announcement/Upload")]
-    public async Task<IActionResult> UploadAnnouncementAsync(HutaoUploadAnnouncement announcement)
+    public async Task<IActionResult> UploadAnnouncementAsync([FromBody] HutaoUploadAnnouncement announcement)
     {
         foreach (string locale in Locales)
         {
