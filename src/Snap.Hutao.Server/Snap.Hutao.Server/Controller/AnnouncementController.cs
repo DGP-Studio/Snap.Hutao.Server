@@ -30,7 +30,7 @@ public class AnnouncementController : ControllerBase
     /// <param name="excludedIds">排除的Id</param>
     /// <returns>公告信息</returns>
     [HttpGet("List")]
-    public IActionResult List([FromQuery] string locale, [FromBody] List<long> excludedIds)
+    public IActionResult List([FromQuery] string locale, [FromBody] HashSet<long> excludedIds)
     {
         long limit = (DateTimeOffset.Now - TimeSpan.FromDays(30)).ToUnixTimeSeconds();
         List<EntityAnnouncement> anns = appDbContext.Announcements
@@ -40,6 +40,15 @@ public class AnnouncementController : ControllerBase
             .Where(ann => ann.LastUpdateTime >= limit)
             .ToList();
 
-        return Model.Response.Response<List<EntityAnnouncement>>.Success("获取公告成功", anns);
+        List<EntityAnnouncement> result = new();
+        foreach (EntityAnnouncement ann in anns)
+        {
+            if (!excludedIds.Contains(ann.Id))
+            {
+                result.Add(ann);
+            }
+        }
+
+        return Model.Response.Response<List<EntityAnnouncement>>.Success("获取公告成功", result);
     }
 }

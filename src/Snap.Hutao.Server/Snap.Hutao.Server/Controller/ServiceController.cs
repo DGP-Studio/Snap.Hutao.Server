@@ -5,15 +5,25 @@ using Snap.Hutao.Server.Controller.Filter;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity;
 using Snap.Hutao.Server.Model.Response;
+using Snap.Hutao.Server.Model.Upload;
 
 namespace Snap.Hutao.Server.Controller;
 
+[Authorize]
 [ApiController]
 [Route("[controller]")]
 [ServiceFilter(typeof(RequestFilter))]
 [ApiExplorerSettings(IgnoreApi = true)]
 public class ServiceController : ControllerBase
 {
+    private const string DefaultLocale = "CHS";
+    private static readonly List<string> Locales = new()
+    {
+        DefaultLocale, "CHT", "DE", "EN", "ES",
+        "FR", "ID", "IT", "JP", "KR",
+        "PT", "RU", "TH", "TR", "VI",
+    };
+
     private readonly AppDbContext appDbContext;
     private readonly UserManager<HutaoUser> userManager;
 
@@ -23,7 +33,6 @@ public class ServiceController : ControllerBase
         this.userManager = userManager;
     }
 
-    [Authorize]
     [HttpGet("GachaLog/Compensation")]
     public async Task<IActionResult> GachaLogCompensationAsync([FromQuery] int days)
     {
@@ -48,9 +57,8 @@ public class ServiceController : ControllerBase
         return Model.Response.Response.Success($"操作成功，增加了 {days} 天时长，到期时间: {DateTimeOffset.FromUnixTimeSeconds(nowTick)}");
     }
 
-    [Authorize]
     [HttpGet("GachaLog/Designation")]
-    public async Task<IActionResult> GachaLogDesignationAsync(string userName, [FromQuery] int days)
+    public async Task<IActionResult> GachaLogDesignationAsync([FromQuery] string userName, [FromQuery] int days)
     {
         if (!await IsMaintainerAsync(this.GetUserId()).ConfigureAwait(false))
         {
@@ -73,6 +81,29 @@ public class ServiceController : ControllerBase
         }
 
         return Model.Response.Response.Fail(ReturnCode.UserNameNotExists, $"用户名不存在");
+    }
+
+    [HttpPost("Announcement/Upload")]
+    public async Task<IActionResult> UploadAnnouncementAsync(HutaoUploadAnnouncement announcement)
+    {
+        foreach (string locale in Locales)
+        {
+            EntityAnnouncement entity = new()
+            {
+                Locale = locale,
+                LastUpdateTime = DateTimeOffset.Now.ToUnixTimeSeconds(),
+                Title = announcement.Title,
+                Content = announcement.Content,
+                Severity = announcement.Severity,
+                Link = announcement.Link,
+            };
+
+            appDbContext.Announcements.Add(entity);
+        }
+
+        await appDbContext.SaveChangesAsync().ConfigureAwait(false);
+
+        return Model.Response.Response.Success("上传公告成功");
     }
 
     private async Task<bool> IsMaintainerAsync(int userId)
