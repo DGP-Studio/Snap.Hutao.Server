@@ -38,7 +38,7 @@
                         <label for="floatingInput">胡桃通行证邮箱账号</label>
                     </div>
                     <div class="form-floating mb-3">
-                        <input type="text" class="form-control" id="codeInput" placeholder="请输入项目地址">
+                        <input type="text" class="form-control" id="codeInput" placeholder="AAAE8424-A614-49A1">
                         <label for="floatingPassword">兑换码</label>
                     </div>
                     <button type="button" id="openSourceDevLicenseButton" class="w-100 btn btn-lg btn-primary">兑换</button>
@@ -61,9 +61,9 @@
     <script>
         $('#openSourceDevLicenseButton').on('click', function (event) {
             var userName = $('#userNameInput').val();
-            var projectUrl = $('#projectUrlInput').val();
+            var redeemCode = $('#codeInput').val();
 
-            if (userName == '' || projectUrl == '') {
+            if (userName == '' || redeemCode == '') {
                 return;
             }
 
@@ -77,12 +77,16 @@
                             type: 'POST',
                             data: JSON.stringify({
                                 'user_name': userName,
-                                'code': codeInput,
+                                'code': redeemCode,
                                 'Token': token,
                             }),
                             dataType: 'json',
                             contentType: 'application/json',
                             success: function (resp) {
+                                alert(resp.message);
+                                $('#openSourceDevLicenseButton').prop('disabled', false);
+                            },
+                            error: function (resp) {
                                 alert(resp.message);
                                 $('#openSourceDevLicenseButton').prop('disabled', false);
                             }
