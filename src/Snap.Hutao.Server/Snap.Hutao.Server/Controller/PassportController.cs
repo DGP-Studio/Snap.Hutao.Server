@@ -189,7 +189,7 @@ public class PassportController : ControllerBase
 
         return Response<UserInfo>.Success("获取用户信息成功", new()
         {
-            NormalizedUserName = user.NormalizedUserName,
+            NormalizedUserName = user.NormalizedUserName ?? user.UserName,
             IsLicensedDeveloper = user.IsLicensedDeveloper,
             IsMaintainer = user.IsMaintainer,
             GachaLogExpireAt = DateTimeOffset.FromUnixTimeSeconds(user.GachaLogExpireAt),
