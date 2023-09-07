@@ -50,15 +50,16 @@ public class PassportController : ControllerBase
     public async Task<IActionResult> VerifyAsync([FromBody] PassportRequest request)
     {
         string userName = passportService.Decrypt(request.UserName);
+        string normalizedUserName = userName.ToUpperInvariant();
 
-        if (memoryCache.TryGetValue($"VerifyCodeFor:{userName}", out object? _))
+        if (memoryCache.TryGetValue($"VerifyCodeFor:{normalizedUserName}", out object? _))
         {
-            return Model.Response.Response.Fail(ReturnCode.VerifyCodeTooFrequently, "请求过快，请稍后再试");
+            return Model.Response.Response.Fail(ReturnCode.VerifyCodeTooFrequently, "请求过快，请 1 分钟后再试");
         }
         else
         {
             string code = RandomHelper.GetRandomStringWithChars(8);
-            memoryCache.Set($"VerifyCodeFor:{userName}", code, TimeSpan.FromMinutes(5));
+            memoryCache.Set($"VerifyCodeFor:{normalizedUserName}", code, TimeSpan.FromMinutes(1));
 
             if (request.IsResetPassword)
             {
@@ -83,8 +84,9 @@ public class PassportController : ControllerBase
     {
         string code = passportService.Decrypt(request.VerifyCode);
         string userName = passportService.Decrypt(request.UserName);
+        string normalizedUserName = userName.ToUpperInvariant();
 
-        if (memoryCache.TryGetValue($"VerifyCodeFor:{userName}", out string? storedCode))
+        if (memoryCache.TryGetValue($"VerifyCodeFor:{normalizedUserName}", out string? storedCode))
         {
             if (storedCode == code)
             {
@@ -119,8 +121,9 @@ public class PassportController : ControllerBase
     {
         string code = passportService.Decrypt(request.VerifyCode);
         string userName = passportService.Decrypt(request.UserName);
+        string normalizedUserName = userName.ToUpperInvariant();
 
-        if (memoryCache.TryGetValue($"VerifyCodeFor:{userName}", out string? storedCode))
+        if (memoryCache.TryGetValue($"VerifyCodeFor:{normalizedUserName}", out string? storedCode))
         {
             if (storedCode == code)
             {
@@ -186,6 +189,7 @@ public class PassportController : ControllerBase
 
         return Response<UserInfo>.Success("获取用户信息成功", new()
         {
+            NormalizedUserName = user.NormalizedUserName,
             IsLicensedDeveloper = user.IsLicensedDeveloper,
             IsMaintainer = user.IsMaintainer,
             GachaLogExpireAt = DateTimeOffset.FromUnixTimeSeconds(user.GachaLogExpireAt),

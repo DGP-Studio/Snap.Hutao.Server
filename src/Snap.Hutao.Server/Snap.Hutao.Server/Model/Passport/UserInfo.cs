@@ -8,6 +8,8 @@ namespace Snap.Hutao.Server.Model.Passport;
 /// </summary>
 public class UserInfo
 {
+    public string? NormalizedUserName { get; set; }
+
     /// <summary>
     /// 是否为开发者
     /// </summary>
