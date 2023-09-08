@@ -1,6 +1,7 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
+using Snap.Hutao.Server.Model.Entity;
 using Snap.Hutao.Server.Service.Authorization;
 
 namespace Snap.Hutao.Server.Controller;
@@ -19,5 +20,11 @@ internal static class ControllerBaseExtension
     {
         string value = controller.HttpContext.User.Claims.Single(c => c.Type == PassportClaimTypes.UserId).Value;
         return int.Parse(value);
+    }
+
+    public static async ValueTask<HutaoUser?> GetUserAsync(this ControllerBase controller, DbSet<HutaoUser> users)
+    {
+        int userId = controller.GetUserId();
+        return await users.AsNoTracking().SingleOrDefaultAsync(user => user.Id == userId).ConfigureAwait(false);
     }
 }

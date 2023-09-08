@@ -13,13 +13,12 @@ namespace Snap.Hutao.Server.Controller;
 [ApiController]
 [Route("[controller]")]
 [ServiceFilter(typeof(RequestFilter))]
-[ApiExplorerSettings(IgnoreApi = true)]
+[ApiExplorerSettings(GroupName = "Services")]
 public class ServiceController : ControllerBase
 {
-    private const string DefaultLocale = "CHS";
     private static readonly List<string> Locales = new()
     {
-        DefaultLocale, "CHT", "DE", "EN", "ES",
+        "CHS", "CHT", "DE", "EN", "ES",
         "FR", "ID", "IT", "JP", "KR",
         "PT", "RU", "TH", "TR", "VI",
     };
@@ -86,6 +85,11 @@ public class ServiceController : ControllerBase
     [HttpPost("Announcement/Upload")]
     public async Task<IActionResult> UploadAnnouncementAsync([FromBody] HutaoUploadAnnouncement announcement)
     {
+        if (!await IsMaintainerAsync(this.GetUserId()).ConfigureAwait(false))
+        {
+            return Model.Response.Response.Fail(ReturnCode.ServiceKeyInvalid, "只有官方人员可以这么做");
+        }
+
         foreach (string locale in Locales)
         {
             EntityAnnouncement entity = new()
@@ -104,6 +108,35 @@ public class ServiceController : ControllerBase
         await appDbContext.SaveChangesAsync().ConfigureAwait(false);
 
         return Model.Response.Response.Success("上传公告成功");
+    }
+
+    [HttpPost("Announcement/Specialized/VersionUpdate")]
+    public async Task<IActionResult> AnnouncementTemplatedVersionUpdateAsync([FromQuery] string version, [FromQuery] string link)
+    {
+        if (!await IsMaintainerAsync(this.GetUserId()).ConfigureAwait(false))
+        {
+            return Model.Response.Response.Fail(ReturnCode.ServiceKeyInvalid, "只有官方人员可以这么做");
+        }
+
+        foreach (string locale in Locales)
+        {
+            EntityAnnouncement entity = new()
+            {
+                Locale = locale,
+                LastUpdateTime = DateTimeOffset.Now.ToUnixTimeSeconds(),
+                Title = $"Snap Hutao 最新版本 {version} 已发布",
+                Content = $"Snap Hutao {version} 已发布于微软商店，提供了多项问题修复和性能优化，点击详情查看版本更新日志",
+                Severity = AnnouncementSeverity.Success,
+                Kind = AnnouncementKind.VersionUpdate,
+                Link = link,
+            };
+
+            appDbContext.Announcements.Add(entity);
+        }
+
+        await appDbContext.SaveChangesAsync().ConfigureAwait(false);
+
+        return Model.Response.Response.Success("发布公告成功");
     }
 
     private async Task<bool> IsMaintainerAsync(int userId)

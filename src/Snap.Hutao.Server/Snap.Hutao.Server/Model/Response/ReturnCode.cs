@@ -84,6 +84,11 @@ public enum ReturnCode
     LicenseApprovalFailed = 500035,
 
     /// <summary>
+    /// 注册失败
+    /// </summary>
+    CancelFail = 500036,
+
+    /// <summary>
     /// 祈愿记录数据库操作失败
     /// </summary>
     GachaLogDatabaseOperationFailed = 500040,

@@ -97,18 +97,35 @@ public class PassportController : ControllerBase
                 };
 
                 PassportResult result = await passportService.RegisterAsync(passport).ConfigureAwait(false);
-                if (result.Success)
-                {
-                    return Response<string>.Success("注册成功", result.Token);
-                }
-                else
-                {
-                    return Model.Response.Response.Fail(ReturnCode.RegisterFail, result.Message);
-                }
+                return result.Success
+                    ? Response<string>.Success("注册成功", result.Token)
+                    : Model.Response.Response.Fail(ReturnCode.RegisterFail, result.Message);
             }
         }
 
         return Model.Response.Response.Fail(ReturnCode.RegisterFail, "验证失败");
+    }
+
+    [Authorize]
+    [HttpPost("Cancel")]
+    public async Task<IActionResult> CancelAsync([FromBody] PassportRequest request)
+    {
+        if (await this.GetUserAsync(appDbContext.Users).ConfigureAwait(false) is { } user)
+        {
+            Passport passport = new()
+            {
+                UserName = user.UserName!,
+                Password = passportService.Decrypt(request.Password),
+            };
+
+            PassportResult result = await passportService.CancelAsync(passport).ConfigureAwait(false);
+
+            return result.Success
+                ? Model.Response.Response.Success(result.Message)
+                : Model.Response.Response.Fail(ReturnCode.CancelFail, result.Message);
+        }
+
+        return Model.Response.Response.Fail(ReturnCode.CancelFail, "用户名或密码错误");
     }
 
     /// <summary>
@@ -181,11 +198,7 @@ public class PassportController : ControllerBase
     [HttpGet("UserInfo")]
     public async Task<IActionResult> GetUserInfoAsync()
     {
-        int userId = this.GetUserId();
-        HutaoUser user = await appDbContext.Users
-            .AsNoTracking()
-            .SingleAsync(user => user.Id == userId)
-            .ConfigureAwait(false);
+        HutaoUser user = await this.GetUserAsync(appDbContext.Users).ConfigureAwait(false);
 
         return Response<UserInfo>.Success("获取用户信息成功", new()
         {

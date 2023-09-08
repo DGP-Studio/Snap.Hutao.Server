@@ -44,4 +44,9 @@ public sealed class EntityAnnouncement
     /// 原帖链接
     /// </summary>
     public string Link { get; set; } = default!;
+
+    /// <summary>
+    /// 公告类型
+    /// </summary>
+    public AnnouncementKind Kind { get; set; }
 }

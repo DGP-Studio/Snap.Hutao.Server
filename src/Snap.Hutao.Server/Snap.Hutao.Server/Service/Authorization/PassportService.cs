@@ -113,6 +113,25 @@ public sealed class PassportService
         return new PassportResult(false, "邮箱或密码不正确");
     }
 
+    /// <summary>
+    /// 异步注销
+    /// </summary>
+    /// <param name="passport">账密</param>
+    /// <returns>结果</returns>
+    public async Task<PassportResult> CancelAsync(Passport passport)
+    {
+        if (await userManager.FindByNameAsync(passport.UserName).ConfigureAwait(false) is HutaoUser user)
+        {
+            if (await userManager.CheckPasswordAsync(user, passport.Password).ConfigureAwait(false))
+            {
+                await userManager.DeleteAsync(user).ConfigureAwait(false);
+                return new(true, "用户注销成功");
+            }
+        }
+
+        return new PassportResult(false, "用户注销失败");
+    }
+
     private string CreateToken(HutaoUser user)
     {
         JwtSecurityTokenHandler handler = new();
