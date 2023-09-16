@@ -54,6 +54,11 @@ public enum ReturnCode
     BannedUid = 500022,
 
     /// <summary>
+    /// 非当期深渊数据
+    /// </summary>
+    NotCurrentSchedule = 500023,
+
+    /// <summary>
     /// 注册失败
     /// </summary>
     RegisterFail = 500030,

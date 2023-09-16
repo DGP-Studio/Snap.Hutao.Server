@@ -59,10 +59,14 @@ public class RecordController : ControllerBase
             return Model.Response.Response.Fail(ReturnCode.ComputingStatistics, "正在计算统计数据");
         }
 
-        string recordUid = record.Uid;
-        if (appDbContext.BannedList.Any(banned => banned.Uid == recordUid))
+        if (appDbContext.BannedList.Any(banned => banned.Uid == record.Uid))
         {
             return Model.Response.Response.Fail(ReturnCode.BannedUid, "Uid 已被数据库封禁");
+        }
+
+        if (record.SpiralAbyss.ScheduleId != StatisticsHelper.GetScheduleId())
+        {
+            return Model.Response.Response.Fail(ReturnCode.NotCurrentSchedule, "非当前深渊数据");
         }
 
         if (!record.Validate())
