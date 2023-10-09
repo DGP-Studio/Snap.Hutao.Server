@@ -34,11 +34,12 @@ public class ServiceController : ControllerBase
         this.job = job;
     }
 
-    [HttpGet("Test")]
-    public async Task<IActionResult> TestAsync()
+    [Authorize]
+    [HttpGet("Statistics/Run")]
+    public async Task<IActionResult> RunStatisticsAsync()
     {
-        await job.Execute(default!);
-        return Ok();
+        await job.Execute(default!).ConfigureAwait(false);
+        return Model.Response.Response.Success("操作成功");
     }
 
     [Authorize]

@@ -163,21 +163,12 @@ public class StatisticsTracker
 
         foreach (AvatarId recordAvatarId in recordPresentAvatars)
         {
-            try
-            {
-                EntityAvatar avatar = holdingAvatarMap[recordAvatarId];
+            EntityAvatar avatar = holdingAvatarMap[recordAvatarId];
 
-                avatarWeaponBuildCounter.GetOrNew(recordAvatarId).IncreaseOne(avatar.WeaponId);
-                avatarReliquaryBuildCounter.GetOrNew(recordAvatarId).IncreaseOne(avatar.ReliquarySet);
+            avatarWeaponBuildCounter.GetOrNew(recordAvatarId).IncreaseOne(avatar.WeaponId);
+            avatarReliquaryBuildCounter.GetOrNew(recordAvatarId).IncreaseOne(avatar.ReliquarySet);
 
-                wepaonAvatarBuildCounter.GetOrNew(avatar.WeaponId).IncreaseOne(recordAvatarId);
-            }
-            catch
-            {
-                // TODO: debug only, should removed.
-                Console.WriteLine($"Invalid avatarId {recordAvatarId.Value} for Record {record.Uid}");
-                throw;
-            }
+            wepaonAvatarBuildCounter.GetOrNew(avatar.WeaponId).IncreaseOne(recordAvatarId);
         }
     }
 
