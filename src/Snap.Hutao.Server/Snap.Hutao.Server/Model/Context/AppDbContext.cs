@@ -111,6 +111,11 @@ public class AppDbContext : IdentityDbContext<HutaoUser, IdentityRole<int>, int>
     /// </summary>
     public DbSet<EntityAnnouncement> Announcements { get; set; } = default!;
 
+    /// <summary>
+    /// 允许的版本头
+    /// </summary>
+    public DbSet<AllowedVersion> AllowedVersions { get; set; } = default!;
+
     /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

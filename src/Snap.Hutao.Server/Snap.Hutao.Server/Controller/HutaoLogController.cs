@@ -50,6 +50,13 @@ public class HutaoLogController : ControllerBase
 
         string info = uploadLog.Info;
         string version = Request.Headers.UserAgent.ToString();
+
+        HashSet<string> allowedVersions = appDbContext.AllowedVersions.Select(v => v.Header).ToHashSet();
+        if (!allowedVersions.Contains(version))
+        {
+            return Model.Response.Response.Fail(ReturnCode.InvalidUploadData, "版本过低，不再支持");
+        }
+
         HutaoLog? log = appDbContext.HutaoLogs.SingleOrDefault(log => log.Info == info);
 
         if (log != null)
