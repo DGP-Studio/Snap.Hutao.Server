@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 
 using Snap.Hutao.Server.Controller.Filter;
+using Snap.Hutao.Server.Job;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity;
 using Snap.Hutao.Server.Model.Response;
@@ -9,7 +10,6 @@ using Snap.Hutao.Server.Model.Upload;
 
 namespace Snap.Hutao.Server.Controller;
 
-[Authorize]
 [ApiController]
 [Route("[controller]")]
 [ServiceFilter(typeof(RequestFilter))]
@@ -25,13 +25,23 @@ public class ServiceController : ControllerBase
 
     private readonly AppDbContext appDbContext;
     private readonly UserManager<HutaoUser> userManager;
+    private readonly LegacyStatisticsRefreshJob job;
 
-    public ServiceController(AppDbContext appDbContext, UserManager<HutaoUser> userManager)
+    public ServiceController(AppDbContext appDbContext, UserManager<HutaoUser> userManager, LegacyStatisticsRefreshJob job)
     {
         this.appDbContext = appDbContext;
         this.userManager = userManager;
+        this.job = job;
     }
 
+    [HttpGet("Test")]
+    public async Task<IActionResult> TestAsync()
+    {
+        await job.Execute(default!);
+        return Ok();
+    }
+
+    [Authorize]
     [HttpGet("GachaLog/Compensation")]
     public async Task<IActionResult> GachaLogCompensationAsync([FromQuery] int days)
     {
@@ -56,6 +66,7 @@ public class ServiceController : ControllerBase
         return Model.Response.Response.Success($"操作成功，增加了 {days} 天时长，到期时间: {DateTimeOffset.FromUnixTimeSeconds(nowTick)}");
     }
 
+    [Authorize]
     [HttpGet("GachaLog/Designation")]
     public async Task<IActionResult> GachaLogDesignationAsync([FromQuery] string userName, [FromQuery] int days)
     {
@@ -82,6 +93,7 @@ public class ServiceController : ControllerBase
         return Model.Response.Response.Fail(ReturnCode.UserNameNotExists, $"用户名不存在");
     }
 
+    [Authorize]
     [HttpPost("Announcement/Upload")]
     public async Task<IActionResult> UploadAnnouncementAsync([FromBody] HutaoUploadAnnouncement announcement)
     {
@@ -110,6 +122,7 @@ public class ServiceController : ControllerBase
         return Model.Response.Response.Success("上传公告成功");
     }
 
+    [Authorize]
     [HttpPost("Announcement/Specialized/VersionUpdate")]
     public async Task<IActionResult> AnnouncementTemplatedVersionUpdateAsync([FromQuery] string version, [FromQuery] string link)
     {

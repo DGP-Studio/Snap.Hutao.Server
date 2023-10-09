@@ -64,6 +64,8 @@ public class SimpleRecord
             return false;
         }
 
+        HashSet<int> spiralAbyssPresented = new();
+
         // 上下半不完整的楼层
         foreach (ref SimpleFloor floor in CollectionsMarshal.AsSpan(SpiralAbyss.Floors))
         {
@@ -76,7 +78,8 @@ public class SimpleRecord
 
                 HashSet<int> up = level.Battles[0].Avatars.ToHashSet();
                 HashSet<int> down = level.Battles[1].Avatars.ToHashSet();
-
+                spiralAbyssPresented.UnionWith(up);
+                spiralAbyssPresented.UnionWith(down);
                 if (up.Count < level.Battles[0].Avatars.Count || down.Count < level.Battles[1].Avatars.Count)
                 {
                     // 上下半中某一半存在重复角色
@@ -93,15 +96,18 @@ public class SimpleRecord
             }
         }
 
-        return ValidateAvatars();
+        return ValidateAvatars(spiralAbyssPresented);
     }
 
-    private bool ValidateAvatars()
+    private bool ValidateAvatars(HashSet<int> spiralAbyssPresented)
     {
+        HashSet<int> uidOwns = new();
         int traveller = 1;
         int passMainQuest = 3;
         foreach (ref readonly SimpleAvatar avatar in CollectionsMarshal.AsSpan(Avatars))
         {
+            uidOwns.Add(avatar.AvatarId);
+
             if (avatar.WeaponId <= 0 || avatar.WeaponId.StringLength() != 5)
             {
                 return false;
@@ -127,6 +133,13 @@ public class SimpleRecord
             {
                 --passMainQuest;
             }
+        }
+
+        // 深渊记录中存在角色列表中不存在的角色
+        spiralAbyssPresented.ExceptWith(uidOwns);
+        if (spiralAbyssPresented.Count > 0)
+        {
+            return false;
         }
 
         return traveller is 0 && passMainQuest is 0;
