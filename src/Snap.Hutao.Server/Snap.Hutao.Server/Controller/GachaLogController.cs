@@ -44,7 +44,7 @@ public class GachaLogController : ControllerBase
 
         if (!await CanUseGachaLogServiceAsync(userId).ConfigureAwait(false))
         {
-            return Model.Response.Response.Fail(ReturnCode.GachaLogServiceNotAllowed, "未开通祈愿记录上传服务或已到期");
+            return Model.Response.Response.Fail(ReturnCode.GachaLogServiceNotAllowed, "未开通祈愿记录上传服务或已到期", "ServerGachaLogServiceInsufficientTime");
         }
 
         return GetStatistics<GachaDistribution>(GachaStatistics.AvaterEventGachaDistribution);
@@ -58,7 +58,7 @@ public class GachaLogController : ControllerBase
 
         if (!await CanUseGachaLogServiceAsync(userId).ConfigureAwait(false))
         {
-            return Model.Response.Response.Fail(ReturnCode.GachaLogServiceNotAllowed, "未开通祈愿记录上传服务或已到期");
+            return Model.Response.Response.Fail(ReturnCode.GachaLogServiceNotAllowed, "未开通祈愿记录上传服务或已到期", "ServerGachaLogServiceInsufficientTime");
         }
 
         return GetStatistics<GachaDistribution>(GachaStatistics.WeaponEventGachaDistribution);
@@ -71,7 +71,7 @@ public class GachaLogController : ControllerBase
         int userId = this.GetUserId();
         if (!await CanUseGachaLogServiceAsync(userId).ConfigureAwait(false))
         {
-            return Model.Response.Response.Fail(ReturnCode.GachaLogServiceNotAllowed, "未开通祈愿记录上传服务或已到期");
+            return Model.Response.Response.Fail(ReturnCode.GachaLogServiceNotAllowed, "未开通祈愿记录上传服务或已到期", "ServerGachaLogServiceInsufficientTime");
         }
 
         return GetStatistics<GachaDistribution>(GachaStatistics.StandardGachaDistribution);
@@ -90,7 +90,7 @@ public class GachaLogController : ControllerBase
 
         if (!await CanUseGachaLogServiceAsync(userId).ConfigureAwait(false))
         {
-            return Model.Response.Response.Fail(ReturnCode.GachaLogServiceNotAllowed, "未开通祈愿记录上传服务或已到期");
+            return Model.Response.Response.Fail(ReturnCode.GachaLogServiceNotAllowed, "未开通祈愿记录上传服务或已到期", "ServerGachaLogServiceInsufficientTime");
         }
 
         List<string> uids = await appDbContext.GachaItems
@@ -116,7 +116,7 @@ public class GachaLogController : ControllerBase
 
         if (!await CanUseGachaLogServiceAsync(userId).ConfigureAwait(false))
         {
-            return Model.Response.Response.Fail(ReturnCode.GachaLogServiceNotAllowed, "未开通祈愿记录上传服务或已到期");
+            return Model.Response.Response.Fail(ReturnCode.GachaLogServiceNotAllowed, "未开通祈愿记录上传服务或已到期", "ServerGachaLogServiceInsufficientTime");
         }
 
         List<GachaEntry> entries = await appDbContext.GachaItems
@@ -143,7 +143,7 @@ public class GachaLogController : ControllerBase
 
         if (!await CanUseGachaLogServiceAsync(userId).ConfigureAwait(false))
         {
-            return Model.Response.Response.Fail(ReturnCode.GachaLogServiceNotAllowed, "未开通祈愿记录上传服务或已到期");
+            return Model.Response.Response.Fail(ReturnCode.GachaLogServiceNotAllowed, "未开通祈愿记录上传服务或已到期", "ServerGachaLogServiceInsufficientTime");
         }
 
         EndIds endIds = new();
@@ -176,7 +176,7 @@ public class GachaLogController : ControllerBase
 
         if (!await CanUseGachaLogServiceAsync(userId).ConfigureAwait(false))
         {
-            return Model.Response.Response.Fail(ReturnCode.GachaLogServiceNotAllowed, "未开通祈愿记录上传服务或已到期");
+            return Model.Response.Response.Fail(ReturnCode.GachaLogServiceNotAllowed, "未开通祈愿记录上传服务或已到期", "ServerGachaLogServiceInsufficientTime");
         }
 
         string uid = uidAndEndIds.Uid;
@@ -216,7 +216,7 @@ public class GachaLogController : ControllerBase
 
         if (!await CanUseGachaLogServiceAsync(userId).ConfigureAwait(false))
         {
-            return Model.Response.Response.Fail(ReturnCode.GachaLogServiceNotAllowed, "当前胡桃账号未开通祈愿记录上传服务，或服务已到期");
+            return Model.Response.Response.Fail(ReturnCode.GachaLogServiceNotAllowed, "当前胡桃账号未开通祈愿记录上传服务，或服务已到期", "ServerGachaLogServiceInsufficientTime");
         }
 
         // CountAsync is executed locally in EF 7
@@ -227,12 +227,12 @@ public class GachaLogController : ControllerBase
             //    FROM `gacha_items` AS `g`
             //    WHERE `g`.`UserId` = {userId}
             //    """).SingleAsync();
-            return Model.Response.Response.Fail(ReturnCode.InvalidGachaLogItems, "单个胡桃账号最多保存 5 个 Uid 的祈愿记录");
+            return Model.Response.Response.Fail(ReturnCode.InvalidGachaLogItems, "单个胡桃账号最多保存 5 个 Uid 的祈愿记录", "ServerGachaLogServiceInsufficientRecordSlot");
         }
 
         if (!ValidateSimpleGachaItems(gachaData.Items))
         {
-            return Model.Response.Response.Fail(ReturnCode.InvalidGachaLogItems, "无效的数据，无法保存至云端");
+            return Model.Response.Response.Fail(ReturnCode.InvalidGachaLogItems, "无效的数据，无法保存至云端", "ServerGachaLogServiceInvalidGachaLogData");
         }
 
         try
@@ -245,7 +245,7 @@ public class GachaLogController : ControllerBase
         }
         catch
         {
-            return Model.Response.Response.Fail(ReturnCode.GachaLogDatabaseOperationFailed, "数据异常，无法保存至云端");
+            return Model.Response.Response.Fail(ReturnCode.GachaLogDatabaseOperationFailed, "数据异常，无法保存至云端", "ServerGachaLogServiceServerDatabaseError");
         }
     }
 
@@ -262,7 +262,7 @@ public class GachaLogController : ControllerBase
 
         if (!await CanUseGachaLogServiceAsync(userId).ConfigureAwait(false))
         {
-            return Model.Response.Response.Fail(ReturnCode.GachaLogServiceNotAllowed, "当前胡桃账号未开通祈愿记录上传服务，或服务已到期");
+            return Model.Response.Response.Fail(ReturnCode.GachaLogServiceNotAllowed, "当前胡桃账号未开通祈愿记录上传服务，或服务已到期", "ServerGachaLogServiceInsufficientTime");
         }
 
         int count = await appDbContext.GachaItems

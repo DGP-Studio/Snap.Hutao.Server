@@ -51,7 +51,7 @@ public sealed class PassportService
     {
         if (await userManager.FindByNameAsync(passport.UserName).ConfigureAwait(false) is HutaoUser user)
         {
-            return new(false, "邮箱已被注册");
+            return new(false, "邮箱已被注册", "ServerPassportServiceEmailHasRegistered");
         }
         else
         {
@@ -59,7 +59,7 @@ public sealed class PassportService
             IdentityResult result = await userManager.CreateAsync(newUser, passport.Password).ConfigureAwait(false);
             if (result.Succeeded)
             {
-                return new(true, "注册成功", CreateToken(newUser));
+                return new(true, "注册成功", null, CreateToken(newUser));
             }
             else
             {
@@ -70,7 +70,7 @@ public sealed class PassportService
                     messageBuilder.AppendLine($"[{error.Code}]: {error.Description}");
                 }
 
-                return new(false, $"注册失败:{messageBuilder}");
+                return new(false, $"注册失败:{messageBuilder}", "ServerPassportServiceInternalException");
             }
         }
     }
@@ -87,11 +87,11 @@ public sealed class PassportService
             await userManager.RemovePasswordAsync(user).ConfigureAwait(false);
             await userManager.AddPasswordAsync(user, passport.Password).ConfigureAwait(false);
 
-            return new(true, "新密码设置成功", CreateToken(user));
+            return new(true, "新密码设置成功", null, CreateToken(user));
         }
         else
         {
-            return new(false, "该邮箱尚未注册");
+            return new(false, "该邮箱尚未注册", "ServerPassportServiceEmailHasNotRegistered");
         }
     }
 
@@ -106,11 +106,11 @@ public sealed class PassportService
         {
             if (await userManager.CheckPasswordAsync(user, passport.Password).ConfigureAwait(false))
             {
-                return new(true, "登录成功", CreateToken(user));
+                return new(true, "登录成功", null, CreateToken(user));
             }
         }
 
-        return new PassportResult(false, "邮箱或密码不正确");
+        return new PassportResult(false, "邮箱或密码不正确", "ServerPassportUsernameOrPassportIncorrect");
     }
 
     /// <summary>
@@ -125,11 +125,11 @@ public sealed class PassportService
             if (await userManager.CheckPasswordAsync(user, passport.Password).ConfigureAwait(false))
             {
                 await userManager.DeleteAsync(user).ConfigureAwait(false);
-                return new(true, "用户注销成功");
+                return new(true, "用户注销成功", null);
             }
         }
 
-        return new PassportResult(false, "用户注销失败");
+        return new PassportResult(false, "用户注销失败", "ServerPassportServiceUnregisterFailed");
     }
 
     private string CreateToken(HutaoUser user)

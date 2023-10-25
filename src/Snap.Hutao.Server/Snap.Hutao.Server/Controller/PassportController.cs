@@ -54,7 +54,7 @@ public class PassportController : ControllerBase
 
         if (memoryCache.TryGetValue($"VerifyCodeFor:{normalizedUserName}", out object? _))
         {
-            return Model.Response.Response.Fail(ReturnCode.VerifyCodeTooFrequently, "请求过快，请 1 分钟后再试");
+            return Model.Response.Response.Fail(ReturnCode.VerifyCodeTooFrequently, "请求过快，请 1 分钟后再试", "ServerPassportVerifyTooFrequent");
         }
         else
         {
@@ -103,7 +103,7 @@ public class PassportController : ControllerBase
             }
         }
 
-        return Model.Response.Response.Fail(ReturnCode.RegisterFail, "验证失败");
+        return Model.Response.Response.Fail(ReturnCode.RegisterFail, "验证失败", "ServerPassportVerifyFailed");
     }
 
     [Authorize]
@@ -125,7 +125,7 @@ public class PassportController : ControllerBase
                 : Model.Response.Response.Fail(ReturnCode.CancelFail, result.Message);
         }
 
-        return Model.Response.Response.Fail(ReturnCode.CancelFail, "用户名或密码错误");
+        return Model.Response.Response.Fail(ReturnCode.CancelFail, "用户名或密码错误", "ServerPassportUsernameOrPassportIncorrect");
     }
 
     /// <summary>
@@ -157,12 +157,12 @@ public class PassportController : ControllerBase
                 }
                 else
                 {
-                    return Model.Response.Response.Fail(ReturnCode.RegisterFail, result.Message);
+                    return Model.Response.Response.Fail(ReturnCode.RegisterFail, result.Message, result.LocalizationKey!);
                 }
             }
         }
 
-        return Model.Response.Response.Fail(ReturnCode.RegisterFail, "验证失败");
+        return Model.Response.Response.Fail(ReturnCode.RegisterFail, "验证失败", "ServerPassportVerifyFailed");
     }
 
     /// <summary>
@@ -186,7 +186,7 @@ public class PassportController : ControllerBase
         }
         else
         {
-            return Model.Response.Response.Fail(ReturnCode.RegisterFail, result.Message);
+            return Model.Response.Response.Fail(ReturnCode.LoginFail, result.Message, result.LocalizationKey!);
         }
     }
 
@@ -198,14 +198,21 @@ public class PassportController : ControllerBase
     [HttpGet("UserInfo")]
     public async Task<IActionResult> GetUserInfoAsync()
     {
-        HutaoUser user = await this.GetUserAsync(appDbContext.Users).ConfigureAwait(false);
+        HutaoUser? user = await this.GetUserAsync(appDbContext.Users).ConfigureAwait(false);
 
-        return Response<UserInfo>.Success("获取用户信息成功", new()
+        if (user is not null)
         {
-            NormalizedUserName = user.NormalizedUserName ?? user.UserName,
-            IsLicensedDeveloper = user.IsLicensedDeveloper,
-            IsMaintainer = user.IsMaintainer,
-            GachaLogExpireAt = DateTimeOffset.FromUnixTimeSeconds(user.GachaLogExpireAt),
-        });
+            return Response<UserInfo>.Success("获取用户信息成功", new()
+            {
+                NormalizedUserName = user.NormalizedUserName ?? user.UserName,
+                IsLicensedDeveloper = user.IsLicensedDeveloper,
+                IsMaintainer = user.IsMaintainer,
+                GachaLogExpireAt = DateTimeOffset.FromUnixTimeSeconds(user.GachaLogExpireAt),
+            });
+        }
+        else
+        {
+            return Model.Response.Response.Fail(ReturnCode.UserNameNotExists, "用户不存在", "ServerPassportUserInfoNotExist");
+        }
     }
 }

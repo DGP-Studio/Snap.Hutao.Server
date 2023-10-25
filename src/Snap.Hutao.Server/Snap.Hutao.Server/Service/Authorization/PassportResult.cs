@@ -8,16 +8,11 @@ namespace Snap.Hutao.Server.Service.Authorization;
 /// </summary>
 public class PassportResult
 {
-    /// <summary>
-    /// 构造一个新的通行证结果
-    /// </summary>
-    /// <param name="success">是否成功</param>
-    /// <param name="message">消息</param>
-    /// <param name="token">令牌</param>
-    public PassportResult(bool success, string message, string? token = null)
+    public PassportResult(bool success, string message, string? key, string? token = null)
     {
         Success = success;
         Message = message;
+        LocalizationKey = key;
         Token = token;
     }
 
@@ -36,4 +31,6 @@ public class PassportResult
     /// 令牌
     /// </summary>
     public string? Token { get; set; }
+
+    public string? LocalizationKey { get; set; }
 }

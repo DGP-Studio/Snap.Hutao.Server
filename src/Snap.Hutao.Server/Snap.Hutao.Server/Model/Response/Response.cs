@@ -33,25 +33,27 @@ public class Response
     [JsonPropertyName("message")]
     public string Message { get; set; }
 
-    /// <summary>
-    /// 成功
-    /// </summary>
-    /// <param name="msg">消息</param>
-    /// <returns>操作结果</returns>
+    [JsonPropertyName("l10nKey")]
+    public string? LocalizationKey { get; set; }
+
     public static IActionResult Success(string msg)
     {
         return new JsonResult(new Response(ReturnCode.Success, msg));
     }
 
-    /// <summary>
-    /// 任意数据
-    /// </summary>
-    /// <param name="code">返回代码</param>
-    /// <param name="msg">消息</param>
-    /// <returns>操作结果</returns>
+    public static IActionResult Success(string msg, string key)
+    {
+        return new JsonResult(new Response(ReturnCode.Success, msg) { LocalizationKey = key });
+    }
+
     public static IActionResult Fail(ReturnCode code, string msg)
     {
         return new JsonResult(new Response(code, msg));
+    }
+
+    public static IActionResult Fail(ReturnCode code, string msg, string key)
+    {
+        return new JsonResult(new Response(code, msg) { LocalizationKey = key });
     }
 }
 
@@ -80,12 +82,6 @@ public class Response<T> : Response
     [JsonPropertyName("data")]
     public T? Data { get; set; }
 
-    /// <summary>
-    /// 成功
-    /// </summary>
-    /// <param name="msg">消息</param>
-    /// <param name="data">返回的数据</param>
-    /// <returns>操作结果</returns>
     public static IActionResult Success(string msg, T data)
     {
         return new JsonResult(new Response<T>(ReturnCode.Success, msg, data));
