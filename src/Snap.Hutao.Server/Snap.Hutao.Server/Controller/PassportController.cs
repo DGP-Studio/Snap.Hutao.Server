@@ -70,7 +70,7 @@ public class PassportController : ControllerBase
                 await mailService.SendRegistrationVerifyCodeAsync(userName, code).ConfigureAwait(false);
             }
 
-            return Model.Response.Response.Success("请求验证码成功");
+            return Model.Response.Response.Success("请求验证码成功", "ServerPassportVerifyRequestSuccess");
         }
     }
 
