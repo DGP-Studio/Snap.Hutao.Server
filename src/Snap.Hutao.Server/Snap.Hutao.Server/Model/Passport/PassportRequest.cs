@@ -27,4 +27,6 @@ public sealed class PassportRequest
     /// 是否为重置密码请求
     /// </summary>
     public bool IsResetPassword { get; set; }
+
+    public bool IsCancelRegistration { get; set; }
 }

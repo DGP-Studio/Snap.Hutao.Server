@@ -65,6 +65,10 @@ public class PassportController : ControllerBase
             {
                 await mailService.SendResetPasswordVerifyCodeAsync(userName, code).ConfigureAwait(false);
             }
+            else if (request.IsCancelRegistration)
+            {
+                await mailService.SendCancelRegistrationVerifyCodeAsync(userName, code).ConfigureAwait(false);
+            }
             else
             {
                 await mailService.SendRegistrationVerifyCodeAsync(userName, code).ConfigureAwait(false);

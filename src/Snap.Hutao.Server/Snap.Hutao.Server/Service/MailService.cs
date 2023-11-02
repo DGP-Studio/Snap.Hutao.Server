@@ -52,6 +52,12 @@ public sealed class MailService
         return SendVerifyCodeMailAsync(emailAddress, GetResetPasswordVerifyCodeMailBody(code));
     }
 
+    public Task SendCancelRegistrationVerifyCodeAsync(string emailAddress, string code)
+    {
+        logger.LogInformation("Send CancelRegistration Mail to [{Email}] with [{Code}]", emailAddress, code);
+        return SendVerifyCodeMailAsync(emailAddress, GetCancelRegistrationVerifyCodeMailBody(code));
+    }
+
     /// <summary>
     /// 异步发送祈愿记录上传服务
     /// </summary>
@@ -173,6 +179,46 @@ public sealed class MailService
                         <p>以下是您修改密码所需的验证码：</p>
                         <h2>{{code}}</h2>
                         <p>如果您没有重置密码，请忽略此邮件，不会有任何事情发生。</p>
+                        <p style="margin: 0px;">DGP Studio 胡桃开发团队</p>
+                    </div>
+                </body>
+            </html>
+            """;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static string GetCancelRegistrationVerifyCodeMailBody(string code)
+    {
+        return $$"""
+            <html>
+                <head>
+                    <style>
+                        div {
+                            background: linear-gradient(120deg,#f1c40f,#f39c12);
+                            box-shadow: 4px 4px 8px #e67e2280;
+                            max-width: 400px;
+                            padding: 16px;
+                        }
+                        h3 {
+                            margin: 0px;
+                            color: #2c3e50;
+                        }
+                        h2 {
+                            background-color: #2c3e50;
+                            padding: 12px;
+                            color: #ecf0f1;
+                        }
+                        p {
+                            color: #34495e;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div>
+                        <h3>您正在注销 Snap Hutao 账号</h3>
+                        <p>以下是您注销账号所需的验证码：</p>
+                        <h2>{{code}}</h2>
+                        <p>如果您没有注销账号，请忽略此邮件，不会有任何事情发生。</p>
                         <p style="margin: 0px;">DGP Studio 胡桃开发团队</p>
                     </div>
                 </body>
