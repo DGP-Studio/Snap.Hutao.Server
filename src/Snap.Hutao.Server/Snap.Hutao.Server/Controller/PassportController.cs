@@ -56,26 +56,24 @@ public class PassportController : ControllerBase
         {
             return Model.Response.Response.Fail(ReturnCode.VerifyCodeTooFrequently, "请求过快，请 1 分钟后再试", "ServerPassportVerifyTooFrequent");
         }
+
+        string code = RandomHelper.GetRandomStringWithChars(8);
+        memoryCache.Set($"VerifyCodeFor:{normalizedUserName}", code, TimeSpan.FromMinutes(1));
+
+        if (request.IsResetPassword)
+        {
+            await mailService.SendResetPasswordVerifyCodeAsync(userName, code).ConfigureAwait(false);
+        }
+        else if (request.IsCancelRegistration)
+        {
+            await mailService.SendCancelRegistrationVerifyCodeAsync(userName, code).ConfigureAwait(false);
+        }
         else
         {
-            string code = RandomHelper.GetRandomStringWithChars(8);
-            memoryCache.Set($"VerifyCodeFor:{normalizedUserName}", code, TimeSpan.FromMinutes(1));
-
-            if (request.IsResetPassword)
-            {
-                await mailService.SendResetPasswordVerifyCodeAsync(userName, code).ConfigureAwait(false);
-            }
-            else if (request.IsCancelRegistration)
-            {
-                await mailService.SendCancelRegistrationVerifyCodeAsync(userName, code).ConfigureAwait(false);
-            }
-            else
-            {
-                await mailService.SendRegistrationVerifyCodeAsync(userName, code).ConfigureAwait(false);
-            }
-
-            return Model.Response.Response.Success("请求验证码成功", "ServerPassportVerifyRequestSuccess");
+            await mailService.SendRegistrationVerifyCodeAsync(userName, code).ConfigureAwait(false);
         }
+
+        return Model.Response.Response.Success("请求验证码成功", "ServerPassportVerifyRequestSuccess");
     }
 
     /// <summary>
@@ -90,46 +88,62 @@ public class PassportController : ControllerBase
         string userName = passportService.Decrypt(request.UserName);
         string normalizedUserName = userName.ToUpperInvariant();
 
-        if (memoryCache.TryGetValue($"VerifyCodeFor:{normalizedUserName}", out string? storedCode))
+        if (!memoryCache.TryGetValue($"VerifyCodeFor:{normalizedUserName}", out string? storedCode))
         {
-            if (storedCode == code)
-            {
-                Passport passport = new()
-                {
-                    UserName = userName,
-                    Password = passportService.Decrypt(request.Password),
-                };
-
-                PassportResult result = await passportService.RegisterAsync(passport).ConfigureAwait(false);
-                return result.Success
-                    ? Response<string>.Success("注册成功", result.Token)
-                    : Model.Response.Response.Fail(ReturnCode.RegisterFail, result.Message);
-            }
+            return Model.Response.Response.Fail(ReturnCode.RegisterFail, "验证失败", "ServerPassportVerifyFailed");
         }
 
-        return Model.Response.Response.Fail(ReturnCode.RegisterFail, "验证失败", "ServerPassportVerifyFailed");
+        if (storedCode != code)
+        {
+            return Model.Response.Response.Fail(ReturnCode.RegisterFail, "验证失败", "ServerPassportVerifyFailed");
+        }
+
+        Passport passport = new()
+        {
+            UserName = userName,
+            Password = passportService.Decrypt(request.Password),
+        };
+
+        PassportResult result = await passportService.RegisterAsync(passport).ConfigureAwait(false);
+        return result.Success
+            ? Response<string>.Success("注册成功", result.Token)
+            : Model.Response.Response.Fail(ReturnCode.RegisterFail, result.Message);
     }
 
     [Authorize]
     [HttpPost("Cancel")]
     public async Task<IActionResult> CancelAsync([FromBody] PassportRequest request)
     {
-        if (await this.GetUserAsync(appDbContext.Users).ConfigureAwait(false) is { } user)
+        string code = passportService.Decrypt(request.VerifyCode);
+        string userName = passportService.Decrypt(request.UserName);
+        string normalizedUserName = userName.ToUpperInvariant();
+
+        if (!memoryCache.TryGetValue($"VerifyCodeFor:{normalizedUserName}", out string? storedCode))
         {
-            Passport passport = new()
-            {
-                UserName = user.UserName!,
-                Password = passportService.Decrypt(request.Password),
-            };
-
-            PassportResult result = await passportService.CancelAsync(passport).ConfigureAwait(false);
-
-            return result.Success
-                ? Model.Response.Response.Success(result.Message)
-                : Model.Response.Response.Fail(ReturnCode.CancelFail, result.Message);
+            return Model.Response.Response.Fail(ReturnCode.RegisterFail, "验证失败", "ServerPassportVerifyFailed");
         }
 
-        return Model.Response.Response.Fail(ReturnCode.CancelFail, "用户名或密码错误", "ServerPassportUsernameOrPassportIncorrect");
+        if (storedCode != code)
+        {
+            return Model.Response.Response.Fail(ReturnCode.RegisterFail, "验证失败", "ServerPassportVerifyFailed");
+        }
+
+        if (!(await this.GetUserAsync(appDbContext.Users).ConfigureAwait(false) is { } user))
+        {
+            return Model.Response.Response.Fail(ReturnCode.CancelFail, "用户名或密码错误", "ServerPassportUsernameOrPassportIncorrect");
+        }
+
+        Passport passport = new()
+        {
+            UserName = user.UserName!,
+            Password = passportService.Decrypt(request.Password),
+        };
+
+        PassportResult result = await passportService.CancelAsync(passport).ConfigureAwait(false);
+
+        return result.Success
+            ? Model.Response.Response.Success(result.Message)
+            : Model.Response.Response.Fail(ReturnCode.CancelFail, result.Message);
     }
 
     /// <summary>
@@ -144,29 +158,27 @@ public class PassportController : ControllerBase
         string userName = passportService.Decrypt(request.UserName);
         string normalizedUserName = userName.ToUpperInvariant();
 
-        if (memoryCache.TryGetValue($"VerifyCodeFor:{normalizedUserName}", out string? storedCode))
+        if (!memoryCache.TryGetValue($"VerifyCodeFor:{normalizedUserName}", out string? storedCode))
         {
-            if (storedCode == code)
-            {
-                Passport passport = new()
-                {
-                    UserName = userName,
-                    Password = passportService.Decrypt(request.Password),
-                };
-
-                PassportResult result = await passportService.ResetPasswordAsync(passport).ConfigureAwait(false);
-                if (result.Success)
-                {
-                    return Response<string>.Success("密码设置成功", result.Token);
-                }
-                else
-                {
-                    return Model.Response.Response.Fail(ReturnCode.RegisterFail, result.Message, result.LocalizationKey!);
-                }
-            }
+            return Model.Response.Response.Fail(ReturnCode.RegisterFail, "验证失败", "ServerPassportVerifyFailed");
         }
 
-        return Model.Response.Response.Fail(ReturnCode.RegisterFail, "验证失败", "ServerPassportVerifyFailed");
+        if (storedCode != code)
+        {
+            return Model.Response.Response.Fail(ReturnCode.RegisterFail, "验证失败", "ServerPassportVerifyFailed");
+        }
+
+        Passport passport = new()
+        {
+            UserName = userName,
+            Password = passportService.Decrypt(request.Password),
+        };
+
+        PassportResult result = await passportService.ResetPasswordAsync(passport).ConfigureAwait(false);
+
+        return result.Success
+            ? Response<string>.Success("密码设置成功", result.Token)
+            : Model.Response.Response.Fail(ReturnCode.RegisterFail, result.Message, result.LocalizationKey!);
     }
 
     /// <summary>
@@ -184,14 +196,10 @@ public class PassportController : ControllerBase
         };
 
         PassportResult result = await passportService.LoginAsync(passport).ConfigureAwait(false);
-        if (result.Success)
-        {
-            return Response<string>.Success("登录成功", result.Token);
-        }
-        else
-        {
-            return Model.Response.Response.Fail(ReturnCode.LoginFail, result.Message, result.LocalizationKey!);
-        }
+
+        return result.Success
+            ? Response<string>.Success("登录成功", result.Token)
+            : Model.Response.Response.Fail(ReturnCode.LoginFail, result.Message, result.LocalizationKey!);
     }
 
     /// <summary>
@@ -204,19 +212,17 @@ public class PassportController : ControllerBase
     {
         HutaoUser? user = await this.GetUserAsync(appDbContext.Users).ConfigureAwait(false);
 
-        if (user is not null)
-        {
-            return Response<UserInfo>.Success("获取用户信息成功", new()
-            {
-                NormalizedUserName = user.NormalizedUserName ?? user.UserName,
-                IsLicensedDeveloper = user.IsLicensedDeveloper,
-                IsMaintainer = user.IsMaintainer,
-                GachaLogExpireAt = DateTimeOffset.FromUnixTimeSeconds(user.GachaLogExpireAt),
-            });
-        }
-        else
+        if (user is null)
         {
             return Model.Response.Response.Fail(ReturnCode.UserNameNotExists, "用户不存在", "ServerPassportUserInfoNotExist");
         }
+
+        return Response<UserInfo>.Success("获取用户信息成功", new()
+        {
+            NormalizedUserName = user.NormalizedUserName ?? user.UserName,
+            IsLicensedDeveloper = user.IsLicensedDeveloper,
+            IsMaintainer = user.IsMaintainer,
+            GachaLogExpireAt = DateTimeOffset.FromUnixTimeSeconds(user.GachaLogExpireAt),
+        });
     }
 }
