@@ -22,9 +22,26 @@ internal static class ControllerBaseExtension
         return int.Parse(value);
     }
 
+    public static bool TryGetUserId(this ControllerBase controller, out int userId)
+    {
+        string? value = controller.HttpContext.User.Claims.SingleOrDefault(c => c.Type == PassportClaimTypes.UserId)?.Value;
+
+        if (string.IsNullOrEmpty(value))
+        {
+            userId = 0;
+            return false;
+        }
+
+        return int.TryParse(value, out userId);
+    }
+
     public static async ValueTask<HutaoUser?> GetUserAsync(this ControllerBase controller, DbSet<HutaoUser> users)
     {
-        int userId = controller.GetUserId();
-        return await users.AsNoTracking().SingleOrDefaultAsync(user => user.Id == userId).ConfigureAwait(false);
+        if (controller.TryGetUserId(out int userId))
+        {
+            return await users.AsNoTracking().SingleOrDefaultAsync(user => user.Id == userId).ConfigureAwait(false);
+        }
+
+        return default;
     }
 }

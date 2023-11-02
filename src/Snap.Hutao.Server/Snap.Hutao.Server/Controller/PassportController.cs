@@ -51,14 +51,15 @@ public class PassportController : ControllerBase
     {
         string userName = passportService.Decrypt(request.UserName);
         string normalizedUserName = userName.ToUpperInvariant();
+        string codeKey = $"VerifyCodeFor:{normalizedUserName}";
 
-        if (memoryCache.TryGetValue($"VerifyCodeFor:{normalizedUserName}", out object? _))
+        if (memoryCache.TryGetValue(codeKey, out object? _))
         {
             return Model.Response.Response.Fail(ReturnCode.VerifyCodeTooFrequently, "请求过快，请 1 分钟后再试", "ServerPassportVerifyTooFrequent");
         }
 
         string code = RandomHelper.GetRandomStringWithChars(8);
-        memoryCache.Set($"VerifyCodeFor:{normalizedUserName}", code, TimeSpan.FromMinutes(1));
+        memoryCache.Set(codeKey, code, TimeSpan.FromMinutes(1));
 
         if (request.IsResetPassword)
         {
@@ -66,10 +67,23 @@ public class PassportController : ControllerBase
         }
         else if (request.IsCancelRegistration)
         {
+            if (await this.GetUserAsync(appDbContext.Users).ConfigureAwait(false) is not HutaoUser user ||
+                !string.Equals(normalizedUserName, user.NormalizedUserName, StringComparison.Ordinal))
+            {
+                memoryCache.Remove(codeKey);
+                return Model.Response.Response.Fail(ReturnCode.VerifyCodeNotAllowed, "请求验证码失败", "ServerPassportVerifyRequestNotCurrentUser");
+            }
+
             await mailService.SendCancelRegistrationVerifyCodeAsync(userName, code).ConfigureAwait(false);
         }
         else
         {
+            if (appDbContext.Users.Any(u => u.NormalizedUserName == normalizedUserName))
+            {
+                memoryCache.Remove(codeKey);
+                return Model.Response.Response.Fail(ReturnCode.VerifyCodeNotAllowed, "请求验证码失败", "ServerPassportVerifyRequestUserAlreadyExisted");
+            }
+
             await mailService.SendRegistrationVerifyCodeAsync(userName, code).ConfigureAwait(false);
         }
 

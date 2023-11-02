@@ -94,6 +94,11 @@ public enum ReturnCode
     CancelFail = 500036,
 
     /// <summary>
+    /// 无法请求验证码
+    /// </summary>
+    VerifyCodeNotAllowed = 500037,
+
+    /// <summary>
     /// 祈愿记录数据库操作失败
     /// </summary>
     GachaLogDatabaseOperationFailed = 500040,
