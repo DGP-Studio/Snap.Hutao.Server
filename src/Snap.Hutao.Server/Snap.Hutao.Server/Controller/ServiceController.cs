@@ -113,6 +113,7 @@ public class ServiceController : ControllerBase
                 Content = announcement.Content,
                 Severity = announcement.Severity,
                 Link = announcement.Link,
+                MaxPresentVersion = announcement.MaxPresentVersion,
             };
 
             appDbContext.Announcements.Add(entity);

@@ -26,4 +26,9 @@ public sealed class HutaoUploadAnnouncement
     /// 原帖链接
     /// </summary>
     public string Link { get; set; } = default!;
+
+    /// <summary>
+    /// 最高的呈现版本
+    /// </summary>
+    public string? MaxPresentVersion { get; set; }
 }

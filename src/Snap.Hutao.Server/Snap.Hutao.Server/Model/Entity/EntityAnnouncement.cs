@@ -49,4 +49,10 @@ public sealed class EntityAnnouncement
     /// 公告类型
     /// </summary>
     public AnnouncementKind Kind { get; set; }
+
+    /// <summary>
+    /// 最高的呈现版本
+    /// 不会在高于此版本的请求中返回此公告
+    /// </summary>
+    public string? MaxPresentVersion { get; set; }
 }

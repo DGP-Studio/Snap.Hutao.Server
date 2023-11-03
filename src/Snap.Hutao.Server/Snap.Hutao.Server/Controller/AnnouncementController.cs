@@ -40,9 +40,19 @@ public class AnnouncementController : ControllerBase
             .Where(ann => ann.LastUpdateTime >= limit)
             .ToList();
 
+        string? userAgent = Request.Headers.UserAgent;
+        Version version = !string.IsNullOrEmpty(userAgent) && userAgent.StartsWith("Snap.Hutao/")
+            ? new(userAgent!["Snap.Hutao/".Length..])
+            : new(0, 0, 0, 0);
+
         List<EntityAnnouncement> result = new();
         foreach (EntityAnnouncement ann in anns)
         {
+            if (!string.IsNullOrEmpty(ann.MaxPresentVersion) && version > new Version(ann.MaxPresentVersion))
+            {
+                continue;
+            }
+
             if (!excludedIds.Contains(ann.Id))
             {
                 result.Add(ann);
