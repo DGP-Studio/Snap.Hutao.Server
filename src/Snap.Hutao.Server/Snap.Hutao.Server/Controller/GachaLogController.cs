@@ -219,6 +219,12 @@ public class GachaLogController : ControllerBase
             return Model.Response.Response.Fail(ReturnCode.GachaLogServiceNotAllowed, "当前胡桃账号未开通祈愿记录上传服务，或服务已到期", "ServerGachaLogServiceInsufficientTime");
         }
 
+        // 无效的 Uid
+        if (gachaData.Uid.Length < 9)
+        {
+            return Model.Response.Response.Fail(ReturnCode.InvalidGachaLogItems, "无效的数据，无法保存至云端", "ServerGachaLogServiceInvalidGachaLogData");
+        }
+
         // CountAsync is executed locally in EF 7
         if (await appDbContext.GachaItems.Where(i => i.UserId == userId).Select(i => i.Uid).Distinct().CountAsync().ConfigureAwait(false) >= 5)
         {
