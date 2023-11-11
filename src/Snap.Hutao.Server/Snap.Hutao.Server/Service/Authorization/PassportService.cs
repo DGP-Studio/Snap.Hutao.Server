@@ -59,7 +59,7 @@ public sealed class PassportService
             IdentityResult result = await userManager.CreateAsync(newUser, passport.Password).ConfigureAwait(false);
             if (result.Succeeded)
             {
-                return new(true, "注册成功", null, CreateToken(newUser));
+                return new(true, "注册成功", "ServerPassportRegisterSucceed", CreateToken(newUser));
             }
             else
             {
@@ -87,7 +87,7 @@ public sealed class PassportService
             await userManager.RemovePasswordAsync(user).ConfigureAwait(false);
             await userManager.AddPasswordAsync(user, passport.Password).ConfigureAwait(false);
 
-            return new(true, "新密码设置成功", null, CreateToken(user));
+            return new(true, "新密码设置成功", "ServerPassportResetPasswordSucceed", CreateToken(user));
         }
         else
         {
@@ -106,7 +106,7 @@ public sealed class PassportService
         {
             if (await userManager.CheckPasswordAsync(user, passport.Password).ConfigureAwait(false))
             {
-                return new(true, "登录成功", null, CreateToken(user));
+                return new(true, "登录成功", "ServerPassportLoginSucceed", CreateToken(user));
             }
         }
 
@@ -125,7 +125,7 @@ public sealed class PassportService
             if (await userManager.CheckPasswordAsync(user, passport.Password).ConfigureAwait(false))
             {
                 await userManager.DeleteAsync(user).ConfigureAwait(false);
-                return new(true, "用户注销成功", null);
+                return new(true, "用户注销成功", "ServerPassportUnregisterSucceed");
             }
         }
 

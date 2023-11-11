@@ -120,7 +120,7 @@ public class PassportController : ControllerBase
 
         PassportResult result = await passportService.RegisterAsync(passport).ConfigureAwait(false);
         return result.Success
-            ? Response<string>.Success("注册成功", result.Token)
+            ? Response<string>.Success("注册成功", result.Token, result.LocalizationKey!)
             : Model.Response.Response.Fail(ReturnCode.RegisterFail, result.Message);
     }
 
@@ -156,7 +156,7 @@ public class PassportController : ControllerBase
         PassportResult result = await passportService.CancelAsync(passport).ConfigureAwait(false);
 
         return result.Success
-            ? Model.Response.Response.Success(result.Message)
+            ? Model.Response.Response.Success(result.Message, result.LocalizationKey!)
             : Model.Response.Response.Fail(ReturnCode.CancelFail, result.Message);
     }
 
@@ -191,7 +191,7 @@ public class PassportController : ControllerBase
         PassportResult result = await passportService.ResetPasswordAsync(passport).ConfigureAwait(false);
 
         return result.Success
-            ? Response<string>.Success("密码设置成功", result.Token)
+            ? Response<string>.Success("密码设置成功", result.Token, result.LocalizationKey!)
             : Model.Response.Response.Fail(ReturnCode.RegisterFail, result.Message, result.LocalizationKey!);
     }
 
@@ -212,7 +212,7 @@ public class PassportController : ControllerBase
         PassportResult result = await passportService.LoginAsync(passport).ConfigureAwait(false);
 
         return result.Success
-            ? Response<string>.Success("登录成功", result.Token)
+            ? Response<string>.Success("登录成功", result.Token, result.LocalizationKey!)
             : Model.Response.Response.Fail(ReturnCode.LoginFail, result.Message, result.LocalizationKey!);
     }
 
