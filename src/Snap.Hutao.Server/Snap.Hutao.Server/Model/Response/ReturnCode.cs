@@ -89,7 +89,7 @@ public enum ReturnCode
     LicenseApprovalFailed = 500035,
 
     /// <summary>
-    /// 注册失败
+    /// 注销失败
     /// </summary>
     CancelFail = 500036,
 

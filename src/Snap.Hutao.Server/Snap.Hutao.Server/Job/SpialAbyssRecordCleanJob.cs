@@ -33,7 +33,7 @@ public class SpialAbyssRecordCleanJob : IJob
     /// <inheritdoc/>
     public async Task Execute(IJobExecutionContext context)
     {
-        logger.LogInformation("触发数据清理", DateTimeOffset.Now);
+        logger.LogInformation("触发数据清理");
 
         DateTimeOffset lastAllowed = DateTimeOffset.Now - TimeSpan.FromDays(30);
         long lastAllowedTimestamp = lastAllowed.ToUnixTimeSeconds();

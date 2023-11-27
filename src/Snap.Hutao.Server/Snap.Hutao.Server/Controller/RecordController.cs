@@ -21,7 +21,7 @@ namespace Snap.Hutao.Server.Controller;
 /// </summary>
 [ApiController]
 [Route("[controller]")]
-[ServiceFilter(typeof(RequestFilter))]
+[ServiceFilter(typeof(CountRequests))]
 [ApiExplorerSettings(GroupName = "SpiralAbyss")]
 public class RecordController : ControllerBase
 {

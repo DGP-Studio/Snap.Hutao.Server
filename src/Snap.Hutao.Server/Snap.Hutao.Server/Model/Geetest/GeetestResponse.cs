@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 
 namespace Snap.Hutao.Server.Model.Geetest;
+
 internal sealed class GeetestResponse
 {
     [JsonPropertyName("code")]

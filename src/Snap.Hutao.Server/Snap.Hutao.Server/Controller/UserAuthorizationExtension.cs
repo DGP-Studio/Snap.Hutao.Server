@@ -6,25 +6,37 @@ using Snap.Hutao.Server.Service.Authorization;
 
 namespace Snap.Hutao.Server.Controller;
 
-/// <summary>
-/// 控制器扩展
-/// </summary>
-internal static class ControllerBaseExtension
+internal static class UserAuthorizationExtension
 {
-    /// <summary>
-    /// 获取用户Id
-    /// </summary>
-    /// <param name="controller">控制器</param>
-    /// <returns>用户Id</returns>
     public static int GetUserId(this ControllerBase controller)
     {
-        string value = controller.HttpContext.User.Claims.Single(c => c.Type == PassportClaimTypes.UserId).Value;
+        return controller.HttpContext.GetUserId();
+    }
+
+    public static int GetUserId(this ActionExecutingContext context)
+    {
+        return context.HttpContext.GetUserId();
+    }
+
+    public static int GetUserId(this HttpContext context)
+    {
+        string value = context.User.Claims.Single(c => c.Type == PassportClaimTypes.UserId).Value;
         return int.Parse(value);
     }
 
     public static bool TryGetUserId(this ControllerBase controller, out int userId)
     {
-        string? value = controller.HttpContext.User.Claims.SingleOrDefault(c => c.Type == PassportClaimTypes.UserId)?.Value;
+        return controller.HttpContext.TryGetUserId(out userId);
+    }
+
+    public static bool TryGetUserId(this ActionExecutingContext context, out int userId)
+    {
+        return context.HttpContext.TryGetUserId(out userId);
+    }
+
+    public static bool TryGetUserId(this HttpContext context, out int userId)
+    {
+        string? value = context.User.Claims.SingleOrDefault(c => c.Type == PassportClaimTypes.UserId)?.Value;
 
         if (string.IsNullOrEmpty(value))
         {

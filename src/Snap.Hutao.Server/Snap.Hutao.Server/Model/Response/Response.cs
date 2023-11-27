@@ -87,7 +87,7 @@ public class Response<T> : Response
         return new JsonResult(new Response<T>(ReturnCode.Success, msg, data));
     }
 
-    public static IActionResult Success(string msg, T data, string key)
+    public static IActionResult Success(string msg, string key, T data)
     {
         return new JsonResult(new Response<T>(ReturnCode.Success, msg, data) { LocalizationKey = key });
     }

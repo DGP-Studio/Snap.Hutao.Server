@@ -120,6 +120,8 @@ dotnet_diagnostic.SA1636.severity = none
 # SA1414: Tuple types in signatures should have element names
 dotnet_diagnostic.SA1414.severity = none
 
+dotnet_diagnostic.IDE0290.severity = none
+
 # SA0001: XML comment analysis disabled
 dotnet_diagnostic.SA0001.severity = none
 csharp_style_prefer_parameter_null_checking = true:suggestion
@@ -168,6 +170,9 @@ dotnet_diagnostic.CS1591.severity = none
 csharp_style_prefer_readonly_struct = true:suggestion
 csharp_style_prefer_readonly_struct_member = true:suggestion
 dotnet_diagnostic.SA1600.severity = silent
+csharp_style_prefer_primary_constructors = true:suggestion
+dotnet_diagnostic.SA1602.severity = none
+dotnet_diagnostic.SA1010.severity = none
 
 [*.vb]
 #### 命名样式 ####

@@ -2,7 +2,7 @@
 // Licensed under the MIT license.
 
 using Snap.Hutao.Server.Controller.Filter;
-using Snap.Hutao.Server.Controller.Helper;
+using Snap.Hutao.Server.Core;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity;
 using Snap.Hutao.Server.Model.Passport;
@@ -17,7 +17,7 @@ namespace Snap.Hutao.Server.Controller;
 /// </summary>
 [ApiController]
 [Route("[controller]")]
-[ServiceFilter(typeof(RequestFilter))]
+[ServiceFilter(typeof(CountRequests))]
 [ApiExplorerSettings(GroupName = "Passport")]
 public class PassportController : ControllerBase
 {
@@ -58,7 +58,7 @@ public class PassportController : ControllerBase
             return Model.Response.Response.Fail(ReturnCode.VerifyCodeTooFrequently, "请求过快，请 1 分钟后再试", "ServerPassportVerifyTooFrequent");
         }
 
-        string code = RandomHelper.GetRandomStringWithChars(8);
+        string code = RandomHelper.GetUpperAndNumberString(8);
         memoryCache.Set(codeKey, code, TimeSpan.FromMinutes(1));
 
         if (request.IsResetPassword)
@@ -120,7 +120,7 @@ public class PassportController : ControllerBase
 
         PassportResult result = await passportService.RegisterAsync(passport).ConfigureAwait(false);
         return result.Success
-            ? Response<string>.Success("注册成功", result.Token, result.LocalizationKey!)
+            ? Response<string>.Success("注册成功", result.LocalizationKey!, result.Token)
             : Model.Response.Response.Fail(ReturnCode.RegisterFail, result.Message);
     }
 
@@ -191,8 +191,8 @@ public class PassportController : ControllerBase
         PassportResult result = await passportService.ResetPasswordAsync(passport).ConfigureAwait(false);
 
         return result.Success
-            ? Response<string>.Success("密码设置成功", result.Token, result.LocalizationKey!)
-            : Model.Response.Response.Fail(ReturnCode.RegisterFail, result.Message, result.LocalizationKey!);
+            ? Response<string>.Success("密码设置成功", result.LocalizationKey!, result.Token)
+            : Model.Response.Response.Fail(ReturnCode.RegisterFail, result.LocalizationKey!, result.Message);
     }
 
     /// <summary>
@@ -212,8 +212,8 @@ public class PassportController : ControllerBase
         PassportResult result = await passportService.LoginAsync(passport).ConfigureAwait(false);
 
         return result.Success
-            ? Response<string>.Success("登录成功", result.Token, result.LocalizationKey!)
-            : Model.Response.Response.Fail(ReturnCode.LoginFail, result.Message, result.LocalizationKey!);
+            ? Response<string>.Success("登录成功", result.LocalizationKey!, result.Token)
+            : Model.Response.Response.Fail(ReturnCode.LoginFail, result.LocalizationKey!, result.Message);
     }
 
     /// <summary>

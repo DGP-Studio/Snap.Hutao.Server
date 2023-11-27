@@ -2,15 +2,18 @@
 // Licensed under the MIT license.
 
 using Quartz;
+using Quartz.AspNetCore;
 using Snap.Hutao.Server.Controller.Filter;
 using Snap.Hutao.Server.Job;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity;
 using Snap.Hutao.Server.Service;
+using Snap.Hutao.Server.Service.Announcement;
 using Snap.Hutao.Server.Service.Authorization;
 using Snap.Hutao.Server.Service.GachaLog;
 using Snap.Hutao.Server.Service.Legacy;
 using Snap.Hutao.Server.Service.Legacy.PizzaHelper;
+using Snap.Hutao.Server.Service.Licensing;
 using Snap.Hutao.Server.Service.Ranking;
 using Snap.Hutao.Server.Service.ReCaptcha;
 using Swashbuckle.AspNetCore.SwaggerUI;
@@ -51,15 +54,14 @@ public static class Program
             .AddMemoryCache()
             .AddQuartz(config =>
             {
-                config
-                    .UseMicrosoftDependencyInjectionJobFactory();
-                config
-                    .ScheduleJob<GachaLogStatisticsRefreshJob>(t => t.StartNow().WithCronSchedule("0 30 */4 * * ?"))
-                    .ScheduleJob<LegacyStatisticsRefreshJob>(t => t.StartNow().WithCronSchedule("0 5 */1 * * ?"))
-                    .ScheduleJob<SpialAbyssRecordCleanJob>(t => t.StartNow().WithCronSchedule("0 0 4 1,16 * ?"));
+                config.ScheduleJob<GachaLogStatisticsRefreshJob>(t => t.StartNow().WithCronSchedule("0 30 */4 * * ?"));
+                config.ScheduleJob<LegacyStatisticsRefreshJob>(t => t.StartNow().WithCronSchedule("0 5 */1 * * ?"));
+                config.ScheduleJob<SpialAbyssRecordCleanJob>(t => t.StartNow().WithCronSchedule("0 0 4 1,16 * ?"));
             })
             .AddQuartzServer(options => options.WaitForJobsToComplete = true)
             .AddResponseCompression()
+            .AddScoped<AccessionService>()
+            .AddScoped<AnnouncementService>()
             .AddScoped<PassportService>()
             .AddScoped<PizzaHelperRecordService>()
             .AddSingleton<IAuthorizationMiddlewareResultHandler, ResponseAuthorizationMiddlewareResultHandler>()
@@ -84,7 +86,7 @@ public static class Program
             .AddTransient<LegacyStatisticsRefreshJob>()
             .AddTransient<StatisticsService>()
             .AddTransient<ReCaptchaService>()
-            .AddTransient<RequestFilter>()
+            .AddTransient<CountRequests>()
             .AddTransient<SpialAbyssRecordCleanJob>();
 
         // Authentication

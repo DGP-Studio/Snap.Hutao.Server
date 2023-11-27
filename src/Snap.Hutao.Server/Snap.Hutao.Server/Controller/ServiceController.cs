@@ -12,7 +12,7 @@ namespace Snap.Hutao.Server.Controller;
 
 [ApiController]
 [Route("[controller]")]
-[ServiceFilter(typeof(RequestFilter))]
+[ServiceFilter(typeof(CountRequests))]
 [ApiExplorerSettings(GroupName = "Services")]
 public class ServiceController : ControllerBase
 {

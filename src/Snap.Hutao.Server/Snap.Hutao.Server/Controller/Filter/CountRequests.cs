@@ -9,7 +9,7 @@ namespace Snap.Hutao.Server.Controller.Filter;
 /// <summary>
 /// 请求统计筛选器
 /// </summary>
-public class RequestFilter : IAsyncActionFilter
+public sealed class CountRequests : IAsyncActionFilter
 {
     private readonly AppDbContext appDbContext;
 
@@ -17,7 +17,7 @@ public class RequestFilter : IAsyncActionFilter
     /// 构造一个新的请求统计筛选器
     /// </summary>
     /// <param name="appDbContext">数据库上下文</param>
-    public RequestFilter(AppDbContext appDbContext)
+    public CountRequests(AppDbContext appDbContext)
     {
         this.appDbContext = appDbContext;
     }

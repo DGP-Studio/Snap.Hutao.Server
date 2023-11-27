@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Snap.Hutao.Server.Model.Entity;
 
@@ -55,4 +56,9 @@ public sealed class EntityAnnouncement
     /// 不会在高于此版本的请求中返回此公告
     /// </summary>
     public string? MaxPresentVersion { get; set; }
+
+    public bool TryGetMaxPresentVersion([NotNullWhen(true)] out Version? version)
+    {
+        return Version.TryParse(MaxPresentVersion, out version);
+    }
 }

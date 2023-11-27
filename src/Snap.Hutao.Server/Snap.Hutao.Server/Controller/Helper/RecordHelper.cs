@@ -16,14 +16,6 @@ namespace Snap.Hutao.Server.Controller.Helper;
 /// </summary>
 internal static class RecordHelper
 {
-    /// <summary>
-    /// 异步保存记录
-    /// </summary>
-    /// <param name="appDbContext">数据库上下文</param>
-    /// <param name="rankService">排行服务</param>
-    /// <param name="expireService">续期服务</param>
-    /// <param name="record">记录</param>
-    /// <returns>是否触发了赠送时长</returns>
     internal static async Task<RecordUploadResult> SaveRecordAsync(AppDbContext appDbContext, IRankService rankService, ExpireService expireService, SimpleRecord record)
     {
         RecordUploadResult result = RecordUploadResult.None;

@@ -81,15 +81,6 @@ internal sealed class PizzaHelperRecordService
         }
     }
 
-    private void AddSignatureToHttpClientHeader<T>(T data)
-    {
-        HttpRequestHeaders headers = httpClient.DefaultRequestHeaders;
-        headers.Remove("dseed");
-        headers.Add("dseed", $"{Random.Shared.Next(0, 999999)}");
-        headers.Remove("ds");
-        headers.Add("ds", $"{SHA256Hash($"{SHA256Hash(JsonSerializer.Serialize(data))}{options.ApiSalt}")}");
-    }
-
     private static string MD5Hash(string source)
     {
         return Convert.ToHexString(MD5.HashData(Encoding.UTF8.GetBytes(source))).ToLowerInvariant();
@@ -116,6 +107,15 @@ internal sealed class PizzaHelperRecordService
             '9' => "os_cht",                // 台服
             _ => "cn_gf01",                 // 国服
         };
+    }
+
+    private void AddSignatureToHttpClientHeader<T>(T data)
+    {
+        HttpRequestHeaders headers = httpClient.DefaultRequestHeaders;
+        headers.Remove("dseed");
+        headers.Add("dseed", $"{Random.Shared.Next(0, 999999)}");
+        headers.Remove("ds");
+        headers.Add("ds", $"{SHA256Hash($"{SHA256Hash(JsonSerializer.Serialize(data))}{options.ApiSalt}")}");
     }
 
     private IEnumerable<SubmitDetailModel> ToSubmitDetailModels(List<SimpleFloor> floors)
