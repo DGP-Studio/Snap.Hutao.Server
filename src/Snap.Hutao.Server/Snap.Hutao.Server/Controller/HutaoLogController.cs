@@ -23,18 +23,17 @@ public class HutaoLogController : ControllerBase
     }
 
     [HttpPost("Upload")]
-    public async Task<IActionResult> Upload([FromBody] HutaoUploadLog uploadLog)
+    public async Task<IActionResult> ProcessUploadLog([FromBody] HutaoUploadLog uploadLog)
     {
         return await telemetryService.ProcessCrashLogAsync(uploadLog, Request.Headers.UserAgent!) switch
         {
             CrashLogProcessResult.Ok => Model.Response.Response.Success("日志上传成功"),
             _ => Model.Response.Response.Fail(ReturnCode.InvalidUploadData, "数据不完整"),
-
         };
     }
 
     [HttpGet("ByDeviceId")]
-    public async Task<IActionResult> ByDeviceId([FromQuery(Name = "id")] string deviceId)
+    public async Task<IActionResult> LatestByDeviceId([FromQuery(Name = "id")] string deviceId)
     {
         return Response<List<HutaoLog>>.Success("获取记录成功", await telemetryService.GetLogsByDeviceId(deviceId).ConfigureAwait(false));
     }

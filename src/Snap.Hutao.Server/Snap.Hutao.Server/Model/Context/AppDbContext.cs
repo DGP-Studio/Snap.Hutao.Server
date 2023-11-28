@@ -4,6 +4,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Snap.Hutao.Server.Model.Context.Configuration;
 using Snap.Hutao.Server.Model.Entity;
+using Snap.Hutao.Server.Model.Entity.Passport;
 
 namespace Snap.Hutao.Server.Model.Context;
 
@@ -115,6 +116,8 @@ public class AppDbContext : IdentityDbContext<HutaoUser, IdentityRole<int>, int>
     /// 允许的版本头
     /// </summary>
     public DbSet<AllowedVersion> AllowedVersions { get; set; } = default!;
+
+    public DbSet<PassportVerification> PassportVerifications { get; set; } = default!;
 
     /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder modelBuilder)

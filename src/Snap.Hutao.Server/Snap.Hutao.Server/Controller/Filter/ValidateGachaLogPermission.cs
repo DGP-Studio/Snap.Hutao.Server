@@ -20,13 +20,13 @@ public sealed class ValidateGachaLogPermission : IAsyncActionFilter
     {
         if (!context.TryGetUserId(out int userId))
         {
-            context.Result = Response.Fail(ReturnCode.LoginFail, "请先登录或注册胡桃账号", "ServerPassportLoginRequired");
+            context.Result = Response.Fail(ReturnCode.LoginFail, "请先登录或注册胡桃账号", ServerKeys.ServerPassportLoginRequired);
             return;
         }
 
         if (!await CanUseGachaLogServiceAsync(userId).ConfigureAwait(false))
         {
-            context.Result = Response.Fail(ReturnCode.GachaLogServiceNotAllowed, "未开通祈愿记录上传服务或已到期", "ServerGachaLogServiceInsufficientTime");
+            context.Result = Response.Fail(ReturnCode.GachaLogServiceNotAllowed, "未开通祈愿记录上传服务或已到期", ServerKeys.ServerGachaLogServiceInsufficientTime);
             return;
         }
 

@@ -1,0 +1,16 @@
+﻿// Copyright (c) DGP Studio. All rights reserved.
+// Licensed under the MIT license.
+
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace Snap.Hutao.Server.Model.Entity.Passport;
+
+[Table("passport_verifications")]
+public class PassportVerification
+{
+    public string NormalizedUserName { get; set; } = default!;
+
+    public string VerifyCode { get; set; } = default!;
+
+    public long ExpireTimestamp { get; set; } = default!;
+}
