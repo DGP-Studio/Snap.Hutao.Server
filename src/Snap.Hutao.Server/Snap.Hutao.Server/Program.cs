@@ -20,15 +20,8 @@ using Swashbuckle.AspNetCore.SwaggerUI;
 
 namespace Snap.Hutao.Server;
 
-/// <summary>
-/// 主程序
-/// </summary>
 public static class Program
 {
-    /// <summary>
-    /// 入口
-    /// </summary>
-    /// <param name="args">参数</param>
     public static void Main(string[] args)
     {
         WebApplicationBuilder appBuilder = WebApplication.CreateBuilder(args);
@@ -84,13 +77,15 @@ public static class Program
                 string xmlPath = Path.Combine(AppContext.BaseDirectory, "Snap.Hutao.Server.xml");
                 options.IncludeXmlComments(xmlPath);
             })
+            .AddTransient<CountRequests>()
             .AddTransient<GachaLogStatisticsRefreshJob>()
             .AddTransient<GachaLogStatisticsService>()
             .AddTransient<LegacyStatisticsRefreshJob>()
             .AddTransient<StatisticsService>()
             .AddTransient<ReCaptchaService>()
-            .AddTransient<CountRequests>()
-            .AddTransient<SpialAbyssRecordCleanJob>();
+            .AddTransient<SpialAbyssRecordCleanJob>()
+            .AddTransient<ValidateGachaLogPermission>()
+            .AddTransient<ValidateMaintainPermission>();
 
         // Authentication
         services
