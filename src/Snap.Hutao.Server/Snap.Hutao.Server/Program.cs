@@ -65,6 +65,8 @@ public static class Program
             .AddScoped<PassportService>()
             .AddScoped<PassportVerificationService>()
             .AddScoped<PizzaHelperRecordService>()
+            .AddScoped<RecordService>()
+            .AddScoped<SpiralAbyssStatisticsService>()
             .AddSingleton<IAuthorizationMiddlewareResultHandler, ResponseAuthorizationMiddlewareResultHandler>()
             .AddSingleton<IRankService, RankService>()
             .AddSingleton<MailService>()

@@ -16,83 +16,27 @@ using System.Collections.Concurrent;
 
 namespace Snap.Hutao.Server.Controller;
 
-/// <summary>
-/// 记录控制器
-/// </summary>
 [ApiController]
 [Route("[controller]")]
 [ServiceFilter(typeof(CountRequests))]
 [ApiExplorerSettings(GroupName = "SpiralAbyss")]
 public class RecordController : ControllerBase
 {
-    private static readonly ConcurrentDictionary<string, UploadToken> UidUploading = new();
-    private readonly AppDbContext appDbContext;
+    private readonly RecordService recordService;
     private readonly IRankService rankService;
-    private readonly ExpireService expireService;
-    private readonly PizzaHelperRecordService pizzaHelperRecordService;
-    private readonly IMemoryCache memoryCache;
 
-    /// <summary>
-    /// 构造一个新的记录控制器
-    /// </summary>
-    /// <param name="serviceProvider">服务提供器</param>
-    public RecordController(IServiceProvider serviceProvider)
+    public RecordController(RecordService recordService, IRankService rankService)
     {
-        appDbContext = serviceProvider.GetRequiredService<AppDbContext>();
-        rankService = serviceProvider.GetRequiredService<IRankService>();
-        expireService = serviceProvider.GetRequiredService<ExpireService>();
-        pizzaHelperRecordService = serviceProvider.GetRequiredService<PizzaHelperRecordService>();
-        memoryCache = serviceProvider.GetRequiredService<IMemoryCache>();
+        this.recordService = recordService;
+        this.rankService = rankService;
     }
 
-    /// <summary>
-    /// 上传记录
-    /// </summary>
-    /// <param name="record">记录</param>
-    /// <param name="returningRank">返回排行结果</param>
-    /// <returns>上传结果</returns>
     [HttpPost("Upload")]
-    public async Task<IActionResult> UploadAsync([FromBody] SimpleRecord record, [FromQuery] bool returningRank = false)
+    public async Task<IActionResult> ProcessUploadRecordAsync([FromBody] SimpleRecord record, [FromQuery] bool returningRank = false)
     {
-        if (memoryCache.TryGetValue(StatisticsService.Working, out object? _))
-        {
-            return Model.Response.Response.Fail(ReturnCode.ComputingStatistics, "正在计算统计数据", "ServerRecordComputingStatistics");
-        }
+        RecordUploadResult result = await recordService.ProcessUploadAsync(record).ConfigureAwait(false);
 
-        if (appDbContext.BannedList.Any(banned => banned.Uid == record.Uid))
-        {
-            return Model.Response.Response.Fail(ReturnCode.BannedUid, "Uid 已被数据库封禁", "ServerRecordBannedUid");
-        }
-
-        if (record.SpiralAbyss.ScheduleId != StatisticsHelper.GetScheduleId())
-        {
-            return Model.Response.Response.Fail(ReturnCode.NotCurrentSchedule, "非当前深渊数据", "ServerRecordNotCurrentSchedule");
-        }
-
-        if (!record.Validate())
-        {
-            return Model.Response.Response.Fail(ReturnCode.InvalidUploadData, "无效的提交数据", "ServerRecordInvalidData");
-        }
-
-        if (UidUploading.TryGetValue(record.Uid, out _))
-        {
-            return Model.Response.Response.Fail(ReturnCode.PreviousRequestNotCompleted, "该UID的请求尚在处理", "ServerRecordPreviousRequestNotCompleted");
-        }
-
-        if (!UidUploading.TryAdd(record.Uid, new()))
-        {
-            return Model.Response.Response.Fail(ReturnCode.InternalStateException, "提交状态异常", "ServerRecordInternalException");
-        }
-
-        RecordUploadResult result = await RecordHelper.SaveRecordAsync(appDbContext, rankService, expireService, record).ConfigureAwait(false);
-        await pizzaHelperRecordService.TryPostRecordAsync(record).ConfigureAwait(false);
-
-        if (!UidUploading.TryRemove(record.Uid, out _))
-        {
-            return Model.Response.Response.Fail(ReturnCode.InternalStateException, "提交状态异常", "ServerRecordInternalException");
-        }
-
-        if (returningRank)
+        if (returningRank && result < RecordUploadResult.None)
         {
             Rank rank = await rankService.RetriveRankAsync(record.Uid).ConfigureAwait(false);
             return Response<Rank>.Success("获取排行数据成功", rank);
@@ -101,24 +45,27 @@ public class RecordController : ControllerBase
         {
             return result switch
             {
-                RecordUploadResult.GachaLogExtented => Model.Response.Response.Success("数据提交成功，获赠 3 天祈愿记录上传服务时长", "ServerRecordUploadSuccessAndGachaLogServiceTimeExtended"),
-                RecordUploadResult.NotSnapHutao => Model.Response.Response.Success("数据提交成功，但不是由胡桃客户端发起，无法获赠祈愿记录上传服务时长"),
-                RecordUploadResult.NotFirstAttempt => Model.Response.Response.Success("数据提交成功，但不是本期首次提交，无法获赠祈愿记录上传服务时长", "ServerRecordUploadSuccessButNotFirstTimeAtCurrentSchedule"),
-                RecordUploadResult.NoUserNamePresented => Model.Response.Response.Success("数据提交成功，但未绑定胡桃账号，无法获赠祈愿记录上传服务时长", "ServerRecordUploadSuccessButNoPassport"),
+                RecordUploadResult.OkWithNotFirstAttempt => Model.Response.Response.Success("数据提交成功，但不是本期首次提交，无法获赠祈愿记录上传服务时长", ServerKeys.ServerRecordUploadSuccessButNotFirstTimeAtCurrentSchedule),
+                RecordUploadResult.OkWithNotSnapHutaoClient => Model.Response.Response.Success("数据提交成功，但不是由胡桃客户端发起，无法获赠祈愿记录上传服务时长"),
+                RecordUploadResult.OkWithNoUserNamePresented => Model.Response.Response.Success("数据提交成功，但未绑定胡桃账号，无法获赠祈愿记录上传服务时长", ServerKeys.ServerRecordUploadSuccessButNoPassport),
+                RecordUploadResult.OkWithGachaLogExtented => Model.Response.Response.Success("数据提交成功，获赠 3 天祈愿记录上传服务时长", ServerKeys.ServerRecordUploadSuccessAndGachaLogServiceTimeExtended),
+                RecordUploadResult.OkWithGachaLogNoSuchUser => Model.Response.Response.Success("数据提交成功，但不存在该胡桃账号", ServerKeys.ServerRecordUploadSuccessButNoSuchUser),
+
+                RecordUploadResult.ComputingStatistics => Model.Response.Response.Fail(ReturnCode.ComputingStatistics, "正在计算统计数据", "ServerRecordComputingStatistics"),
+                RecordUploadResult.UidBanned => Model.Response.Response.Fail(ReturnCode.BannedUid, "Uid 已被数据库封禁", "ServerRecordBannedUid"),
+                RecordUploadResult.NotCurrentSchedule => Model.Response.Response.Fail(ReturnCode.NotCurrentSchedule, "非当前深渊数据", "ServerRecordNotCurrentSchedule"),
+                RecordUploadResult.InvalidData => Model.Response.Response.Fail(ReturnCode.InvalidUploadData, "无效的提交数据", "ServerRecordInvalidData"),
+                RecordUploadResult.ConcurrencyNotSupported => Model.Response.Response.Fail(ReturnCode.PreviousRequestNotCompleted, "该UID的请求尚在处理", "ServerRecordPreviousRequestNotCompleted"),
+                RecordUploadResult.ConcurrencyStateErrorAdd or RecordUploadResult.ConcurrencyStateErrorRemove => Model.Response.Response.Fail(ReturnCode.InternalStateException, "提交状态异常", "ServerRecordInternalException"),
                 _ => Model.Response.Response.Success("数据提交成功"),
             };
         }
     }
 
-    /// <summary>
-    /// 检查uid对应的记录是否存在
-    /// </summary>
-    /// <param name="uid">uid</param>
-    /// <returns>是否存在记录</returns>
     [HttpGet("Check")]
-    public async Task<IActionResult> CheckAsync([FromQuery(Name = "Uid")] string uid)
+    public async Task<IActionResult> CheckUidUploadedAsync([FromQuery(Name = "Uid")] string uid)
     {
-        if (memoryCache.TryGetValue(StatisticsService.Working, out object? _))
+        if (recordService.IsStatisticsServiceWorking())
         {
             return Model.Response.Response.Fail(ReturnCode.ComputingStatistics, "正在计算统计数据", "ServerRecordComputingStatistics2");
         }
@@ -128,31 +75,14 @@ public class RecordController : ControllerBase
             return Model.Response.Response.Fail(ReturnCode.InvalidQueryString, $"{uid}不是合法的uid", "ServerRecordInvalidUid");
         }
 
-        EntityRecord? record = appDbContext.Records.SingleOrDefault(r => r.Uid == uid);
-
-        if (record != null)
-        {
-            long recordId = record.PrimaryId;
-            EntitySpiralAbyss? spiralAbyss = await appDbContext.SpiralAbysses.SingleOrDefaultAsync(r => r.RecordId == recordId).ConfigureAwait(false);
-
-            if (spiralAbyss != null)
-            {
-                return Response<bool>.Success("查询成功", true);
-            }
-        }
-
-        return Response<bool>.Success("查询成功", false);
+        bool uploaded = await recordService.HaveUidUploadedAsync(uid).ConfigureAwait(false);
+        return Response<bool>.Success("查询成功", uploaded);
     }
 
-    /// <summary>
-    /// 获取排行
-    /// </summary>
-    /// <param name="uid">uid</param>
-    /// <returns>排行</returns>
     [HttpGet("Rank")]
     public async Task<IActionResult> RankAsync([FromQuery(Name = "Uid")] string uid)
     {
-        if (memoryCache.TryGetValue(StatisticsService.Working, out object? _))
+        if (recordService.IsStatisticsServiceWorking())
         {
             return Model.Response.Response.Fail(ReturnCode.ComputingStatistics, "正在计算统计数据", "ServerRecordComputingStatistics2");
         }
@@ -164,12 +94,5 @@ public class RecordController : ControllerBase
 
         Rank rank = await rankService.RetriveRankAsync(uid).ConfigureAwait(false);
         return Response<Rank>.Success("获取排行数据成功", rank);
-    }
-
-    /// <summary>
-    /// 并行上传占位
-    /// </summary>
-    private struct UploadToken
-    {
     }
 }

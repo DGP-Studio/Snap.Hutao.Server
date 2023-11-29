@@ -26,4 +26,8 @@ public static class ServerKeys
     public const string ServerPassportVerifyRequestSuccess = "ServerPassportVerifyRequestSuccess";
     public const string ServerPassportVerifyRequestNotCurrentUser = "ServerPassportVerifyRequestNotCurrentUser";
     public const string ServerPassportVerifyRequestUserAlreadyExisted = "ServerPassportVerifyRequestUserAlreadyExisted";
+    public const string ServerRecordUploadSuccessAndGachaLogServiceTimeExtended = "ServerRecordUploadSuccessAndGachaLogServiceTimeExtended";
+    public const string ServerRecordUploadSuccessButNoPassport = "ServerRecordUploadSuccessButNoPassport";
+    public const string ServerRecordUploadSuccessButNoSuchUser = "ServerRecordUploadSuccessButNoSuchUser";
+    public const string ServerRecordUploadSuccessButNotFirstTimeAtCurrentSchedule = "ServerRecordUploadSuccessButNotFirstTimeAtCurrentSchedule";
 }

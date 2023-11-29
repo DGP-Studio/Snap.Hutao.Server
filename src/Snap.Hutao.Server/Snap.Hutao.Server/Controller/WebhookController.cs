@@ -3,6 +3,7 @@
 
 using Snap.Hutao.Server.Model.Afdian;
 using Snap.Hutao.Server.Service;
+using Snap.Hutao.Server.Service.GachaLog;
 
 namespace Snap.Hutao.Server.Controller;
 
@@ -14,6 +15,7 @@ namespace Snap.Hutao.Server.Controller;
 [ApiExplorerSettings(IgnoreApi = true)]
 public class WebhookController : ControllerBase
 {
+    // TODO move to config
     private const string UserId = "8f9ed3e87f4911ebacb652540025c377";
     private const string SkuGachaLogUploadService = "80d6dcb8cf9011ed9c3652540025c377";
 
@@ -68,11 +70,12 @@ public class WebhookController : ControllerBase
 
                     if (await ValidateTradeAsync(tradeNumber, skuId, count).ConfigureAwait(false))
                     {
-                        await expireService.ExtendGachaLogTermAsync(userName, 30 * count, async user =>
+                        GachaLogTermExtendResult result = await expireService.ExtendGachaLogTermForUserNameAsync(userName, 30 * count).ConfigureAwait(false);
+
+                        if (result.Kind is GachaLogTermExtendResultKind.Ok)
                         {
-                            string expireAt = DateTimeOffset.FromUnixTimeSeconds(user.GachaLogExpireAt).ToString("yyy/MM/dd HH:mm:ss");
-                            await mailService.SendPurchaseGachaLogStorageServiceAsync(userName, expireAt, tradeNumber).ConfigureAwait(false);
-                        }).ConfigureAwait(false);
+                            await mailService.SendPurchaseGachaLogStorageServiceAsync(userName, result.ExpiredAt.ToString("yyy/MM/dd HH:mm:ss"), tradeNumber).ConfigureAwait(false);
+                        }
                     }
                     else
                     {

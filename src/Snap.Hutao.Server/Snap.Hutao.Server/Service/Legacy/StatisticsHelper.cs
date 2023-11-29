@@ -247,6 +247,7 @@ public static class StatisticsHelper
     /// 获取深渊期数
     /// </summary>
     /// <returns>当前深渊期数</returns>
+    [Obsolete("Use SpiralAbyssScheduleId instead")]
     public static int GetScheduleId()
     {
         return GetScheduleId(DateTimeOffset.Now);

@@ -127,4 +127,6 @@ public enum ReturnCode
     /// 用户名不存在
     /// </summary>
     UserNameNotExists = 500051,
+
+    GachaLogExtendDatabaseOperationFailed = 500060,
 }

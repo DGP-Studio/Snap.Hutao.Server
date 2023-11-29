@@ -3,6 +3,7 @@
 
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity;
+using Snap.Hutao.Server.Model.Upload;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Snap.Hutao.Server.Service.Announcement;
@@ -52,6 +53,24 @@ public sealed class AnnouncementService
         }
 
         return result;
+    }
+
+    public async ValueTask ProcessUploadAnnouncementAsync(HutaoUploadAnnouncement announcement)
+    {
+        EntityAnnouncement entity = new()
+        {
+            Locale = "ALL",
+            LastUpdateTime = DateTimeOffset.Now.ToUnixTimeSeconds(),
+            Title = announcement.Title,
+            Content = announcement.Content,
+            Severity = announcement.Severity,
+            Link = announcement.Link,
+            MaxPresentVersion = announcement.MaxPresentVersion,
+        };
+
+        appDbContext.Announcements.Add(entity);
+
+        await appDbContext.SaveChangesAsync().ConfigureAwait(false);
     }
 
     private static bool TryGetClientVersion(string? userAgent, [NotNullWhen(true)] out Version? version)
