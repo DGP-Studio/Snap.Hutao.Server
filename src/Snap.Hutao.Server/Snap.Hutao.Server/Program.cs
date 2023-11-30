@@ -1,15 +1,22 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
+using Disqord;
+using Disqord.Bot.Hosting;
+using Disqord.Gateway;
 using Quartz;
 using Quartz.AspNetCore;
 using Snap.Hutao.Server.Controller.Filter;
+using Snap.Hutao.Server.Discord;
 using Snap.Hutao.Server.Job;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity;
+using Snap.Hutao.Server.Option;
 using Snap.Hutao.Server.Service;
+using Snap.Hutao.Server.Service.Afdian;
 using Snap.Hutao.Server.Service.Announcement;
 using Snap.Hutao.Server.Service.Authorization;
+using Snap.Hutao.Server.Service.Discord;
 using Snap.Hutao.Server.Service.GachaLog;
 using Snap.Hutao.Server.Service.Legacy;
 using Snap.Hutao.Server.Service.Legacy.PizzaHelper;
@@ -28,13 +35,15 @@ public static class Program
 
         IServiceCollection services = appBuilder.Services;
 
+        AppOptions appOptions = appBuilder.Configuration.Get<AppOptions>()!;
+
         // Services
         services
             .AddAuthorization()
-            .AddCors(options => options.AddPolicy("CorsPolicy", builder => builder.AllowAnyMethod().AllowAnyHeader().AllowAnyOrigin()))
+            .AddCors(options => options.AddDefaultPolicy(builder => builder.AllowAnyMethod().AllowAnyHeader().AllowAnyOrigin()))
             .AddDbContextPool<AppDbContext>((serviceProvider, options) =>
             {
-                string connectionString = appBuilder.Configuration.GetConnectionString("LocalDb")!;
+                string connectionString = appBuilder.Configuration.GetConnectionString("PrimaryMysql8")!;
                 ILogger<AppDbContext> logger = serviceProvider.GetRequiredService<ILogger<AppDbContext>>();
                 logger.LogInformation("Using connection string: [{Constr}]", connectionString);
 
@@ -60,13 +69,13 @@ public static class Program
             .AddScoped<PizzaHelperRecordService>()
             .AddScoped<RecordService>()
             .AddScoped<SpiralAbyssStatisticsService>()
+            .AddSingleton<AfdianWebhookService>()
+            .AddSingleton<DiscordService>()
             .AddSingleton<IAuthorizationMiddlewareResultHandler, ResponseAuthorizationMiddlewareResultHandler>()
             .AddSingleton<IRankService, RankService>()
             .AddSingleton<MailService>()
             .AddSingleton<ExpireService>()
-            .AddSingleton(appBuilder.Configuration.Get<AppOptions>()!)
-            .AddSingleton(appBuilder.Configuration.GetSection("Smtp").Get<SmtpOptions>()!)
-            .AddSingleton(appBuilder.Configuration.GetSection("GenshinPizzaHelper").Get<PizzaHelperOptions>()!)
+            .AddSingleton(appOptions)
             .AddSwaggerGen(options =>
             {
                 options.SwaggerDoc("SpiralAbyss", new() { Version = "1.0", Title = "深渊统计", Description = "深渊统计数据" });
@@ -139,6 +148,14 @@ public static class Program
                 jsonOptions.PropertyNameCaseInsensitive = true;
                 jsonOptions.WriteIndented = true;
             });
+
+        // Discord Bot
+        appBuilder.Host.ConfigureDiscordBot<HutaoServerBot>((hostContext, botContext) =>
+        {
+            botContext.OwnerIds = appOptions.Discord.OwnerIds.Select(id => (Snowflake)id);
+            botContext.Intents = GatewayIntents.LibraryRecommended | GatewayIntents.DirectMessages;
+            botContext.Token = appOptions.Discord.Token;
+        });
 
         WebApplication app = appBuilder.Build();
         MigrateDatabase(app);

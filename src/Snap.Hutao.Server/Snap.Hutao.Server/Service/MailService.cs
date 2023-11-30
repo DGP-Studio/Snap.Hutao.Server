@@ -3,6 +3,7 @@
 
 using MailKit.Net.Smtp;
 using MimeKit;
+using Snap.Hutao.Server.Option;
 using System.Runtime.CompilerServices;
 
 namespace Snap.Hutao.Server.Service;
@@ -15,15 +16,10 @@ public sealed class MailService
     private readonly ILogger<MailService> logger;
     private readonly SmtpOptions smtpOptions;
 
-    /// <summary>
-    /// 构造一个新的邮件服务
-    /// </summary>
-    /// <param name="smtpOptions">配置</param>
-    /// <param name="logger">日志器</param>
-    public MailService(SmtpOptions smtpOptions, ILogger<MailService> logger)
+    public MailService(AppOptions appOptions, ILogger<MailService> logger)
     {
         this.logger = logger;
-        this.smtpOptions = smtpOptions;
+        smtpOptions = appOptions.Smtp;
 
         logger.LogInformation("Initialized with UserName:{UserName} Password:{Password}", smtpOptions.UserName, smtpOptions.Password);
     }

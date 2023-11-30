@@ -2,16 +2,9 @@
 // Licensed under the MIT license.
 
 using Snap.Hutao.Server.Controller.Filter;
-using Snap.Hutao.Server.Core;
-using Snap.Hutao.Server.Extension;
-using Snap.Hutao.Server.Model.Context;
-using Snap.Hutao.Server.Model.Entity;
 using Snap.Hutao.Server.Model.OpenSource;
-using Snap.Hutao.Server.Model.ReCaptcha;
 using Snap.Hutao.Server.Model.Response;
-using Snap.Hutao.Server.Service;
 using Snap.Hutao.Server.Service.Licensing;
-using Snap.Hutao.Server.Service.ReCaptcha;
 
 namespace Snap.Hutao.Server.Controller;
 

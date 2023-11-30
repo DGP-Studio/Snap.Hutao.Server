@@ -2,34 +2,26 @@
 // Licensed under the MIT license.
 
 using Snap.Hutao.Server.Model.Afdian;
+using Snap.Hutao.Server.Option;
 using Snap.Hutao.Server.Service;
+using Snap.Hutao.Server.Service.Afdian;
 using Snap.Hutao.Server.Service.GachaLog;
 
 namespace Snap.Hutao.Server.Controller;
 
-/// <summary>
-/// Webhook 控制器
-/// </summary>
 [ApiController]
 [Route("[controller]")]
 [ApiExplorerSettings(IgnoreApi = true)]
 public class WebhookController : ControllerBase
 {
-    // TODO move to config
-    private const string UserId = "8f9ed3e87f4911ebacb652540025c377";
-    private const string SkuGachaLogUploadService = "80d6dcb8cf9011ed9c3652540025c377";
-
+    private readonly AfdianWebhookService afdianWebhookService;
     private readonly ExpireService expireService;
     private readonly MailService mailService;
     private readonly HttpClient httpClient;
     private readonly IMemoryCache memoryCache;
     private readonly ILogger<WebhookController> logger;
-    private readonly string afdianToken;
+    private readonly AfdianOptions afdianOptions;
 
-    /// <summary>
-    /// 构造一个新的 Webhook 控制器
-    /// </summary>
-    /// <param name="serviceProvider">服务提供器</param>
     public WebhookController(IServiceProvider serviceProvider)
     {
         expireService = serviceProvider.GetRequiredService<ExpireService>();
@@ -37,15 +29,8 @@ public class WebhookController : ControllerBase
         httpClient = serviceProvider.GetRequiredService<HttpClient>();
         memoryCache = serviceProvider.GetRequiredService<IMemoryCache>();
         logger = serviceProvider.GetRequiredService<ILogger<WebhookController>>();
-
-        afdianToken = serviceProvider.GetRequiredService<AppOptions>().Afdian;
     }
 
-    /// <summary>
-    /// 爱发电
-    /// </summary>
-    /// <param name="request">请求</param>
-    /// <returns>结果</returns>
     [HttpGet("Incoming/Afdian")]
     [HttpPost("Incoming/Afdian")]
     public async Task<IActionResult> IncomingAfdianAsync([FromBody] AfdianResponse<OrderWrapper> request)
@@ -63,7 +48,7 @@ public class WebhookController : ControllerBase
             if (request.Data.Order.SkuDetail.FirstOrDefault() is SkuDetail skuDetail)
             {
                 // GachaLog Upload
-                if (skuDetail.SkuId == SkuGachaLogUploadService)
+                if (skuDetail.SkuId == afdianOptions.SkuGachaLogUploadService)
                 {
                     string skuId = skuDetail.SkuId;
                     int count = skuDetail.Count;
@@ -98,7 +83,7 @@ public class WebhookController : ControllerBase
 
     private async Task<bool> ValidateTradeAsync(string tradeNumber, string skuId, int count)
     {
-        QueryOrder query = QueryOrder.Create(UserId, tradeNumber, afdianToken);
+        QueryOrder query = QueryOrder.Create(afdianOptions.UserId, tradeNumber, afdianOptions.UserToken);
         logger.LogInformation("Fetch data for trade: [{trade}]", tradeNumber);
         HttpResponseMessage response = await httpClient.PostAsJsonAsync("https://afdian.net/api/open/query-order", query).ConfigureAwait(false);
         response.EnsureSuccessStatusCode();

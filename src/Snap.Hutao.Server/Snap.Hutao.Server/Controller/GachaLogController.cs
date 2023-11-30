@@ -2,14 +2,10 @@
 // Licensed under the MIT license.
 
 using Snap.Hutao.Server.Controller.Filter;
-using Snap.Hutao.Server.Extension;
-using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity;
 using Snap.Hutao.Server.Model.GachaLog;
-using Snap.Hutao.Server.Model.Metadata;
 using Snap.Hutao.Server.Model.Response;
 using Snap.Hutao.Server.Service.GachaLog;
-using System.Runtime.InteropServices;
 
 namespace Snap.Hutao.Server.Controller;
 

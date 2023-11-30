@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 
 using Snap.Hutao.Server.Model.Upload;
+using Snap.Hutao.Server.Option;
 using System.Net.Http.Headers;
 using System.Security.Cryptography;
 
@@ -9,17 +10,16 @@ namespace Snap.Hutao.Server.Service.Legacy.PizzaHelper;
 
 internal sealed class PizzaHelperRecordService
 {
-    private const string UserHoldingUploadApi = "http://81.70.76.222/user_holding/upload";
-    private const string AbyssUploadApi = "http://81.70.76.222/abyss/upload";
+    private readonly string AbyssUploadApi = "http://81.70.76.222/abyss/upload";
 
     private readonly HttpClient httpClient; // 81.70.76.222
-    private readonly PizzaHelperOptions options;
+    private readonly GenshinPizzaHelperOptions options;
     private readonly ILogger<PizzaHelperRecordService> logger;
 
-    public PizzaHelperRecordService(HttpClient httpClient, PizzaHelperOptions options, ILogger<PizzaHelperRecordService> logger)
+    public PizzaHelperRecordService(HttpClient httpClient, AppOptions appOptions, ILogger<PizzaHelperRecordService> logger)
     {
         this.httpClient = httpClient;
-        this.options = options;
+        options = appOptions.GenshinPizzaHelper;
         this.logger = logger;
     }
 
@@ -42,7 +42,7 @@ internal sealed class PizzaHelperRecordService
         };
 
         AddSignatureToHttpClientHeader(holdingData);
-        using (HttpResponseMessage response = await httpClient.PostAsJsonAsync(UserHoldingUploadApi, holdingData).ConfigureAwait(false))
+        using (HttpResponseMessage response = await httpClient.PostAsJsonAsync(options.EndPoints.AvatarHolding, holdingData).ConfigureAwait(false))
         {
             logger.LogInformation("Pizza Helper user holding sync: {Resp}", await response.Content.ReadAsStringAsync().ConfigureAwait(false));
         }
@@ -75,7 +75,7 @@ internal sealed class PizzaHelperRecordService
         };
 
         AddSignatureToHttpClientHeader(abyssData);
-        using (HttpResponseMessage response = await httpClient.PostAsJsonAsync(AbyssUploadApi, abyssData).ConfigureAwait(false))
+        using (HttpResponseMessage response = await httpClient.PostAsJsonAsync(options.EndPoints.SpiralAbyss, abyssData).ConfigureAwait(false))
         {
             logger.LogInformation("Pizza Helper abyss sync: {Resp}", await response.Content.ReadAsStringAsync().ConfigureAwait(false));
         }

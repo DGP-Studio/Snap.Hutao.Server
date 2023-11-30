@@ -4,27 +4,25 @@
 using Snap.Hutao.Server.Controller;
 using Snap.Hutao.Server.Model.Entity;
 using Snap.Hutao.Server.Model.Passport;
+using Snap.Hutao.Server.Option;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 
 namespace Snap.Hutao.Server.Service.Authorization;
 
-/// <summary>
-/// 通行证服务
-/// </summary>
 public sealed class PassportService
 {
     private readonly UserManager<HutaoUser> userManager;
-    private readonly string rsaPrivateKey;
     private readonly SymmetricSecurityKey jwtSigningKey;
+    private readonly string rsaPrivateKey;
 
     public PassportService(UserManager<HutaoUser> userManager, AppOptions appOptions)
     {
         this.userManager = userManager;
 
+        jwtSigningKey = appOptions.GetJwtSecurityKey();
         rsaPrivateKey = appOptions.RSAPrivateKey;
-        jwtSigningKey = appOptions.JwtSecurityKey;
     }
 
     public string Decrypt(string source)

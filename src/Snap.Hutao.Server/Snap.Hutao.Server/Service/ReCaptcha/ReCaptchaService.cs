@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 
 using Snap.Hutao.Server.Model.ReCaptcha;
+using Snap.Hutao.Server.Option;
 
 namespace Snap.Hutao.Server.Service.ReCaptcha;
 
