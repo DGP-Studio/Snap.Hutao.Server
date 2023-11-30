@@ -3,7 +3,7 @@
 
 using Snap.Hutao.Server.Extension;
 using Snap.Hutao.Server.Model.Context;
-using Snap.Hutao.Server.Model.Entity;
+using Snap.Hutao.Server.Model.Entity.GachaLog;
 using Snap.Hutao.Server.Model.GachaLog;
 using Snap.Hutao.Server.Model.Metadata;
 using System.Runtime.InteropServices;
@@ -66,7 +66,7 @@ public sealed class GachaLogService
     {
         List<SimpleGachaItem> gachaItems = [];
 
-        foreach ((GachaConfigType configType, long exactEndId) in endIds.Enumerate())
+        foreach ((GachaConfigType configType, long exactEndId) in endIds.EnumerateAsNewest())
         {
             List<EntityGachaItem> items = await appDbContext.GachaItems
                 .AsNoTracking()

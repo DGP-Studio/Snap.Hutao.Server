@@ -2,7 +2,7 @@
 // Licensed under the MIT license.
 
 using Snap.Hutao.Server.Controller;
-using Snap.Hutao.Server.Model.Entity;
+using Snap.Hutao.Server.Model.Entity.Passport;
 using Snap.Hutao.Server.Model.Passport;
 using Snap.Hutao.Server.Option;
 using System.IdentityModel.Tokens.Jwt;

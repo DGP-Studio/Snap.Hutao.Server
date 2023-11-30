@@ -3,7 +3,7 @@
 
 using Snap.Hutao.Server.Extension;
 using Snap.Hutao.Server.Model.Context;
-using Snap.Hutao.Server.Model.Entity;
+using Snap.Hutao.Server.Model.Entity.Telemetry;
 using Snap.Hutao.Server.Model.Upload;
 
 namespace Snap.Hutao.Server.Service.Telemetry;

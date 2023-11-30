@@ -2,7 +2,7 @@
 // Licensed under the MIT license.
 
 using Snap.Hutao.Server.Model.Context;
-using Snap.Hutao.Server.Model.Entity;
+using Snap.Hutao.Server.Model.Entity.Passport;
 using Snap.Hutao.Server.Model.Response;
 
 namespace Snap.Hutao.Server.Controller.Filter;

@@ -4,6 +4,7 @@
 using Snap.Hutao.Server.Extension;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity;
+using Snap.Hutao.Server.Model.Entity.GachaLog;
 using Snap.Hutao.Server.Model.GachaLog;
 using Snap.Hutao.Server.Model.Metadata;
 using Snap.Hutao.Server.Service.Legacy.Primitive;
@@ -14,9 +15,9 @@ namespace Snap.Hutao.Server.Service.GachaLog;
 public sealed class GachaLogStatisticsTracker
 {
     private readonly Map<int, int> idQualityMap;
-    private readonly GachaEvent currentAvatarEvent1;
-    private readonly GachaEvent currentAvatarEvent2;
-    private readonly GachaEvent currentWeaponEvent;
+    private readonly GachaEventSlim currentAvatarEvent1;
+    private readonly GachaEventSlim currentAvatarEvent2;
+    private readonly GachaEventSlim currentWeaponEvent;
 
     private readonly HashSet<string> invalidGachaUids = new();
 
@@ -34,7 +35,7 @@ public sealed class GachaLogStatisticsTracker
     private long totalWeaponEventValidPullsCounter;
     private long totalStandardValidPullsCounter;
 
-    internal GachaLogStatisticsTracker(Map<int, int> idQualityMap, GachaEvent currentAvatarEvent1, GachaEvent currentAvatarEvent2, GachaEvent currentWeaponEvent)
+    internal GachaLogStatisticsTracker(Map<int, int> idQualityMap, GachaEventSlim currentAvatarEvent1, GachaEventSlim currentAvatarEvent2, GachaEventSlim currentWeaponEvent)
     {
         this.idQualityMap = idQualityMap;
         this.currentAvatarEvent1 = currentAvatarEvent1;
@@ -148,7 +149,7 @@ public sealed class GachaLogStatisticsTracker
 
         if (statistics == null)
         {
-            statistics = GachaStatistics.Create(name);
+            statistics = GachaStatistics.CreateWithName(name);
             appDbContext.GachaStatistics.Add(statistics);
         }
 

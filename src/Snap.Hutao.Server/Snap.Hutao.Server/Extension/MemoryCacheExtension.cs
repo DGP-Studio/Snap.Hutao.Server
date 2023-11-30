@@ -3,18 +3,9 @@
 
 namespace Snap.Hutao.Server.Extension;
 
-/// <summary>
-/// 内存缓存拓展
-/// </summary>
 public static class MemoryCacheExtension
 {
-    /// <summary>
-    /// 在内存缓存中创建标志
-    /// </summary>
-    /// <param name="memoryCache">内存缓存</param>
-    /// <param name="name">标志名称</param>
-    /// <returns>消除标志</returns>
-    /// <exception cref="InvalidOperationException">已经存在名为name的标志</exception>
+    [Obsolete]
     public static IDisposable Flag(this IMemoryCache memoryCache, string name)
     {
         if (memoryCache.TryGetValue(name, out object? value))

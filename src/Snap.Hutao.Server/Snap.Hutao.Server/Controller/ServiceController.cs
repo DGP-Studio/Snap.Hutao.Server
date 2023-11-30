@@ -52,7 +52,7 @@ public class ServiceController : ControllerBase
         {
             GachaLogTermExtendResultKind.Ok => Model.Response.Response.Success($"操作成功，增加了 {days} 天时长，到期时间: {result.ExpiredAt}"),
             GachaLogTermExtendResultKind.NoSuchUser => Model.Response.Response.Fail(ReturnCode.UserNameNotExists, $"用户名不存在"),
-            _ => Model.Response.Response.Fail(ReturnCode.GachaLogExtendDatabaseOperationFailed, $"数据库错误"),
+            _ => Model.Response.Response.Fail(ReturnCode.GachaLogExtendDbException, $"数据库错误"),
         };
     }
 

@@ -2,7 +2,7 @@
 // Licensed under the MIT license.
 
 using Snap.Hutao.Server.Controller.Filter;
-using Snap.Hutao.Server.Model.Entity;
+using Snap.Hutao.Server.Model.Entity.SpiralAbyss;
 using Snap.Hutao.Server.Model.Legacy;
 using Snap.Hutao.Server.Model.Response;
 using Snap.Hutao.Server.Service.Legacy;

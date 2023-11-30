@@ -3,23 +3,11 @@
 
 namespace Snap.Hutao.Server.Model.Upload;
 
-/// <summary>
-/// 间信息
-/// </summary>
-public class SimpleLevel
+public sealed class SimpleLevel
 {
-    /// <summary>
-    /// 间遍号 1-3
-    /// </summary>
     public int Index { get; set; }
 
-    /// <summary>
-    /// 星数
-    /// </summary>
     public int Star { get; set; }
 
-    /// <summary>
-    /// 上下半信息
-    /// </summary>
     public List<SimpleBattle> Battles { get; set; } = default!;
 }

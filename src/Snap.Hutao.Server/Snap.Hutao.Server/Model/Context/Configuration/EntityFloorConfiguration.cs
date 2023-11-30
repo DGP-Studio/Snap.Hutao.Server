@@ -2,7 +2,7 @@
 // Licensed under the MIT license.
 
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Snap.Hutao.Server.Model.Entity;
+using Snap.Hutao.Server.Model.Entity.SpiralAbyss;
 using Snap.Hutao.Server.Model.Upload;
 
 namespace Snap.Hutao.Server.Model.Context.Configuration;

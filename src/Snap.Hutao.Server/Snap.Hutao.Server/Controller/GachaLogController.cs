@@ -2,7 +2,7 @@
 // Licensed under the MIT license.
 
 using Snap.Hutao.Server.Controller.Filter;
-using Snap.Hutao.Server.Model.Entity;
+using Snap.Hutao.Server.Model.Entity.GachaLog;
 using Snap.Hutao.Server.Model.GachaLog;
 using Snap.Hutao.Server.Model.Response;
 using Snap.Hutao.Server.Service.GachaLog;
@@ -93,7 +93,7 @@ public class GachaLogController : ControllerBase
             GachaLogSaveResultKind.Ok => Response<GachaLogSaveResult>.Success($"上传了 {uidAndItems.Uid} 的 {uidAndItems.Items.Count} 条数据，存储了 {result.SaveCount} 条数据", ServerKeys.ServerGachaLogServiceUploadEntrySucceed, result),
             GachaLogSaveResultKind.UidPerUserLimitExceeded => Model.Response.Response.Fail(ReturnCode.TooManyGachaLogUids, "单个胡桃账号最多保存 5 个 Uid 的祈愿记录", ServerKeys.ServerGachaLogServiceInsufficientRecordSlot),
             GachaLogSaveResultKind.InvalidGachaItemDetected => Model.Response.Response.Fail(ReturnCode.InvalidGachaLogItems, "无效的数据，无法保存至云端", ServerKeys.ServerGachaLogServiceInvalidGachaLogData),
-            GachaLogSaveResultKind.DatebaseOperationFailed => Model.Response.Response.Fail(ReturnCode.GachaLogDatabaseOperationFailed, "数据异常，无法保存至云端", ServerKeys.ServerGachaLogServiceServerDatabaseError),
+            GachaLogSaveResultKind.DatebaseOperationFailed => Model.Response.Response.Fail(ReturnCode.GachaLogDbException, "数据异常，无法保存至云端", ServerKeys.ServerGachaLogServiceServerDatabaseError),
             _ => throw new InvalidOperationException(),
         };
     }

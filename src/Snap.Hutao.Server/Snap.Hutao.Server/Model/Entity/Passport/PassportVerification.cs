@@ -1,8 +1,6 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
-using System.ComponentModel.DataAnnotations.Schema;
-
 namespace Snap.Hutao.Server.Model.Entity.Passport;
 
 [Table("passport_verifications")]

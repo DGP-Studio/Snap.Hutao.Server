@@ -35,7 +35,7 @@ public sealed class CountRequests : IAsyncActionFilter
 
         if (statistics == null)
         {
-            statistics = new(context);
+            statistics = RequestStatistics.CreateFromContext(context);
             appDbContext.RequestStatistics.Add(statistics);
         }
 

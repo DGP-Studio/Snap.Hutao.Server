@@ -1,8 +1,6 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
-using Disqord.Rest;
-using Snap.Hutao.Server.Discord;
 using Snap.Hutao.Server.Model.Afdian;
 using Snap.Hutao.Server.Option;
 using Snap.Hutao.Server.Service.Discord;
@@ -39,6 +37,7 @@ public sealed class AfdianWebhookService
 
         // prevent multiple requests in 10 minutes
         memoryCache.Set(orderNumber, default(RequestToken), TimeSpan.FromMinutes(10));
+
         AfdianOrderInformation info = await ProcessIncomingOrderCoreAsync(order).ConfigureAwait(false);
         await discordService.ReportAfdianOrderAsync(info).ConfigureAwait(false);
     }

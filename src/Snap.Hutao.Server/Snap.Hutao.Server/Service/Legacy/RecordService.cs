@@ -4,7 +4,7 @@
 using Microsoft.EntityFrameworkCore.Storage;
 using Snap.Hutao.Server.Extension;
 using Snap.Hutao.Server.Model.Context;
-using Snap.Hutao.Server.Model.Entity;
+using Snap.Hutao.Server.Model.Entity.SpiralAbyss;
 using Snap.Hutao.Server.Model.Upload;
 using Snap.Hutao.Server.Service.GachaLog;
 using Snap.Hutao.Server.Service.Legacy.PizzaHelper;

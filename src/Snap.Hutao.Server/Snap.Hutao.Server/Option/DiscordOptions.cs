@@ -11,10 +11,5 @@ public sealed class DiscordOptions
 
     public string Token { get; set; } = default!;
 
-    public KnownDiscordChannelIds ChannelIds { get; set; } = default!;
-}
-
-public sealed class KnownDiscordChannelIds
-{
-    public ulong PrivateReport { get; set; }
+    public KnownDiscordChannelOptions ChannelIds { get; set; } = default!;
 }

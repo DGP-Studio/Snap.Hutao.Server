@@ -1,35 +1,19 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
-using System.Diagnostics.CodeAnalysis;
-
 namespace Snap.Hutao.Server.Model.Response;
 
-/// <summary>
-/// 响应
-/// </summary>
 public class Response
 {
-    /// <summary>
-    /// 构造一个新的响应
-    /// </summary>
-    /// <param name="code">响应代码</param>
-    /// <param name="message">消息</param>
     public Response(ReturnCode code, string message)
     {
         Code = code;
         Message = message;
     }
 
-    /// <summary>
-    /// 返回代码
-    /// </summary>
     [JsonPropertyName("retcode")]
     public ReturnCode Code { get; set; }
 
-    /// <summary>
-    /// 消息
-    /// </summary>
     [JsonPropertyName("message")]
     public string Message { get; set; }
 
@@ -57,28 +41,15 @@ public class Response
     }
 }
 
-/// <summary>
-/// 带有数据的响应
-/// </summary>
-/// <typeparam name="T">T</typeparam>
 [SuppressMessage("", "SA1402")]
 public class Response<T> : Response
 {
-    /// <summary>
-    /// 构造一个新的响应
-    /// </summary>
-    /// <param name="code">响应代码</param>
-    /// <param name="message">消息</param>
-    /// <param name="data">数据</param>
     public Response(ReturnCode code, string message, T data)
         : base(code, message)
     {
         Data = data;
     }
 
-    /// <summary>
-    /// 数据
-    /// </summary>
     [JsonPropertyName("data")]
     public T? Data { get; set; }
 

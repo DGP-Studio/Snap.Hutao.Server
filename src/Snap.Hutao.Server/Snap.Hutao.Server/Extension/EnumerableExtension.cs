@@ -20,18 +20,11 @@ public static class EnumerableExtension
         ++CollectionsMarshal.GetValueRefOrAddDefault(dict, key, out _);
     }
 
-    /// <summary>
-    /// 转换到新类型的列表
-    /// </summary>
-    /// <typeparam name="TSource">原始类型</typeparam>
-    /// <typeparam name="TResult">新类型</typeparam>
-    /// <param name="list">列表</param>
-    /// <param name="selector">选择器</param>
-    /// <returns>新类型的列表</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static List<TResult> SelectList<TSource, TResult>(this List<TSource> list, Func<TSource, TResult> selector)
     {
         List<TResult> results = new(list.Count);
-        foreach (ref TSource source in CollectionsMarshal.AsSpan(list))
+        foreach (ref readonly TSource source in CollectionsMarshal.AsSpan(list))
         {
             results.Add(selector(source));
         }

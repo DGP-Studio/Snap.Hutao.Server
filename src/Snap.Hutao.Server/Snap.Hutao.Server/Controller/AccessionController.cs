@@ -27,7 +27,7 @@ public sealed class AccessionController : ControllerBase
         return await accessionService.ProcessApplicationAsync(info).ConfigureAwait(false) switch
         {
             ApplicationProcessResult.Ok => Model.Response.Response.Success("申请成功，请耐心等待"),
-            ApplicationProcessResult.ReCaptchaVerificationFailed => Model.Response.Response.Fail(ReturnCode.ReCaptchaVerificationFailed, "申请失败，reCAPTCHA 验证失败"),
+            ApplicationProcessResult.ReCaptchaVerificationFailed => Model.Response.Response.Fail(ReturnCode.ReCaptchaVerifyFailed, "申请失败，reCAPTCHA 验证失败"),
             ApplicationProcessResult.UsetNotExists => Model.Response.Response.Fail(ReturnCode.UserNameNotExists, "申请失败，账户不存在"),
             ApplicationProcessResult.AlreadyApplied => Model.Response.Response.Fail(ReturnCode.AlreadyAppliedForLicense, "申请成功，请勿重复申请"),
             _ => throw new InvalidOperationException(),

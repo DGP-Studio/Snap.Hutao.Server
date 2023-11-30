@@ -5,6 +5,7 @@ using Snap.Hutao.Server.Core;
 using Snap.Hutao.Server.Extension;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity;
+using Snap.Hutao.Server.Model.Entity.Passport;
 using Snap.Hutao.Server.Model.OpenSource;
 using Snap.Hutao.Server.Model.ReCaptcha;
 using Snap.Hutao.Server.Service.ReCaptcha;

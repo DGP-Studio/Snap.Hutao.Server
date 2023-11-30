@@ -4,38 +4,30 @@
 using Quartz;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Service;
+using Snap.Hutao.Server.Service.Discord;
 using Snap.Hutao.Server.Service.Ranking;
 
 namespace Snap.Hutao.Server.Job;
 
-/// <summary>
-/// 深渊记录清除任务
-/// </summary>
-public class SpialAbyssRecordCleanJob : IJob
+public class SpiralAbyssRecordCleanJob : IJob
 {
+    private static readonly TimeSpan LongestDaysAllowed = new(30, 0, 0, 0);
+
     private readonly AppDbContext appDbContext;
     private readonly IRankService rankService;
-    private readonly MailService mailService;
-    private readonly ILogger<SpialAbyssRecordCleanJob> logger;
+    private readonly DiscordService discordService;
 
-    /// <summary>
-    /// 构造一个新的深渊记录清除任务
-    /// </summary>
-    /// <param name="serviceProvider">服务提供器</param>
-    public SpialAbyssRecordCleanJob(IServiceProvider serviceProvider)
+    public SpiralAbyssRecordCleanJob(IServiceProvider serviceProvider)
     {
         appDbContext = serviceProvider.GetRequiredService<AppDbContext>();
         rankService = serviceProvider.GetRequiredService<IRankService>();
-        mailService = serviceProvider.GetRequiredService<MailService>();
-        logger = serviceProvider.GetRequiredService<ILogger<SpialAbyssRecordCleanJob>>();
+        discordService = serviceProvider.GetRequiredService<DiscordService>();
     }
 
     /// <inheritdoc/>
     public async Task Execute(IJobExecutionContext context)
     {
-        logger.LogInformation("触发数据清理");
-
-        DateTimeOffset lastAllowed = DateTimeOffset.Now - TimeSpan.FromDays(30);
+        DateTimeOffset lastAllowed = DateTimeOffset.Now - LongestDaysAllowed;
         long lastAllowedTimestamp = lastAllowed.ToUnixTimeSeconds();
 
         // 批量删除 长期未提交的记录
@@ -51,9 +43,7 @@ public class SpialAbyssRecordCleanJob : IJob
 
         long removedKeys = await rankService.ClearRanksAsync().ConfigureAwait(false);
 
-        logger.LogInformation("删除了 {count1} 条提交记录 | 删除了 {count2} 条深渊数据 | 删除了 {count3} 个 Redis 键", deletedRecordsCount, deletedSpiralCount, removedKeys);
-        await mailService
-            .SendDiagnosticSpiralAbyssCleanJobAsync(nameof(SpialAbyssRecordCleanJob), deletedRecordsCount, deletedSpiralCount, removedKeys)
-            .ConfigureAwait(false);
+        SpiralAbyssRecordCleanResult result = new(deletedRecordsCount, deletedSpiralCount, removedKeys);
+        await discordService.ReportSpiralAbyssCleanResultAsync(result).ConfigureAwait(false);
     }
 }

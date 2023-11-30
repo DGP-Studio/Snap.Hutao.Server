@@ -3,7 +3,7 @@
 
 using Snap.Hutao.Server.Extension;
 using Snap.Hutao.Server.Model.Context;
-using Snap.Hutao.Server.Model.Entity;
+using Snap.Hutao.Server.Model.Entity.GachaLog;
 using Snap.Hutao.Server.Model.Metadata;
 using Snap.Hutao.Server.Service.Legacy.Primitive;
 using System.Runtime.InteropServices;
@@ -24,10 +24,16 @@ public sealed class GachaLogStatisticsService
     private const string GachaEventMetadataUrl = "https://raw.githubusercontent.com/DGP-Studio/Snap.Metadata/main/Genshin/CHS/GachaEvent.json";
 
     // Compile queries that used multiple times to increase performance
+    // SELECT DISTINCT "g"."Uid"
+    // FROM "GachaItems" AS "g"
     private static readonly Func<AppDbContext, IEnumerable<string>> UidsQuery = EF.CompileQuery((AppDbContext context) =>
         context.GachaItems.AsNoTracking().Select(g => g.Uid).Distinct());
 
     // .AsQueryable() make sure the compiler use the correct overload.
+    // SELECT "g"."UserId", "g"."Uid", "g"."Id", "g"."IsTrusted", "g"."GachaType", "g"."QueryType", "g"."ItemId", "g"."Time"
+    // FROM "GachaItems" AS "g"
+    // WHERE "g"."Uid" = @__uid_1
+    // ORDER BY "g"."Id"
     private static readonly Func<AppDbContext, string, IEnumerable<EntityGachaItem>> GachaItemsQuery = EF.CompileQuery((AppDbContext context, string uid) =>
         context.GachaItems.AsNoTracking().Where(g => g.Uid == uid).OrderBy(g => g.Id).AsQueryable());
 
@@ -49,9 +55,9 @@ public sealed class GachaLogStatisticsService
 
         Map<int, int> idQualityMap = GetIdQualityMap(avatars, weapons);
 
-        List<GachaEvent> gachaEvents = (await DownloadMetadataAsync<List<GachaEvent>>(GachaEventMetadataUrl).ConfigureAwait(false))!;
+        List<GachaEventSlim> gachaEvents = (await DownloadMetadataAsync<List<GachaEventSlim>>(GachaEventMetadataUrl).ConfigureAwait(false))!;
         gachaEvents.Sort((x, y) => x.From.CompareTo(y.From));
-        GetCurrentGachaEvent(gachaEvents, out GachaEvent avatarEvent1, out GachaEvent avatarEvent2, out GachaEvent weaponEvent);
+        GetCurrentGachaEvent(gachaEvents, out GachaEventSlim avatarEvent1, out GachaEventSlim avatarEvent2, out GachaEventSlim weaponEvent);
         GachaLogStatisticsTracker tracker = new(idQualityMap, avatarEvent1, avatarEvent2, weaponEvent);
 
         using (memoryCache.Flag(Working))
@@ -65,13 +71,13 @@ public sealed class GachaLogStatisticsService
     {
         Map<int, int> idQualityMap = new(avatars.Count + weapons.Count);
 
-        foreach (ref IdQuality item in CollectionsMarshal.AsSpan(avatars))
+        foreach (ref readonly IdQuality item in CollectionsMarshal.AsSpan(avatars))
         {
             ref int quality = ref CollectionsMarshal.GetValueRefOrAddDefault(idQualityMap, item.Id, out _);
             quality = item.Quality;
         }
 
-        foreach (ref IdQuality item in CollectionsMarshal.AsSpan(weapons))
+        foreach (ref readonly IdQuality item in CollectionsMarshal.AsSpan(weapons))
         {
             ref int quality = ref CollectionsMarshal.GetValueRefOrAddDefault(idQualityMap, item.Id, out _);
             quality = item.Quality;
@@ -80,7 +86,7 @@ public sealed class GachaLogStatisticsService
         return idQualityMap;
     }
 
-    private static void GetCurrentGachaEvent(List<GachaEvent> gachaEvents, out GachaEvent avatarEvent1, out GachaEvent avatarEvent2, out GachaEvent weaponEvent)
+    private static void GetCurrentGachaEvent(List<GachaEventSlim> gachaEvents, out GachaEventSlim avatarEvent1, out GachaEventSlim avatarEvent2, out GachaEventSlim weaponEvent)
     {
         gachaEvents.Sort((x, y) => x.From.CompareTo(y.From));
         DateTimeOffset now = DateTimeOffset.Now;
@@ -92,7 +98,7 @@ public sealed class GachaLogStatisticsService
     private void RunCore(GachaLogStatisticsTracker tracker)
     {
         List<string> uids = UidsQuery(appDbContext).ToList();
-        HashSet<string> invalidUids = appDbContext.InvalidGachaUids.Select(i => i.Uid).ToHashSet();
+        HashSet<string> invalidUids = [.. appDbContext.InvalidGachaUids.Select(i => i.Uid)];
         foreach (ref string uid in CollectionsMarshal.AsSpan(uids))
         {
             if (invalidUids.Contains(uid))

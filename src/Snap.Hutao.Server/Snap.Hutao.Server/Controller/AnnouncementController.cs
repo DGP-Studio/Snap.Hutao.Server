@@ -2,7 +2,7 @@
 // Licensed under the MIT license.
 
 using Snap.Hutao.Server.Controller.Filter;
-using Snap.Hutao.Server.Model.Entity;
+using Snap.Hutao.Server.Model.Entity.Announcement;
 using Snap.Hutao.Server.Service.Announcement;
 
 namespace Snap.Hutao.Server.Controller;

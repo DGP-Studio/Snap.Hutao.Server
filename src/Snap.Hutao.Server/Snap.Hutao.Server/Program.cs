@@ -10,7 +10,7 @@ using Snap.Hutao.Server.Controller.Filter;
 using Snap.Hutao.Server.Discord;
 using Snap.Hutao.Server.Job;
 using Snap.Hutao.Server.Model.Context;
-using Snap.Hutao.Server.Model.Entity;
+using Snap.Hutao.Server.Model.Entity.Passport;
 using Snap.Hutao.Server.Option;
 using Snap.Hutao.Server.Service;
 using Snap.Hutao.Server.Service.Afdian;
@@ -58,7 +58,7 @@ public static class Program
             {
                 config.ScheduleJob<GachaLogStatisticsRefreshJob>(t => t.StartNow().WithCronSchedule("0 30 */4 * * ?"));
                 config.ScheduleJob<LegacyStatisticsRefreshJob>(t => t.StartNow().WithCronSchedule("0 5 */1 * * ?"));
-                config.ScheduleJob<SpialAbyssRecordCleanJob>(t => t.StartNow().WithCronSchedule("0 0 4 1,16 * ?"));
+                config.ScheduleJob<SpiralAbyssRecordCleanJob>(t => t.StartNow().WithCronSchedule("0 0 4 1,16 * ?"));
             })
             .AddQuartzServer(options => options.WaitForJobsToComplete = true)
             .AddResponseCompression()
@@ -92,7 +92,7 @@ public static class Program
             .AddTransient<LegacyStatisticsRefreshJob>()
             .AddTransient<StatisticsService>()
             .AddTransient<ReCaptchaService>()
-            .AddTransient<SpialAbyssRecordCleanJob>()
+            .AddTransient<SpiralAbyssRecordCleanJob>()
             .AddTransient<ValidateGachaLogPermission>()
             .AddTransient<ValidateMaintainPermission>();
 
