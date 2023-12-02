@@ -8,6 +8,7 @@ using System.Security.Cryptography;
 
 namespace Snap.Hutao.Server.Service.Legacy.PizzaHelper;
 
+// Scoped
 internal sealed class PizzaHelperRecordService
 {
     private readonly HttpClient httpClient;

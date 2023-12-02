@@ -23,6 +23,7 @@ using Snap.Hutao.Server.Service.Legacy.PizzaHelper;
 using Snap.Hutao.Server.Service.Licensing;
 using Snap.Hutao.Server.Service.Ranking;
 using Snap.Hutao.Server.Service.ReCaptcha;
+using Snap.Hutao.Server.Service.Telemetry;
 using Swashbuckle.AspNetCore.SwaggerUI;
 
 namespace Snap.Hutao.Server;
@@ -74,11 +75,13 @@ public static class Program
             .AddResponseCompression()
             .AddScoped<AccessionService>()
             .AddScoped<AnnouncementService>()
+            .AddScoped<GachaLogService>()
             .AddScoped<PassportService>()
             .AddScoped<PassportVerificationService>()
             .AddScoped<PizzaHelperRecordService>()
             .AddScoped<RecordService>()
             .AddScoped<SpiralAbyssStatisticsService>()
+            .AddScoped<TelemetryService>()
             .AddSingleton<AfdianWebhookService>()
             .AddSingleton<DiscordService>()
             .AddSingleton<IAuthorizationMiddlewareResultHandler, ResponseAuthorizationMiddlewareResultHandler>()

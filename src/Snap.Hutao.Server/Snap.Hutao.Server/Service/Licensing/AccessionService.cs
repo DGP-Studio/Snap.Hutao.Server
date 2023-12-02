@@ -12,6 +12,7 @@ using Snap.Hutao.Server.Service.ReCaptcha;
 
 namespace Snap.Hutao.Server.Service.Licensing;
 
+// Scoped
 public sealed class AccessionService
 {
     private readonly ReCaptchaService reCaptchaService;

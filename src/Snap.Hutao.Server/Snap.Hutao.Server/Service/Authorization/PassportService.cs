@@ -11,6 +11,7 @@ using System.Security.Cryptography;
 
 namespace Snap.Hutao.Server.Service.Authorization;
 
+// Scoped
 public sealed class PassportService
 {
     private readonly UserManager<HutaoUser> userManager;

@@ -6,6 +6,7 @@ using Snap.Hutao.Server.Model.Entity.SpiralAbyss;
 
 namespace Snap.Hutao.Server.Service.Legacy;
 
+// Scoped
 public sealed class SpiralAbyssStatisticsService
 {
     private readonly AppDbContext appDbContext;

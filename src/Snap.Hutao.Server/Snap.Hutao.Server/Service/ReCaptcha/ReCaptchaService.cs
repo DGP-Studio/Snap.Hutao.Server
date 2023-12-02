@@ -6,6 +6,7 @@ using Snap.Hutao.Server.Option;
 
 namespace Snap.Hutao.Server.Service.ReCaptcha;
 
+// Transient
 public sealed class ReCaptchaService
 {
     private readonly HttpClient httpClient;

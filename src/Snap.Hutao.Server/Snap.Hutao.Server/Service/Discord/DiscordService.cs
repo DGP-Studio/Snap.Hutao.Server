@@ -12,6 +12,7 @@ using Snap.Hutao.Server.Service.Afdian;
 
 namespace Snap.Hutao.Server.Service.Discord;
 
+// Singleton
 public sealed class DiscordService
 {
     // TODO: move to options

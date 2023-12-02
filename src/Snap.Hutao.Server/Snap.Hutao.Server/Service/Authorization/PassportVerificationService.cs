@@ -8,6 +8,7 @@ using Snap.Hutao.Server.Model.Entity.Passport;
 
 namespace Snap.Hutao.Server.Service.Authorization;
 
+// Scoped
 public sealed class PassportVerificationService
 {
     private const int ExpireSeconds = 120;

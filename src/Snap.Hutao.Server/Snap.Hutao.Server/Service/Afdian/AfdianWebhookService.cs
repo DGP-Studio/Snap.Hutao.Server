@@ -8,6 +8,7 @@ using Snap.Hutao.Server.Service.GachaLog;
 
 namespace Snap.Hutao.Server.Service.Afdian;
 
+// Singleton
 public sealed class AfdianWebhookService
 {
     private readonly DiscordService discordService;

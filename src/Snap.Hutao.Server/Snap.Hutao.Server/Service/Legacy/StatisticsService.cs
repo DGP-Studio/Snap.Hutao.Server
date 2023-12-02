@@ -11,9 +11,7 @@ using System.Runtime.InteropServices;
 
 namespace Snap.Hutao.Server.Service.Legacy;
 
-/// <summary>
-/// 统计服务
-/// </summary>
+// Transient
 public sealed class StatisticsService
 {
     /// <summary>

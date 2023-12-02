@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 
 namespace Snap.Hutao.Server.Service.GachaLog;
 
+// Scoped
 public sealed class GachaLogService
 {
     private const int UidPerUserLimit = 5;

@@ -6,9 +6,7 @@ using Snap.Hutao.Server.Model.Response;
 
 namespace Snap.Hutao.Server.Service.Authorization;
 
-/// <summary>
-/// 填充响应的权限验证中间件处理器
-/// </summary>
+// Singleton
 public class ResponseAuthorizationMiddlewareResultHandler : IAuthorizationMiddlewareResultHandler
 {
     /// <inheritdoc/>

@@ -6,6 +6,7 @@ using Snap.Hutao.Server.Model.Entity.Passport;
 
 namespace Snap.Hutao.Server.Service.GachaLog;
 
+// Singleton
 public sealed class ExpireService
 {
     private readonly IServiceProvider serviceProvider;

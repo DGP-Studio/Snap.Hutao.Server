@@ -1,7 +1,6 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
-using Snap.Hutao.Server.Extension;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity.GachaLog;
 using Snap.Hutao.Server.Model.GachaLog;
@@ -12,14 +11,9 @@ using System.Runtime.InteropServices;
 
 namespace Snap.Hutao.Server.Service.GachaLog;
 
-/// <summary>
-/// 祈愿记录统计服务
-/// </summary>
+// Transient
 public sealed class GachaLogStatisticsService
 {
-    /// <summary>
-    /// 统计服务正在工作
-    /// </summary>
     public const string Working = "GachaLogStatisticsService.Working";
 
     // Compile queries that used multiple times to increase performance

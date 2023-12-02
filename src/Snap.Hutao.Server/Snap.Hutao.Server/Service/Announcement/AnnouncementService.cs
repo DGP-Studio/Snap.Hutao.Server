@@ -8,6 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Snap.Hutao.Server.Service.Announcement;
 
+// Scoped
 public sealed class AnnouncementService
 {
     private const string SnapHutaoClientHeaderPrefix = "Snap Hutao/";

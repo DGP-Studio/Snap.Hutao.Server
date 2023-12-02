@@ -10,9 +10,7 @@ using StackExchange.Redis;
 
 namespace Snap.Hutao.Server.Service.Ranking;
 
-/// <summary>
-/// 排行服务
-/// </summary>
+// Singleton
 internal sealed class RankService : IRankService, IDisposable
 {
     private readonly IServiceScopeFactory scopeFactory;

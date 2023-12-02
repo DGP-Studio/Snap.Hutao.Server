@@ -8,6 +8,7 @@ using Snap.Hutao.Server.Model.Upload;
 
 namespace Snap.Hutao.Server.Service.Telemetry;
 
+// Scoped
 public sealed class TelemetryService
 {
     private readonly AppDbContext appDbContext;
