@@ -225,6 +225,7 @@ public static class Program
     /// 迁移数据库
     /// </summary>
     /// <param name="app">app</param>
+    [Conditional("RELEASE")]
     private static void MigrateDatabase(IHost app)
     {
         using (IServiceScope scope = app.Services.CreateScope())

@@ -45,7 +45,7 @@ public sealed class StatisticsService
         spiralAbyssStatisticsService = serviceProvider.GetRequiredService<SpiralAbyssStatisticsService>();
         discordService = serviceProvider.GetRequiredService<DiscordService>();
         appDbContext = serviceProvider.GetRequiredService<AppDbContext>();
-        memoryCache = serviceProvider.GetRequiredService<MemoryCache>();
+        memoryCache = serviceProvider.GetRequiredService<IMemoryCache>();
     }
 
     public async Task RunAsync()
@@ -64,7 +64,7 @@ public sealed class StatisticsService
             ValueStopwatch stopwatch = ValueStopwatch.StartNew();
             await Task.Run(() => RunCore(tracker)).ConfigureAwait(false);
             Overview overview = tracker.CompleteTracking(spiralAbyssStatisticsService, stopwatch);
-            discordService.ReportGachaEventStatisticsAsync
+            await discordService.ReportSpiralAbyssStatisticsAsync(overview).ConfigureAwait(false);
         }
         finally
         {

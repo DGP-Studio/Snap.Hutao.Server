@@ -7,7 +7,7 @@ namespace Snap.Hutao.Server.Model.Context;
 
 public sealed class MetadataDbContext : DbContext
 {
-    public MetadataDbContext(DbContextOptions<AppDbContext> options)
+    public MetadataDbContext(DbContextOptions<MetadataDbContext> options)
         : base(options)
     {
     }
