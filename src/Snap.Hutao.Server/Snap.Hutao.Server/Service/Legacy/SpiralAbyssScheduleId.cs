@@ -17,9 +17,7 @@ public static class SpiralAbyssScheduleId
         // Force time in UTC+08
         dateTimeOffset = dateTimeOffset.ToOffset(Utc8);
 
-        (DateOnly date, TimeOnly time, _) = dateTimeOffset;
-        (int year, int mouth, int day) = date;
-        (int hour, _) = time;
+        ((int year, int mouth, int day), (int hour, _), _) = dateTimeOffset;
 
         // 2020-07-01 04:00:00 为第 1 期
         int periodNum = (((year - 2020) * 12) + (mouth - 6)) * 2;
@@ -36,6 +34,6 @@ public static class SpiralAbyssScheduleId
             periodNum--;
         }
 
-        return periodNum - 12;
+        return periodNum;
     }
 }

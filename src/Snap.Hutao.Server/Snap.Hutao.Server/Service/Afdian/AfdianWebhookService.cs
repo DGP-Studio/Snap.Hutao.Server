@@ -120,7 +120,5 @@ public sealed class AfdianWebhookService
         return true;
     }
 
-    private struct RequestToken
-    {
-    }
+    private struct RequestToken;
 }

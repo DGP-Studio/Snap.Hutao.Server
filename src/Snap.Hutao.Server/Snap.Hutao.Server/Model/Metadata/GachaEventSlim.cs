@@ -3,6 +3,7 @@
 
 namespace Snap.Hutao.Server.Model.Metadata;
 
+[Obsolete("Use GachaEventInfo instead.")]
 internal sealed class GachaEventSlim
 {
     public DateTimeOffset From { get; set; }

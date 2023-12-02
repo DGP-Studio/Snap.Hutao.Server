@@ -8,13 +8,9 @@ namespace Snap.Hutao.Server.Service.Legacy.Primitive;
 /// </summary>
 public static class Maps
 {
-    /// <summary>
-    /// 构造一个新的为命座统计准备的映射
-    /// </summary>
-    /// <param name="avatarId">Not used</param>
-    /// <returns>映射</returns>
-    public static Map<Constellation, int> ForConstellation(AvatarId avatarId)
+    internal static Map<Constellation, int> ForConstellation(AvatarId avatarId)
     {
+        _ = avatarId;
         return new()
         {
             [0] = 0,

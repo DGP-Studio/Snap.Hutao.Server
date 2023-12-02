@@ -10,9 +10,7 @@ namespace Snap.Hutao.Server.Service.Legacy.PizzaHelper;
 
 internal sealed class PizzaHelperRecordService
 {
-    private readonly string AbyssUploadApi = "http://81.70.76.222/abyss/upload";
-
-    private readonly HttpClient httpClient; // 81.70.76.222
+    private readonly HttpClient httpClient;
     private readonly GenshinPizzaHelperOptions options;
     private readonly ILogger<PizzaHelperRecordService> logger;
 
@@ -109,16 +107,7 @@ internal sealed class PizzaHelperRecordService
         };
     }
 
-    private void AddSignatureToHttpClientHeader<T>(T data)
-    {
-        HttpRequestHeaders headers = httpClient.DefaultRequestHeaders;
-        headers.Remove("dseed");
-        headers.Add("dseed", $"{Random.Shared.Next(0, 999999)}");
-        headers.Remove("ds");
-        headers.Add("ds", $"{SHA256Hash($"{SHA256Hash(JsonSerializer.Serialize(data))}{options.ApiSalt}")}");
-    }
-
-    private IEnumerable<SubmitDetailModel> ToSubmitDetailModels(List<SimpleFloor> floors)
+    private static IEnumerable<SubmitDetailModel> ToSubmitDetailModels(List<SimpleFloor> floors)
     {
         foreach (SimpleFloor floor in floors.Where(f => f.Index >= 9))
         {
@@ -136,5 +125,14 @@ internal sealed class PizzaHelperRecordService
                 }
             }
         }
+    }
+
+    private void AddSignatureToHttpClientHeader<T>(T data)
+    {
+        HttpRequestHeaders headers = httpClient.DefaultRequestHeaders;
+        headers.Remove("dseed");
+        headers.Add("dseed", $"{Random.Shared.Next(0, 999999)}");
+        headers.Remove("ds");
+        headers.Add("ds", $"{SHA256Hash($"{SHA256Hash(JsonSerializer.Serialize(data))}{options.ApiSalt}")}");
     }
 }

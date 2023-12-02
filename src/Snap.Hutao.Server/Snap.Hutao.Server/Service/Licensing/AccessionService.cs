@@ -56,7 +56,7 @@ public sealed class AccessionService
         };
         await appDbContext.Licenses.AddAndSaveAsync(record).ConfigureAwait(false);
 
-        await mailService.SendDiagnosticOpenSourceLicenseNotificationAsync(info.UserName, info.ProjectUrl, code).ConfigureAwait(false);
+        await mailService.SendApproveOpenSourceLicenseNotificationAsync(info.UserName, info.ProjectUrl, code).ConfigureAwait(false);
         return ApplicationProcessResult.Ok;
     }
 

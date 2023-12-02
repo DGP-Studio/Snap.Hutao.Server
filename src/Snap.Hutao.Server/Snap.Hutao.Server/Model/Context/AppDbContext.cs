@@ -13,7 +13,7 @@ using Snap.Hutao.Server.Model.Entity.Telemetry;
 
 namespace Snap.Hutao.Server.Model.Context;
 
-public class AppDbContext : IdentityDbContext<HutaoUser, IdentityRole<int>, int>
+public sealed class AppDbContext : IdentityDbContext<HutaoUser, IdentityRole<int>, int>
 {
     public AppDbContext(DbContextOptions<AppDbContext> options)
         : base(options)

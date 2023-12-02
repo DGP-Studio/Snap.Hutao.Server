@@ -10,6 +10,7 @@ using Snap.Hutao.Server.Service.GachaLog;
 using Snap.Hutao.Server.Service.Legacy.PizzaHelper;
 using Snap.Hutao.Server.Service.Ranking;
 using System.Collections.Concurrent;
+using System.Runtime.InteropServices;
 
 namespace Snap.Hutao.Server.Service.Legacy;
 
@@ -24,6 +25,15 @@ public sealed class RecordService
     private readonly IRankService rankService;
     private readonly ExpireService expireService;
     private readonly PizzaHelperRecordService pizzaHelperRecordService;
+
+    public RecordService(IServiceProvider serviceProvider)
+    {
+        memoryCache = serviceProvider.GetRequiredService<IMemoryCache>();
+        appDbContext = serviceProvider.GetRequiredService<AppDbContext>();
+        rankService = serviceProvider.GetRequiredService<IRankService>();
+        expireService = serviceProvider.GetRequiredService<ExpireService>();
+        pizzaHelperRecordService = serviceProvider.GetRequiredService<PizzaHelperRecordService>();
+    }
 
     public async ValueTask<RecordUploadResult> ProcessUploadAsync(SimpleRecord record)
     {
@@ -145,9 +155,9 @@ public sealed class RecordService
     private static EntityFloor SimpleFloorToEntity(SimpleFloor simpleFloor, long spiralAbyssId)
     {
         // Sort team avatars.
-        foreach (SimpleLevel level in simpleFloor.Levels)
+        foreach (ref readonly SimpleLevel level in CollectionsMarshal.AsSpan(simpleFloor.Levels))
         {
-            foreach (SimpleBattle battle in level.Battles)
+            foreach (ref readonly SimpleBattle battle in CollectionsMarshal.AsSpan(level.Battles))
             {
                 battle.Avatars.Sort();
             }
@@ -273,7 +283,5 @@ public sealed class RecordService
         return RecordUploadResult.OkWithGachaLogExtented;
     }
 
-    private struct UploadToken
-    {
-    }
+    private struct UploadToken;
 }

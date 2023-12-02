@@ -45,7 +45,17 @@ public static class Program
             {
                 string connectionString = appBuilder.Configuration.GetConnectionString("PrimaryMysql8")!;
                 ILogger<AppDbContext> logger = serviceProvider.GetRequiredService<ILogger<AppDbContext>>();
-                logger.LogInformation("Using connection string: [{Constr}]", connectionString);
+                logger.LogInformation("AppDbContext Using connection string: [{Constr}]", connectionString);
+
+                options
+                    .UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
+                    .ConfigureWarnings(c => c.Log((RelationalEventId.CommandExecuted, LogLevel.Debug)));
+            })
+            .AddDbContextPool<MetadataDbContext>((serviceProvider, options) =>
+            {
+                string connectionString = appBuilder.Configuration.GetConnectionString("MetadataMysql8")!;
+                ILogger<MetadataDbContext> logger = serviceProvider.GetRequiredService<ILogger<MetadataDbContext>>();
+                logger.LogInformation("Metadata Using connection string: [{Constr}]", connectionString);
 
                 options
                     .UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))

@@ -40,4 +40,22 @@ public sealed class SpiralAbyssStatisticsService
 
         return tdata;
     }
+
+    public void SaveStatistics<T>(int scheduleId, string name, T data)
+    {
+        LegacyStatistics? statistics = appDbContext.Statistics
+                .Where(s => s.ScheduleId == scheduleId)
+                .SingleOrDefault(s => s.Name == name);
+
+        if (statistics == null)
+        {
+            statistics = LegacyStatistics.CreateWithNameAndScheduleId(name, scheduleId);
+            appDbContext.Statistics.Add(statistics);
+        }
+
+        memoryCache.Set(name, data);
+        statistics.Data = JsonSerializer.Serialize(data);
+
+        appDbContext.SaveChanges();
+    }
 }

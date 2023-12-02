@@ -4,7 +4,9 @@
 using Snap.Hutao.Server.Extension;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity.GachaLog;
+using Snap.Hutao.Server.Model.GachaLog;
 using Snap.Hutao.Server.Model.Metadata;
+using Snap.Hutao.Server.Service.Discord;
 using Snap.Hutao.Server.Service.Legacy.Primitive;
 using System.Runtime.InteropServices;
 
@@ -19,9 +21,6 @@ public sealed class GachaLogStatisticsService
     /// 统计服务正在工作
     /// </summary>
     public const string Working = "GachaLogStatisticsService.Working";
-    private const string AvatarMetadataUrl = "https://raw.githubusercontent.com/DGP-Studio/Snap.Metadata/main/Genshin/CHS/Avatar.json";
-    private const string WeaponMetadataUrl = "https://raw.githubusercontent.com/DGP-Studio/Snap.Metadata/main/Genshin/CHS/Weapon.json";
-    private const string GachaEventMetadataUrl = "https://raw.githubusercontent.com/DGP-Studio/Snap.Metadata/main/Genshin/CHS/GachaEvent.json";
 
     // Compile queries that used multiple times to increase performance
     // SELECT DISTINCT "g"."Uid"
@@ -38,61 +37,74 @@ public sealed class GachaLogStatisticsService
         context.GachaItems.AsNoTracking().Where(g => g.Uid == uid).OrderBy(g => g.Id).AsQueryable());
 
     private readonly AppDbContext appDbContext;
+    private readonly MetadataDbContext metadataDbContext;
+    private readonly DiscordService discordService;
     private readonly IMemoryCache memoryCache;
     private readonly HttpClient httpClient;
 
-    public GachaLogStatisticsService(AppDbContext appDbContext, IMemoryCache memoryCache, HttpClient httpClient)
+    public GachaLogStatisticsService(IServiceProvider serviceProvider)
     {
-        this.appDbContext = appDbContext;
-        this.memoryCache = memoryCache;
-        this.httpClient = httpClient;
+        appDbContext = serviceProvider.GetRequiredService<AppDbContext>();
+        metadataDbContext = serviceProvider.GetRequiredService<MetadataDbContext>();
+        discordService = serviceProvider.GetRequiredService<DiscordService>();
+        memoryCache = serviceProvider.GetRequiredService<IMemoryCache>();
+        httpClient = serviceProvider.GetRequiredService<HttpClient>();
     }
 
     public async Task RunAsync()
     {
-        List<IdQuality> avatars = (await DownloadMetadataAsync<List<IdQuality>>(AvatarMetadataUrl).ConfigureAwait(false))!;
-        List<IdQuality> weapons = (await DownloadMetadataAsync<List<IdQuality>>(WeaponMetadataUrl).ConfigureAwait(false))!;
-
-        Map<int, int> idQualityMap = GetIdQualityMap(avatars, weapons);
-
-        List<GachaEventSlim> gachaEvents = (await DownloadMetadataAsync<List<GachaEventSlim>>(GachaEventMetadataUrl).ConfigureAwait(false))!;
-        gachaEvents.Sort((x, y) => x.From.CompareTo(y.From));
-        GetCurrentGachaEvent(gachaEvents, out GachaEventSlim avatarEvent1, out GachaEventSlim avatarEvent2, out GachaEventSlim weaponEvent);
-        GachaLogStatisticsTracker tracker = new(idQualityMap, avatarEvent1, avatarEvent2, weaponEvent);
-
-        using (memoryCache.Flag(Working))
+        if (memoryCache.TryGetValue(Working, out _))
         {
+            return;
+        }
+
+        try
+        {
+            memoryCache.Set(Working, true);
+            Map<int, int> idQualityMap = await GetIdQualityMapAsync();
+            GachaEventBundle bundle = await GetCurrentGachaEventAsync();
+            GachaLogStatisticsTracker tracker = new(idQualityMap, bundle);
+
             await Task.Run(() => RunCore(tracker)).ConfigureAwait(false);
-            tracker.CompleteTracking(appDbContext, memoryCache);
+            GachaEventStatistics statistics = tracker.CompleteTracking(appDbContext, memoryCache);
+            await discordService.ReportGachaEventStatisticsAsync(statistics).ConfigureAwait(false);
+        }
+        finally
+        {
+            memoryCache.Remove(Working);
         }
     }
 
-    private static Map<int, int> GetIdQualityMap(List<IdQuality> avatars, List<IdQuality> weapons)
+    private async Task<Map<int, int>> GetIdQualityMapAsync()
     {
-        Map<int, int> idQualityMap = new(avatars.Count + weapons.Count);
-
-        foreach (ref readonly IdQuality item in CollectionsMarshal.AsSpan(avatars))
-        {
-            ref int quality = ref CollectionsMarshal.GetValueRefOrAddDefault(idQualityMap, item.Id, out _);
-            quality = item.Quality;
-        }
-
-        foreach (ref readonly IdQuality item in CollectionsMarshal.AsSpan(weapons))
-        {
-            ref int quality = ref CollectionsMarshal.GetValueRefOrAddDefault(idQualityMap, item.Id, out _);
-            quality = item.Quality;
-        }
-
-        return idQualityMap;
+        List<KnownItem> knownItems = await metadataDbContext.KnownItems.AsNoTracking().ToListAsync().ConfigureAwait(false);
+        return new(knownItems.ToDictionary(x => (int)x.Id, x => (int)x.Quality));
     }
 
-    private static void GetCurrentGachaEvent(List<GachaEventSlim> gachaEvents, out GachaEventSlim avatarEvent1, out GachaEventSlim avatarEvent2, out GachaEventSlim weaponEvent)
+    private async Task<GachaEventBundle> GetCurrentGachaEventAsync()
     {
-        gachaEvents.Sort((x, y) => x.From.CompareTo(y.From));
-        DateTimeOffset now = DateTimeOffset.Now;
-        avatarEvent1 = gachaEvents.First(g => g.From < now && g.To > now && g.Type == GachaConfigType.AvatarEventWish);
-        avatarEvent2 = gachaEvents.First(g => g.From < now && g.To > now && g.Type == GachaConfigType.AvatarEventWish2);
-        weaponEvent = gachaEvents.First(g => g.From < now && g.To > now && g.Type == GachaConfigType.WeaponEventWish);
+        DateTime now = DateTime.Now;
+
+        GachaEventInfo avatarEvent1 = await metadataDbContext.GachaEvents
+            .FirstAsync(g => g.From < now && g.To > now && g.Type == GachaConfigType.AvatarEventWish)
+            .ConfigureAwait(false);
+
+        GachaEventInfo avatarEvent2 = await metadataDbContext.GachaEvents
+            .FirstAsync(g => g.From < now && g.To > now && g.Type == GachaConfigType.AvatarEventWish2)
+            .ConfigureAwait(false);
+
+        GachaEventInfo weaponEvent = await metadataDbContext.GachaEvents
+            .FirstAsync(g => g.From < now && g.To > now && g.Type == GachaConfigType.WeaponEventWish)
+            .ConfigureAwait(false);
+
+        GachaEventBundle bundle = new()
+        {
+            AvatarEvent1 = avatarEvent1,
+            AvatarEvent2 = avatarEvent2,
+            WeaponEvent = weaponEvent,
+        };
+
+        return bundle;
     }
 
     private void RunCore(GachaLogStatisticsTracker tracker)
@@ -112,10 +124,5 @@ public sealed class GachaLogStatisticsService
             List<EntityGachaItem> gachaItems = GachaItemsQuery(appDbContext, uid).ToList();
             tracker.Track(gachaItems);
         }
-    }
-
-    private Task<T?> DownloadMetadataAsync<T>(string url)
-    {
-        return httpClient.GetFromJsonAsync<T>(url);
     }
 }

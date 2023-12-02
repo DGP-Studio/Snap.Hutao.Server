@@ -5,6 +5,7 @@ using System.ComponentModel;
 
 namespace Snap.Hutao.Server.Model.Metadata;
 
+[Obsolete("Use KnownItem instead")]
 internal sealed class IdQuality
 {
     public int Id { get; set; }

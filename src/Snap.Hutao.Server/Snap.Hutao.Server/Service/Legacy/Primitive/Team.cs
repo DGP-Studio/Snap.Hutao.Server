@@ -1,6 +1,9 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
 namespace Snap.Hutao.Server.Service.Legacy.Primitive;
 
 /// <summary>
@@ -39,11 +42,7 @@ public readonly struct Team : IEquatable<Team>
     /// <param name="list">value</param>
     public Team(List<int> list)
     {
-        Position1 = list.ElementAtOrDefault(0);
-        Position2 = list.ElementAtOrDefault(1);
-        Position3 = list.ElementAtOrDefault(2);
-        Position4 = list.ElementAtOrDefault(3);
-        Count = list.Count;
+        CollectionsMarshal.AsSpan(list).CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.As<Team, int>(ref this), 4));
     }
 
     public static implicit operator string(Team value)

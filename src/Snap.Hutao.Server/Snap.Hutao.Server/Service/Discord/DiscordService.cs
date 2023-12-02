@@ -5,6 +5,8 @@ using Disqord;
 using Disqord.Rest;
 using Snap.Hutao.Server.Discord;
 using Snap.Hutao.Server.Job;
+using Snap.Hutao.Server.Model.GachaLog;
+using Snap.Hutao.Server.Model.Legacy;
 using Snap.Hutao.Server.Option;
 using Snap.Hutao.Server.Service.Afdian;
 
@@ -15,6 +17,7 @@ public sealed class DiscordService
     // TODO: move to options
     private const string AfdianOrderIcon = "https://static.afdiancdn.com/static/img/logo/logo.png";
     private const string SpiralAbyssIcon = "https://homa.snapgenshin.com/img/SpiralAbyss.png";
+    private const string GachaLogIcon = "https://homa.snapgenshin.com/img/GachaLog.png";
 
     private readonly HutaoServerBot hutaoServerBot;
     private readonly DiscordOptions discordOptions;
@@ -36,7 +39,7 @@ public sealed class DiscordService
         embed.AddField("Count", $"× {info.OrderCount}");
         embed.AddField("Email", info.UserName);
 
-        await hutaoServerBot.SendMessageAsync(discordOptions.ChannelIds.PrivateReport, new LocalMessage().WithEmbeds(embed));
+        await hutaoServerBot.SendMessageAsync(discordOptions.KnownChannels.PrivateReport, new LocalMessage().WithEmbeds(embed));
     }
 
     public async ValueTask ReportSpiralAbyssCleanResultAsync(SpiralAbyssRecordCleanResult result)
@@ -49,7 +52,46 @@ public sealed class DiscordService
         embed.AddField("SpiralAbyss", result.DeletedNumberOfSpiralAbysses);
         embed.AddField("RedisKeys", result.RemovedNumberOfRedisKeys);
 
-        await hutaoServerBot.SendMessageAsync(discordOptions.ChannelIds.PrivateReport, new LocalMessage().WithEmbeds(embed));
+        await hutaoServerBot.SendMessageAsync(discordOptions.KnownChannels.PublicStatus, new LocalMessage().WithEmbeds(embed));
+    }
+
+    public async ValueTask ReportGachaEventStatisticsAsync(GachaEventStatistics statistics)
+    {
+        LocalEmbed embed = CreateStandardEmbed("Gacha Event Statistics", GachaLogIcon);
+
+        embed.WithDescription($"Status: {statistics.Status}");
+
+        if (statistics.InvalidUids is { } set)
+        {
+            foreach (string uid in set)
+            {
+                embed.AddField("Invalid Uid", uid, true);
+            }
+        }
+        else
+        {
+            embed.AddField("Pulls Enumerated", statistics.PullsEnumerated, true);
+        }
+
+        await hutaoServerBot.SendMessageAsync(discordOptions.KnownChannels.PublicStatus, new LocalMessage().WithEmbeds(embed));
+    }
+
+    public async ValueTask ReportSpiralAbyssStatisticsAsync(Overview overview)
+    {
+        LocalEmbed embed = CreateStandardEmbed("Spiral Abyss Statistics", SpiralAbyssIcon);
+
+        embed.WithDescription("Statistics run completed");
+
+        embed.AddField("Schedule Id", overview.ScheduleId);
+        embed.AddField("Record Total", overview.RecordTotal);
+        embed.AddField("SpiralAbyss Total", overview.SpiralAbyssTotal);
+        embed.AddField("SpiralAbyss Full Star", overview.SpiralAbyssFullStar);
+        embed.AddField("SpiralAbyss Passed", overview.SpiralAbyssPassed);
+        embed.AddField("SpiralAbyss Star Average", overview.SpiralAbyssStarTotal / (double)overview.SpiralAbyssTotal);
+        embed.AddField("SpiralAbyss Battle Average", overview.SpiralAbyssBattleTotal / (double)overview.SpiralAbyssTotal);
+        embed.AddField("Calc Time per Record", overview.TimeAverage);
+
+        await hutaoServerBot.SendMessageAsync(discordOptions.KnownChannels.PublicStatus, new LocalMessage().WithEmbeds(embed));
     }
 
     private static LocalEmbed CreateStandardEmbed(string title, string icon)

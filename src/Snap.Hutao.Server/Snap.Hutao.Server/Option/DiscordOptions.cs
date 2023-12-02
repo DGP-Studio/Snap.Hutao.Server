@@ -11,5 +11,5 @@ public sealed class DiscordOptions
 
     public string Token { get; set; } = default!;
 
-    public KnownDiscordChannelOptions ChannelIds { get; set; } = default!;
+    public KnownDiscordChannelOptions KnownChannels { get; set; } = default!;
 }
