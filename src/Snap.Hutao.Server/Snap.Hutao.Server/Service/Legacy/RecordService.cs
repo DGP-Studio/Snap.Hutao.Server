@@ -122,22 +122,12 @@ public sealed class RecordService
             }
         }
 
-        StringBuilder stringBuilder = new();
-        foreach ((int relicId, int count) in relicSetCounter.OrderBy(kvp => kvp.Key))
-        {
-            stringBuilder
-                .Append(relicId)
-                .Append('-')
-                .Append(count)
-                .Append(',');
-        }
-
         return new()
         {
             RecordId = recordId,
             AvatarId = simpleAvatar.AvatarId,
             WeaponId = simpleAvatar.WeaponId,
-            ReliquarySet = stringBuilder.ToString(0, stringBuilder.Length - 1),
+            ReliquarySet = string.Join(',', relicSetCounter.OrderBy(kvp => kvp.Key).Select(kvp => $"{kvp.Key}-{kvp.Value}")),
             ActivedConstellationNumber = simpleAvatar.ActivedConstellationNumber,
         };
     }
