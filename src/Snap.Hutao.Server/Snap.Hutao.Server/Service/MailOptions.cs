@@ -9,5 +9,5 @@ public sealed class MailOptions
 
     public string Subject { get; set; } = default!;
 
-    public List<(string Tag, string? Attribute, string Content)> Bodys { get; set; } = default!;
+    public List<(string Tag, string? Attribute, string Content)> Bodys { get; set; } = [];
 }
