@@ -115,12 +115,10 @@ public static class Program
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
             {
-                SymmetricSecurityKey key = new(Encoding.UTF8.GetBytes(appBuilder.Configuration["Jwt"]!));
-
                 options.TokenValidationParameters = new()
                 {
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = key,
+                    IssuerSigningKey = appOptions.GetJwtSecurityKey(),
                     ValidateIssuer = true,
                     ValidIssuer = "homa.snapgenshin.com",
                     ValidateAudience = false,
