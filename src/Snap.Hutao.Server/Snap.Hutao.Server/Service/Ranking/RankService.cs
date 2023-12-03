@@ -2,33 +2,26 @@
 // Licensed under the MIT license.
 
 using Snap.Hutao.Server.Model.Context;
-using Snap.Hutao.Server.Model.Entity;
+using Snap.Hutao.Server.Model.Entity.SpiralAbyss;
 using Snap.Hutao.Server.Model.Legacy;
 using Snap.Hutao.Server.Model.Upload;
+using Snap.Hutao.Server.Option;
 using StackExchange.Redis;
 
 namespace Snap.Hutao.Server.Service.Ranking;
 
-/// <summary>
-/// 排行服务
-/// </summary>
+// Singleton
 internal sealed class RankService : IRankService, IDisposable
 {
     private readonly IServiceScopeFactory scopeFactory;
     private readonly ConnectionMultiplexer redis;
 
-    /// <summary>
-    /// 构造一个新的排行服务
-    /// </summary>
-    /// <param name="scopeFactory">范围工厂</param>
-    /// <param name="configuration">配置</param>
-    /// <param name="logger">日志器</param>
-    public RankService(IServiceScopeFactory scopeFactory, IConfiguration configuration, ILogger<RankService> logger)
+    public RankService(IServiceScopeFactory scopeFactory, AppOptions appOptions, ILogger<RankService> logger)
     {
         this.scopeFactory = scopeFactory;
-        string redisConfig = configuration["Redis"]!;
-        logger.LogInformation("Using Redis: {config}", redisConfig);
-        redis = ConnectionMultiplexer.Connect(redisConfig);
+        string redisAddress = appOptions.RedisAddress;
+        logger.LogInformation("Using Redis: {config}", redisAddress);
+        redis = ConnectionMultiplexer.Connect(redisAddress);
     }
 
     /// <summary>

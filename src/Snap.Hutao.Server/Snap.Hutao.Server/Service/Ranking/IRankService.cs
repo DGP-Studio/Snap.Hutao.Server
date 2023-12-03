@@ -6,7 +6,7 @@ using Snap.Hutao.Server.Model.Upload;
 
 namespace Snap.Hutao.Server.Service.Ranking;
 
-internal interface IRankService
+public interface IRankService
 {
     Task<long> ClearRanksAsync();
 

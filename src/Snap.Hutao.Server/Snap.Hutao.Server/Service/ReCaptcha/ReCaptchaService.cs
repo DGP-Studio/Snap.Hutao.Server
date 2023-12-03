@@ -2,10 +2,12 @@
 // Licensed under the MIT license.
 
 using Snap.Hutao.Server.Model.ReCaptcha;
+using Snap.Hutao.Server.Option;
 
 namespace Snap.Hutao.Server.Service.ReCaptcha;
 
-internal sealed class ReCaptchaService
+// Transient
+public sealed class ReCaptchaService
 {
     private readonly HttpClient httpClient;
     private readonly AppOptions appOptions;

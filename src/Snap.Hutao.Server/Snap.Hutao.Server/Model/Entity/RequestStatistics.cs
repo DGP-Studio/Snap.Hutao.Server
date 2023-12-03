@@ -1,10 +1,6 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Diagnostics.CodeAnalysis;
-
 namespace Snap.Hutao.Server.Model.Entity;
 
 /// <summary>
@@ -21,10 +17,6 @@ public class RequestStatistics
     {
     }
 
-    /// <summary>
-    /// 构造一个新的请求统计
-    /// </summary>
-    /// <param name="context">请求上下文</param>
     public RequestStatistics(ActionExecutingContext context)
     {
         HttpRequest request = context.HttpContext.Request;
@@ -55,4 +47,15 @@ public class RequestStatistics
     /// 请求次数
     /// </summary>
     public long Count { get; set; }
+
+    public static RequestStatistics CreateFromContext(ActionExecutingContext context)
+    {
+        HttpRequest request = context.HttpContext.Request;
+        return new()
+        {
+            UserAgent = request.Headers.UserAgent.ToString(),
+            Path = request.Path,
+            Count = 0,
+        };
+    }
 }

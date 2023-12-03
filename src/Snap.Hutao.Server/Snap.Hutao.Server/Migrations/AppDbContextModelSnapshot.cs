@@ -16,7 +16,7 @@ namespace Snap.Hutao.Server.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.5")
+                .HasAnnotation("ProductVersion", "8.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<int>", b =>
@@ -145,28 +145,7 @@ namespace Snap.Hutao.Server.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.AllowedVersion", b =>
-                {
-                    b.Property<string>("Header")
-                        .HasColumnType("varchar(255)");
-
-                    b.HasKey("Header");
-
-                    b.ToTable("allowed_versions");
-                });
-
-            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.Banned", b =>
-                {
-                    b.Property<string>("Uid")
-                        .HasMaxLength(9)
-                        .HasColumnType("varchar(9)");
-
-                    b.HasKey("Uid");
-
-                    b.ToTable("banned");
-                });
-
-            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.EntityAchievement", b =>
+            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.Achievement.EntityAchievement", b =>
                 {
                     b.Property<uint>("Id")
                         .ValueGeneratedOnAdd()
@@ -191,7 +170,7 @@ namespace Snap.Hutao.Server.Migrations
                     b.ToTable("achievements");
                 });
 
-            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.EntityAchievementArchive", b =>
+            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.Achievement.EntityAchievementArchive", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -211,7 +190,17 @@ namespace Snap.Hutao.Server.Migrations
                     b.ToTable("achievement_archives");
                 });
 
-            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.EntityAnnouncement", b =>
+            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.AllowedVersion", b =>
+                {
+                    b.Property<string>("Header")
+                        .HasColumnType("varchar(255)");
+
+                    b.HasKey("Header");
+
+                    b.ToTable("allowed_versions");
+                });
+
+            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.Announcement.EntityAnnouncement", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -249,96 +238,11 @@ namespace Snap.Hutao.Server.Migrations
                     b.ToTable("announcements");
                 });
 
-            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.EntityAvatar", b =>
+            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.GachaLog.EntityGachaItem", b =>
                 {
-                    b.Property<long>("PrimaryId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    b.Property<int>("ActivedConstellationNumber")
-                        .HasColumnType("int");
-
-                    b.Property<int>("AvatarId")
-                        .HasColumnType("int");
-
-                    b.Property<long>("RecordId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("ReliquarySet")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<int>("WeaponId")
-                        .HasColumnType("int");
-
-                    b.HasKey("PrimaryId");
-
-                    b.HasIndex("RecordId");
-
-                    b.ToTable("avatars");
-                });
-
-            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.EntityDamageRank", b =>
-                {
-                    b.Property<long>("PrimaryId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    b.Property<int>("AvatarId")
-                        .HasColumnType("int");
-
-                    b.Property<long>("SpiralAbyssId")
-                        .HasColumnType("bigint");
-
                     b.Property<string>("Uid")
-                        .IsRequired()
                         .HasMaxLength(9)
                         .HasColumnType("varchar(9)");
-
-                    b.Property<int>("Value")
-                        .HasColumnType("int");
-
-                    b.HasKey("PrimaryId");
-
-                    b.HasIndex("SpiralAbyssId")
-                        .IsUnique();
-
-                    b.HasIndex("Value");
-
-                    b.ToTable("damage_ranks");
-                });
-
-            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.EntityFloor", b =>
-                {
-                    b.Property<long>("PrimaryId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    b.Property<int>("Index")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Levels")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<long>("SpiralAbyssId")
-                        .HasColumnType("bigint");
-
-                    b.Property<int>("Star")
-                        .HasColumnType("int");
-
-                    b.HasKey("PrimaryId");
-
-                    b.HasIndex("SpiralAbyssId");
-
-                    b.ToTable("spiral_abysses_floors");
-                });
-
-            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.EntityGachaItem", b =>
-                {
-                    b.Property<string>("Uid")
-                        .HasColumnType("varchar(255)");
 
                     b.Property<long>("Id")
                         .HasColumnType("bigint");
@@ -368,84 +272,7 @@ namespace Snap.Hutao.Server.Migrations
                     b.ToTable("gacha_items");
                 });
 
-            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.EntityRecord", b =>
-                {
-                    b.Property<long>("PrimaryId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Uid")
-                        .IsRequired()
-                        .HasMaxLength(9)
-                        .HasColumnType("varchar(9)");
-
-                    b.Property<long>("UploadTime")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Uploader")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("varchar(64)");
-
-                    b.HasKey("PrimaryId");
-
-                    b.ToTable("records");
-                });
-
-            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.EntitySpiralAbyss", b =>
-                {
-                    b.Property<long>("PrimaryId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("RecordId")
-                        .HasColumnType("bigint");
-
-                    b.Property<int>("TotalBattleTimes")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TotalWinTimes")
-                        .HasColumnType("int");
-
-                    b.HasKey("PrimaryId");
-
-                    b.HasIndex("RecordId")
-                        .IsUnique();
-
-                    b.ToTable("spiral_abysses");
-                });
-
-            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.EntityTakeDamageRank", b =>
-                {
-                    b.Property<long>("PrimaryId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    b.Property<int>("AvatarId")
-                        .HasColumnType("int");
-
-                    b.Property<long>("SpiralAbyssId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Uid")
-                        .IsRequired()
-                        .HasMaxLength(9)
-                        .HasColumnType("varchar(9)");
-
-                    b.Property<int>("Value")
-                        .HasColumnType("int");
-
-                    b.HasKey("PrimaryId");
-
-                    b.HasIndex("SpiralAbyssId")
-                        .IsUnique();
-
-                    b.HasIndex("Value");
-
-                    b.ToTable("take_damage_ranks");
-                });
-
-            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.GachaStatistics", b =>
+            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.GachaLog.GachaStatistics", b =>
                 {
                     b.Property<long>("PrimaryId")
                         .ValueGeneratedOnAdd()
@@ -464,56 +291,45 @@ namespace Snap.Hutao.Server.Migrations
                     b.ToTable("gacha_statistics");
                 });
 
-            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.HutaoLog", b =>
+            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.GachaLog.InvalidGachaUid", b =>
+                {
+                    b.Property<string>("Uid")
+                        .HasMaxLength(9)
+                        .HasColumnType("varchar(9)");
+
+                    b.HasKey("Uid");
+
+                    b.ToTable("invalid_gacha_uids");
+                });
+
+            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.LicenseApplicationRecord", b =>
                 {
                     b.Property<long>("PrimaryId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
-                    b.Property<int>("Count")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Info")
+                    b.Property<string>("ApprovalCode")
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<bool>("Resolved")
+                    b.Property<bool>("IsApproved")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<string>("Version")
+                    b.Property<string>("ProjectUrl")
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.HasKey("PrimaryId");
-
-                    b.ToTable("hutao_logs");
-                });
-
-            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.HutaoLogSingleItem", b =>
-                {
-                    b.Property<long>("PrimaryId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("DeviceId")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("varchar(32)");
-
-                    b.Property<long>("LogId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("Time")
-                        .HasColumnType("bigint");
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
 
                     b.HasKey("PrimaryId");
 
-                    b.HasIndex("LogId");
+                    b.HasIndex("UserId");
 
-                    b.ToTable("hutao_log_items");
+                    b.ToTable("license_application_records");
                 });
 
-            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.HutaoUser", b =>
+            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.Passport.HutaoUser", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -587,64 +403,21 @@ namespace Snap.Hutao.Server.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.InvalidGachaUid", b =>
+            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.Passport.PassportVerification", b =>
                 {
-                    b.Property<string>("Uid")
-                        .HasMaxLength(9)
-                        .HasColumnType("varchar(9)");
+                    b.Property<string>("NormalizedUserName")
+                        .HasColumnType("varchar(255)");
 
-                    b.HasKey("Uid");
-
-                    b.ToTable("invalid_gacha_uids");
-                });
-
-            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.LegacyStatistics", b =>
-                {
-                    b.Property<long>("PrimaryId")
-                        .ValueGeneratedOnAdd()
+                    b.Property<long>("ExpireTimestamp")
                         .HasColumnType("bigint");
 
-                    b.Property<string>("Data")
+                    b.Property<string>("VerifyCode")
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("longtext");
+                    b.HasKey("NormalizedUserName");
 
-                    b.Property<int>("ScheduleId")
-                        .HasColumnType("int");
-
-                    b.HasKey("PrimaryId");
-
-                    b.ToTable("spiral_abysses_statistics");
-                });
-
-            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.LicenseApplicationRecord", b =>
-                {
-                    b.Property<long>("PrimaryId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("ApprovalCode")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<bool>("IsApproved")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("ProjectUrl")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("PrimaryId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("license_application_records");
+                    b.ToTable("passport_verifications");
                 });
 
             modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.RequestStatistics", b =>
@@ -669,6 +442,251 @@ namespace Snap.Hutao.Server.Migrations
                     b.ToTable("request_statistics");
                 });
 
+            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.SpiralAbyss.Banned", b =>
+                {
+                    b.Property<string>("Uid")
+                        .HasMaxLength(9)
+                        .HasColumnType("varchar(9)");
+
+                    b.HasKey("Uid");
+
+                    b.ToTable("banned");
+                });
+
+            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.SpiralAbyss.EntityAvatar", b =>
+                {
+                    b.Property<long>("PrimaryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("ActivedConstellationNumber")
+                        .HasColumnType("int");
+
+                    b.Property<int>("AvatarId")
+                        .HasColumnType("int");
+
+                    b.Property<long>("RecordId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ReliquarySet")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<int>("WeaponId")
+                        .HasColumnType("int");
+
+                    b.HasKey("PrimaryId");
+
+                    b.HasIndex("RecordId");
+
+                    b.ToTable("avatars");
+                });
+
+            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.SpiralAbyss.EntityDamageRank", b =>
+                {
+                    b.Property<long>("PrimaryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("AvatarId")
+                        .HasColumnType("int");
+
+                    b.Property<long>("SpiralAbyssId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Uid")
+                        .IsRequired()
+                        .HasMaxLength(9)
+                        .HasColumnType("varchar(9)");
+
+                    b.Property<int>("Value")
+                        .HasColumnType("int");
+
+                    b.HasKey("PrimaryId");
+
+                    b.HasIndex("SpiralAbyssId")
+                        .IsUnique();
+
+                    b.HasIndex("Value");
+
+                    b.ToTable("damage_ranks");
+                });
+
+            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.SpiralAbyss.EntityFloor", b =>
+                {
+                    b.Property<long>("PrimaryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Index")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Levels")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<long>("SpiralAbyssId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Star")
+                        .HasColumnType("int");
+
+                    b.HasKey("PrimaryId");
+
+                    b.HasIndex("SpiralAbyssId");
+
+                    b.ToTable("spiral_abysses_floors");
+                });
+
+            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.SpiralAbyss.EntityRecord", b =>
+                {
+                    b.Property<long>("PrimaryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Uid")
+                        .IsRequired()
+                        .HasMaxLength(9)
+                        .HasColumnType("varchar(9)");
+
+                    b.Property<long>("UploadTime")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Uploader")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.HasKey("PrimaryId");
+
+                    b.ToTable("records");
+                });
+
+            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.SpiralAbyss.EntitySpiralAbyss", b =>
+                {
+                    b.Property<long>("PrimaryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("RecordId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("TotalBattleTimes")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalWinTimes")
+                        .HasColumnType("int");
+
+                    b.HasKey("PrimaryId");
+
+                    b.HasIndex("RecordId")
+                        .IsUnique();
+
+                    b.ToTable("spiral_abysses");
+                });
+
+            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.SpiralAbyss.EntityTakeDamageRank", b =>
+                {
+                    b.Property<long>("PrimaryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("AvatarId")
+                        .HasColumnType("int");
+
+                    b.Property<long>("SpiralAbyssId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Uid")
+                        .IsRequired()
+                        .HasMaxLength(9)
+                        .HasColumnType("varchar(9)");
+
+                    b.Property<int>("Value")
+                        .HasColumnType("int");
+
+                    b.HasKey("PrimaryId");
+
+                    b.HasIndex("SpiralAbyssId")
+                        .IsUnique();
+
+                    b.HasIndex("Value");
+
+                    b.ToTable("take_damage_ranks");
+                });
+
+            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.SpiralAbyss.LegacyStatistics", b =>
+                {
+                    b.Property<long>("PrimaryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Data")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("ScheduleId")
+                        .HasColumnType("int");
+
+                    b.HasKey("PrimaryId");
+
+                    b.ToTable("spiral_abysses_statistics");
+                });
+
+            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.Telemetry.HutaoLog", b =>
+                {
+                    b.Property<long>("PrimaryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Count")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Info")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<bool>("Resolved")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Version")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("PrimaryId");
+
+                    b.ToTable("hutao_logs");
+                });
+
+            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.Telemetry.HutaoLogSingleItem", b =>
+                {
+                    b.Property<long>("PrimaryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("DeviceId")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<long>("LogId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("Time")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("PrimaryId");
+
+                    b.HasIndex("LogId");
+
+                    b.ToTable("hutao_log_items");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<int>", null)
@@ -680,7 +698,7 @@ namespace Snap.Hutao.Server.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<int>", b =>
                 {
-                    b.HasOne("Snap.Hutao.Server.Model.Entity.HutaoUser", null)
+                    b.HasOne("Snap.Hutao.Server.Model.Entity.Passport.HutaoUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -689,7 +707,7 @@ namespace Snap.Hutao.Server.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<int>", b =>
                 {
-                    b.HasOne("Snap.Hutao.Server.Model.Entity.HutaoUser", null)
+                    b.HasOne("Snap.Hutao.Server.Model.Entity.Passport.HutaoUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -704,7 +722,7 @@ namespace Snap.Hutao.Server.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Snap.Hutao.Server.Model.Entity.HutaoUser", null)
+                    b.HasOne("Snap.Hutao.Server.Model.Entity.Passport.HutaoUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -713,16 +731,16 @@ namespace Snap.Hutao.Server.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<int>", b =>
                 {
-                    b.HasOne("Snap.Hutao.Server.Model.Entity.HutaoUser", null)
+                    b.HasOne("Snap.Hutao.Server.Model.Entity.Passport.HutaoUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.EntityAchievement", b =>
+            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.Achievement.EntityAchievement", b =>
                 {
-                    b.HasOne("Snap.Hutao.Server.Model.Entity.EntityAchievementArchive", "Archive")
+                    b.HasOne("Snap.Hutao.Server.Model.Entity.Achievement.EntityAchievementArchive", "Archive")
                         .WithMany()
                         .HasForeignKey("ArchiveId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -731,9 +749,9 @@ namespace Snap.Hutao.Server.Migrations
                     b.Navigation("Archive");
                 });
 
-            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.EntityAchievementArchive", b =>
+            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.Achievement.EntityAchievementArchive", b =>
                 {
-                    b.HasOne("Snap.Hutao.Server.Model.Entity.HutaoUser", "User")
+                    b.HasOne("Snap.Hutao.Server.Model.Entity.Passport.HutaoUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -742,9 +760,31 @@ namespace Snap.Hutao.Server.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.EntityAvatar", b =>
+            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.GachaLog.EntityGachaItem", b =>
                 {
-                    b.HasOne("Snap.Hutao.Server.Model.Entity.EntityRecord", "Record")
+                    b.HasOne("Snap.Hutao.Server.Model.Entity.Passport.HutaoUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.LicenseApplicationRecord", b =>
+                {
+                    b.HasOne("Snap.Hutao.Server.Model.Entity.Passport.HutaoUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.SpiralAbyss.EntityAvatar", b =>
+                {
+                    b.HasOne("Snap.Hutao.Server.Model.Entity.SpiralAbyss.EntityRecord", "Record")
                         .WithMany("Avatars")
                         .HasForeignKey("RecordId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -753,20 +793,20 @@ namespace Snap.Hutao.Server.Migrations
                     b.Navigation("Record");
                 });
 
-            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.EntityDamageRank", b =>
+            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.SpiralAbyss.EntityDamageRank", b =>
                 {
-                    b.HasOne("Snap.Hutao.Server.Model.Entity.EntitySpiralAbyss", "SpiralAbyss")
+                    b.HasOne("Snap.Hutao.Server.Model.Entity.SpiralAbyss.EntitySpiralAbyss", "SpiralAbyss")
                         .WithOne("Damage")
-                        .HasForeignKey("Snap.Hutao.Server.Model.Entity.EntityDamageRank", "SpiralAbyssId")
+                        .HasForeignKey("Snap.Hutao.Server.Model.Entity.SpiralAbyss.EntityDamageRank", "SpiralAbyssId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("SpiralAbyss");
                 });
 
-            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.EntityFloor", b =>
+            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.SpiralAbyss.EntityFloor", b =>
                 {
-                    b.HasOne("Snap.Hutao.Server.Model.Entity.EntitySpiralAbyss", "SpiralAbyss")
+                    b.HasOne("Snap.Hutao.Server.Model.Entity.SpiralAbyss.EntitySpiralAbyss", "SpiralAbyss")
                         .WithMany("Floors")
                         .HasForeignKey("SpiralAbyssId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -775,42 +815,31 @@ namespace Snap.Hutao.Server.Migrations
                     b.Navigation("SpiralAbyss");
                 });
 
-            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.EntityGachaItem", b =>
+            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.SpiralAbyss.EntitySpiralAbyss", b =>
                 {
-                    b.HasOne("Snap.Hutao.Server.Model.Entity.HutaoUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.EntitySpiralAbyss", b =>
-                {
-                    b.HasOne("Snap.Hutao.Server.Model.Entity.EntityRecord", "Record")
+                    b.HasOne("Snap.Hutao.Server.Model.Entity.SpiralAbyss.EntityRecord", "Record")
                         .WithOne("SpiralAbyss")
-                        .HasForeignKey("Snap.Hutao.Server.Model.Entity.EntitySpiralAbyss", "RecordId")
+                        .HasForeignKey("Snap.Hutao.Server.Model.Entity.SpiralAbyss.EntitySpiralAbyss", "RecordId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Record");
                 });
 
-            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.EntityTakeDamageRank", b =>
+            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.SpiralAbyss.EntityTakeDamageRank", b =>
                 {
-                    b.HasOne("Snap.Hutao.Server.Model.Entity.EntitySpiralAbyss", "SpiralAbyss")
+                    b.HasOne("Snap.Hutao.Server.Model.Entity.SpiralAbyss.EntitySpiralAbyss", "SpiralAbyss")
                         .WithOne("TakeDamage")
-                        .HasForeignKey("Snap.Hutao.Server.Model.Entity.EntityTakeDamageRank", "SpiralAbyssId")
+                        .HasForeignKey("Snap.Hutao.Server.Model.Entity.SpiralAbyss.EntityTakeDamageRank", "SpiralAbyssId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("SpiralAbyss");
                 });
 
-            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.HutaoLogSingleItem", b =>
+            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.Telemetry.HutaoLogSingleItem", b =>
                 {
-                    b.HasOne("Snap.Hutao.Server.Model.Entity.HutaoLog", "Log")
+                    b.HasOne("Snap.Hutao.Server.Model.Entity.Telemetry.HutaoLog", "Log")
                         .WithMany()
                         .HasForeignKey("LogId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -819,25 +848,14 @@ namespace Snap.Hutao.Server.Migrations
                     b.Navigation("Log");
                 });
 
-            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.LicenseApplicationRecord", b =>
-                {
-                    b.HasOne("Snap.Hutao.Server.Model.Entity.HutaoUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.EntityRecord", b =>
+            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.SpiralAbyss.EntityRecord", b =>
                 {
                     b.Navigation("Avatars");
 
                     b.Navigation("SpiralAbyss");
                 });
 
-            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.EntitySpiralAbyss", b =>
+            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.SpiralAbyss.EntitySpiralAbyss", b =>
                 {
                     b.Navigation("Damage")
                         .IsRequired();

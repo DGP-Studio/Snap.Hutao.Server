@@ -4,6 +4,7 @@
 using Snap.Hutao.Server.Extension;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity;
+using Snap.Hutao.Server.Model.Entity.GachaLog;
 using Snap.Hutao.Server.Model.GachaLog;
 using Snap.Hutao.Server.Model.Metadata;
 using Snap.Hutao.Server.Service.Legacy.Primitive;
@@ -14,32 +15,33 @@ namespace Snap.Hutao.Server.Service.GachaLog;
 public sealed class GachaLogStatisticsTracker
 {
     private readonly Map<int, int> idQualityMap;
-    private readonly GachaEvent currentAvatarEvent1;
-    private readonly GachaEvent currentAvatarEvent2;
-    private readonly GachaEvent currentWeaponEvent;
+    private readonly GachaEventInfo currentAvatarEvent1;
+    private readonly GachaEventInfo currentAvatarEvent2;
+    private readonly GachaEventInfo currentWeaponEvent;
 
-    private readonly HashSet<string> invalidGachaUids = new();
+    private readonly HashSet<string> invalidGachaUids = [];
 
     // itemId -> count
-    private readonly Map<int, long> currentAvatarEvent1Counter = new();
-    private readonly Map<int, long> currentAvatarEvent2Counter = new();
-    private readonly Map<int, long> currentWeaponEventCounter = new();
+    private readonly Map<int, long> currentAvatarEvent1Counter = [];
+    private readonly Map<int, long> currentAvatarEvent2Counter = [];
+    private readonly Map<int, long> currentWeaponEventCounter = [];
 
     // pulls -> count
-    private readonly Map<int, long> avatarEventStar5Distribution = new();
-    private readonly Map<int, long> weaponEventStar5Distribution = new();
-    private readonly Map<int, long> standardStar5Distribution = new();
+    private readonly Map<int, long> avatarEventStar5Distribution = [];
+    private readonly Map<int, long> weaponEventStar5Distribution = [];
+    private readonly Map<int, long> standardStar5Distribution = [];
 
+    private long totalMixedPullsCounter;
     private long totalAvatarEventValidPullsCounter;
     private long totalWeaponEventValidPullsCounter;
     private long totalStandardValidPullsCounter;
 
-    internal GachaLogStatisticsTracker(Map<int, int> idQualityMap, GachaEvent currentAvatarEvent1, GachaEvent currentAvatarEvent2, GachaEvent currentWeaponEvent)
+    internal GachaLogStatisticsTracker(Map<int, int> idQualityMap, GachaEventBundle bundle)
     {
         this.idQualityMap = idQualityMap;
-        this.currentAvatarEvent1 = currentAvatarEvent1;
-        this.currentAvatarEvent2 = currentAvatarEvent2;
-        this.currentWeaponEvent = currentWeaponEvent;
+        currentAvatarEvent1 = bundle.AvatarEvent1;
+        currentAvatarEvent2 = bundle.AvatarEvent2;
+        currentWeaponEvent = bundle.WeaponEvent;
     }
 
     /// <summary>
@@ -61,8 +63,10 @@ public sealed class GachaLogStatisticsTracker
         int currentWeaponEventCountToLastStar5 = 0;
         int currentStandardCountToLastStar5 = 0;
 
-        foreach (ref EntityGachaItem item in CollectionsMarshal.AsSpan(gachaItems))
+        foreach (ref readonly EntityGachaItem item in CollectionsMarshal.AsSpan(gachaItems))
         {
+            ++totalMixedPullsCounter;
+
             switch (item.QueryType)
             {
                 case GachaConfigType.AvatarEventWish:
@@ -96,14 +100,18 @@ public sealed class GachaLogStatisticsTracker
         }
     }
 
-    public void CompleteTracking(AppDbContext appDbContext, IMemoryCache memoryCache)
+    public GachaEventStatistics CompleteTracking(AppDbContext appDbContext, IMemoryCache memoryCache)
     {
-        if (invalidGachaUids.Any())
+        if (invalidGachaUids.Count != 0)
         {
             appDbContext.InvalidGachaUids.AddRangeAndSave(invalidGachaUids.Select(uid => new InvalidGachaUid() { Uid = uid }));
 
-            // Ignoring all results below.
-            return;
+            return new()
+            {
+                Status = GachaEventStatisticsStatus.InvalidItemDetected,
+                InvalidUids = invalidGachaUids,
+                PullsEnumerated = totalMixedPullsCounter,
+            };
         }
 
         GachaDistribution avatarEventDistribution = new()
@@ -130,15 +138,17 @@ public sealed class GachaLogStatisticsTracker
 
         SaveStatistics(appDbContext, memoryCache, GachaStatistics.StandardGachaDistribution, standardDistribution);
 
-        GachaEventStatistics gachaEventStatistics = new()
+        GachaEventStatistics statistics = new()
         {
+            Status = GachaEventStatisticsStatus.Ok,
             AvatarEvent = currentAvatarEvent1Counter.Select(kvp => new ItemCount() { Item = kvp.Key, Count = kvp.Value }).ToList(),
             AvatarEvent2 = currentAvatarEvent2Counter.Select(kvp => new ItemCount() { Item = kvp.Key, Count = kvp.Value }).ToList(),
             WeaponEvent = currentWeaponEventCounter.Select(kvp => new ItemCount() { Item = kvp.Key, Count = kvp.Value }).ToList(),
-            InvalidUids = invalidGachaUids,
+            PullsEnumerated = totalMixedPullsCounter,
         };
 
-        SaveStatistics(appDbContext, memoryCache, GachaStatistics.GachaEventStatistics, gachaEventStatistics);
+        SaveStatistics(appDbContext, memoryCache, GachaStatistics.GachaEventStatistics, statistics);
+        return statistics;
     }
 
     private static void SaveStatistics<T>(AppDbContext appDbContext, IMemoryCache memoryCache, string name, T data)
@@ -148,7 +158,7 @@ public sealed class GachaLogStatisticsTracker
 
         if (statistics == null)
         {
-            statistics = GachaStatistics.Create(name);
+            statistics = GachaStatistics.CreateWithName(name);
             appDbContext.GachaStatistics.Add(statistics);
         }
 

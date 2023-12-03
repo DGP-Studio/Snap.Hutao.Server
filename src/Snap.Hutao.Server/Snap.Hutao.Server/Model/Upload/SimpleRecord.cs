@@ -6,41 +6,18 @@ using System.Runtime.InteropServices;
 
 namespace Snap.Hutao.Server.Model.Upload;
 
-/// <summary>
-/// 记录
-/// </summary>
-public class SimpleRecord
+public sealed class SimpleRecord
 {
-    /// <summary>
-    /// Uid
-    /// </summary>
     public string Uid { get; set; } = default!;
 
-    /// <summary>
-    /// 上传者身份
-    /// </summary>
     public string Identity { get; set; } = default!;
 
-    /// <summary>
-    /// 深境螺旋
-    /// </summary>
     public SimpleSpiralAbyss SpiralAbyss { get; set; } = default!;
 
-    /// <summary>
-    /// 角色
-    /// </summary>
     public List<SimpleAvatar> Avatars { get; set; } = default!;
 
-    /// <summary>
-    /// 保留属性
-    /// 用户名称
-    /// </summary>
     public string? ReservedUserName { get; set; }
 
-    /// <summary>
-    /// 验证记录有效性
-    /// </summary>
-    /// <returns>有效性</returns>
     public bool Validate()
     {
         if (Identity == null)
@@ -64,7 +41,7 @@ public class SimpleRecord
             return false;
         }
 
-        HashSet<int> spiralAbyssPresented = new();
+        HashSet<int> spiralAbyssPresented = [];
 
         // 上下半不完整的楼层
         foreach (ref SimpleFloor floor in CollectionsMarshal.AsSpan(SpiralAbyss.Floors))
@@ -76,8 +53,8 @@ public class SimpleRecord
                     return false;
                 }
 
-                HashSet<int> up = level.Battles[0].Avatars.ToHashSet();
-                HashSet<int> down = level.Battles[1].Avatars.ToHashSet();
+                HashSet<int> up = [.. level.Battles[0].Avatars];
+                HashSet<int> down = [.. level.Battles[1].Avatars];
                 spiralAbyssPresented.UnionWith(up);
                 spiralAbyssPresented.UnionWith(down);
                 if (up.Count < level.Battles[0].Avatars.Count || down.Count < level.Battles[1].Avatars.Count)
@@ -101,7 +78,7 @@ public class SimpleRecord
 
     private bool ValidateAvatars(HashSet<int> spiralAbyssPresented)
     {
-        HashSet<int> uidOwns = new();
+        HashSet<int> uidOwns = [];
         int traveller = 1;
         int passMainQuest = 3;
         foreach (ref readonly SimpleAvatar avatar in CollectionsMarshal.AsSpan(Avatars))
@@ -128,7 +105,7 @@ public class SimpleRecord
             }
 
             // 丽莎/凯亚/安柏
-            // 没有御三家的账号可信度不高
+            // 没有御三家的账号直接拒绝
             if (avatarId is 10000006 or 10000015 or 10000021)
             {
                 --passMainQuest;

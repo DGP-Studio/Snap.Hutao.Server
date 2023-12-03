@@ -1,46 +1,64 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
+using Disqord;
+using Disqord.Bot.Hosting;
+using Disqord.Gateway;
 using Quartz;
+using Quartz.AspNetCore;
 using Snap.Hutao.Server.Controller.Filter;
+using Snap.Hutao.Server.Discord;
 using Snap.Hutao.Server.Job;
 using Snap.Hutao.Server.Model.Context;
-using Snap.Hutao.Server.Model.Entity;
+using Snap.Hutao.Server.Model.Entity.Passport;
+using Snap.Hutao.Server.Option;
 using Snap.Hutao.Server.Service;
+using Snap.Hutao.Server.Service.Afdian;
+using Snap.Hutao.Server.Service.Announcement;
 using Snap.Hutao.Server.Service.Authorization;
+using Snap.Hutao.Server.Service.Discord;
 using Snap.Hutao.Server.Service.GachaLog;
 using Snap.Hutao.Server.Service.Legacy;
 using Snap.Hutao.Server.Service.Legacy.PizzaHelper;
+using Snap.Hutao.Server.Service.Licensing;
 using Snap.Hutao.Server.Service.Ranking;
 using Snap.Hutao.Server.Service.ReCaptcha;
+using Snap.Hutao.Server.Service.Telemetry;
 using Swashbuckle.AspNetCore.SwaggerUI;
 
 namespace Snap.Hutao.Server;
 
-/// <summary>
-/// 主程序
-/// </summary>
 public static class Program
 {
-    /// <summary>
-    /// 入口
-    /// </summary>
-    /// <param name="args">参数</param>
     public static void Main(string[] args)
     {
         WebApplicationBuilder appBuilder = WebApplication.CreateBuilder(args);
 
         IServiceCollection services = appBuilder.Services;
 
+        AppOptions appOptions = appBuilder.Configuration.Get<AppOptions>()!;
+
         // Services
         services
             .AddAuthorization()
-            .AddCors(options => options.AddPolicy("CorsPolicy", builder => builder.AllowAnyMethod().AllowAnyHeader().AllowAnyOrigin()))
+            .AddCors(options => options.AddDefaultPolicy(builder => builder.AllowAnyMethod().AllowAnyHeader().AllowAnyOrigin()))
             .AddDbContextPool<AppDbContext>((serviceProvider, options) =>
             {
-                string connectionString = appBuilder.Configuration.GetConnectionString("LocalDb")!;
-                ILogger<AppDbContext> logger = serviceProvider.GetRequiredService<ILogger<AppDbContext>>();
-                logger.LogInformation("Using connection string: [{Constr}]", connectionString);
+                string connectionString = appBuilder.Configuration.GetConnectionString("PrimaryMysql8")!;
+                serviceProvider
+                    .GetRequiredService<ILogger<AppDbContext>>()
+                    .LogInformation("AppDbContext Using connection string: [{Constr}]", connectionString);
+
+                options
+                    .UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
+                    .ConfigureWarnings(c => c.Log((RelationalEventId.CommandExecuted, LogLevel.Debug)));
+            })
+            .AddDbContextPool<MetadataDbContext>((serviceProvider, options) =>
+            {
+                string connectionString = appBuilder.Configuration.GetConnectionString("MetadataMysql8")!;
+                serviceProvider
+                    .GetRequiredService<ILogger<MetadataDbContext>>()
+                    .LogInformation("MetadataDbContext Using connection string: [{Constr}]", connectionString);
 
                 options
                     .UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
@@ -51,24 +69,28 @@ public static class Program
             .AddMemoryCache()
             .AddQuartz(config =>
             {
-                config
-                    .UseMicrosoftDependencyInjectionJobFactory();
-                config
-                    .ScheduleJob<GachaLogStatisticsRefreshJob>(t => t.StartNow().WithCronSchedule("0 30 */4 * * ?"))
-                    .ScheduleJob<LegacyStatisticsRefreshJob>(t => t.StartNow().WithCronSchedule("0 5 */1 * * ?"))
-                    .ScheduleJob<SpialAbyssRecordCleanJob>(t => t.StartNow().WithCronSchedule("0 0 4 1,16 * ?"));
+                config.ScheduleJob<GachaLogStatisticsRefreshJob>(t => t.StartNow().WithCronSchedule("0 30 */4 * * ?"));
+                config.ScheduleJob<LegacyStatisticsRefreshJob>(t => t.StartNow().WithCronSchedule("0 5 */1 * * ?"));
+                config.ScheduleJob<SpiralAbyssRecordCleanJob>(t => t.StartNow().WithCronSchedule("0 0 4 1,16 * ?"));
             })
             .AddQuartzServer(options => options.WaitForJobsToComplete = true)
             .AddResponseCompression()
+            .AddScoped<AccessionService>()
+            .AddScoped<AnnouncementService>()
+            .AddScoped<GachaLogService>()
             .AddScoped<PassportService>()
+            .AddScoped<PassportVerificationService>()
             .AddScoped<PizzaHelperRecordService>()
+            .AddScoped<RecordService>()
+            .AddScoped<SpiralAbyssStatisticsService>()
+            .AddScoped<TelemetryService>()
+            .AddSingleton<AfdianWebhookService>()
+            .AddSingleton<DiscordService>()
             .AddSingleton<IAuthorizationMiddlewareResultHandler, ResponseAuthorizationMiddlewareResultHandler>()
             .AddSingleton<IRankService, RankService>()
             .AddSingleton<MailService>()
             .AddSingleton<ExpireService>()
-            .AddSingleton(appBuilder.Configuration.Get<AppOptions>()!)
-            .AddSingleton(appBuilder.Configuration.GetSection("Smtp").Get<SmtpOptions>()!)
-            .AddSingleton(appBuilder.Configuration.GetSection("GenshinPizzaHelper").Get<PizzaHelperOptions>()!)
+            .AddSingleton(appOptions)
             .AddSwaggerGen(options =>
             {
                 options.SwaggerDoc("SpiralAbyss", new() { Version = "1.0", Title = "深渊统计", Description = "深渊统计数据" });
@@ -76,16 +98,17 @@ public static class Program
                 options.SwaggerDoc("GachaLog", new() { Version = "1.0", Title = "祈愿记录", Description = "账户祈愿记录管理" });
                 options.SwaggerDoc("Services", new() { Version = "1.0", Title = "服务管理", Description = "维护专用管理接口，调用需要维护权限" });
 
-                string xmlPath = Path.Combine(AppContext.BaseDirectory, "Snap.Hutao.Server.xml");
-                options.IncludeXmlComments(xmlPath);
+                options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "Snap.Hutao.Server.xml"));
             })
+            .AddTransient<CountRequests>()
             .AddTransient<GachaLogStatisticsRefreshJob>()
             .AddTransient<GachaLogStatisticsService>()
             .AddTransient<LegacyStatisticsRefreshJob>()
             .AddTransient<StatisticsService>()
             .AddTransient<ReCaptchaService>()
-            .AddTransient<RequestFilter>()
-            .AddTransient<SpialAbyssRecordCleanJob>();
+            .AddTransient<SpiralAbyssRecordCleanJob>()
+            .AddTransient<ValidateGachaLogPermission>()
+            .AddTransient<ValidateMaintainPermission>();
 
         // Authentication
         services
@@ -139,6 +162,14 @@ public static class Program
                 jsonOptions.PropertyNameCaseInsensitive = true;
                 jsonOptions.WriteIndented = true;
             });
+
+        // Discord Bot
+        appBuilder.Host.ConfigureDiscordBot<HutaoServerBot>((hostContext, botContext) =>
+        {
+            botContext.OwnerIds = appOptions.Discord.OwnerIds.Select(id => (Snowflake)id);
+            botContext.Intents = GatewayIntents.LibraryRecommended | GatewayIntents.DirectMessages;
+            botContext.Token = appOptions.Discord.Token;
+        });
 
         WebApplication app = appBuilder.Build();
         MigrateDatabase(app);
@@ -198,6 +229,7 @@ public static class Program
     /// 迁移数据库
     /// </summary>
     /// <param name="app">app</param>
+    [Conditional("RELEASE")]
     private static void MigrateDatabase(IHost app)
     {
         using (IServiceScope scope = app.Services.CreateScope())

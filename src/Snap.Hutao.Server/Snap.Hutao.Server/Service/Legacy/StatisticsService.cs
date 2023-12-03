@@ -4,14 +4,14 @@
 using Snap.Hutao.Server.Core;
 using Snap.Hutao.Server.Extension;
 using Snap.Hutao.Server.Model.Context;
-using Snap.Hutao.Server.Model.Entity;
+using Snap.Hutao.Server.Model.Entity.SpiralAbyss;
+using Snap.Hutao.Server.Model.Legacy;
+using Snap.Hutao.Server.Service.Discord;
 using System.Runtime.InteropServices;
 
 namespace Snap.Hutao.Server.Service.Legacy;
 
-/// <summary>
-/// 统计服务
-/// </summary>
+// Transient
 public sealed class StatisticsService
 {
     /// <summary>
@@ -33,33 +33,40 @@ public sealed class StatisticsService
     private static readonly Func<AppDbContext, long, IEnumerable<EntityFloor>> FloorQuery = EF.CompileQuery((AppDbContext context, long spiralAbyssId) =>
         context.SpiralAbyssFloors.AsNoTracking().Where(f => f.SpiralAbyssId == spiralAbyssId));
 
+    private readonly SpiralAbyssStatisticsService spiralAbyssStatisticsService;
+    private readonly DiscordService discordService;
     private readonly AppDbContext appDbContext;
     private readonly IMemoryCache memoryCache;
 
-    /// <summary>
-    /// 构造一个新的统计服务
-    /// </summary>
-    /// <param name="appDbContext">数据库上下文</param>
-    /// <param name="memoryCache">内存缓存</param>
-    public StatisticsService(AppDbContext appDbContext, IMemoryCache memoryCache)
+    public StatisticsService(IServiceProvider serviceProvider)
     {
-        this.appDbContext = appDbContext;
-        this.memoryCache = memoryCache;
+        spiralAbyssStatisticsService = serviceProvider.GetRequiredService<SpiralAbyssStatisticsService>();
+        discordService = serviceProvider.GetRequiredService<DiscordService>();
+        appDbContext = serviceProvider.GetRequiredService<AppDbContext>();
+        memoryCache = serviceProvider.GetRequiredService<IMemoryCache>();
     }
 
-    /// <summary>
-    /// 异步计算结果
-    /// </summary>
-    /// <returns>任务</returns>
     public async Task RunAsync()
     {
-        StatisticsTracker tracker = new();
-
-        using (memoryCache.Flag(Working))
+        if (memoryCache.TryGetValue(Working, out _))
         {
+            return;
+        }
+
+        try
+        {
+            memoryCache.Set(Working, true);
+
+            StatisticsTracker tracker = new();
+
             ValueStopwatch stopwatch = ValueStopwatch.StartNew();
             await Task.Run(() => RunCore(tracker)).ConfigureAwait(false);
-            tracker.CompleteTracking(appDbContext, memoryCache, stopwatch);
+            Overview overview = tracker.CompleteTracking(spiralAbyssStatisticsService, stopwatch);
+            await discordService.ReportSpiralAbyssStatisticsAsync(overview).ConfigureAwait(false);
+        }
+        finally
+        {
+            memoryCache.Remove(Working);
         }
     }
 

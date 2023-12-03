@@ -3,7 +3,7 @@
 
 namespace Snap.Hutao.Server.Model.GachaLog;
 
-internal sealed class ItemCount
+public sealed class ItemCount
 {
     public int Item { get; set; }
 

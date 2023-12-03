@@ -1,85 +1,66 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
-using Snap.Hutao.Server.Model.Entity;
+using Snap.Hutao.Server.Controller;
+using Snap.Hutao.Server.Model.Entity.Passport;
 using Snap.Hutao.Server.Model.Passport;
+using Snap.Hutao.Server.Option;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 
 namespace Snap.Hutao.Server.Service.Authorization;
 
-/// <summary>
-/// 通行证服务
-/// </summary>
+// Scoped
 public sealed class PassportService
 {
     private readonly UserManager<HutaoUser> userManager;
-    private readonly string rsaPrivateKey;
     private readonly SymmetricSecurityKey jwtSigningKey;
+    private readonly string rsaPrivateKey;
 
     public PassportService(UserManager<HutaoUser> userManager, AppOptions appOptions)
     {
         this.userManager = userManager;
 
+        jwtSigningKey = appOptions.GetJwtSecurityKey();
         rsaPrivateKey = appOptions.RSAPrivateKey;
-        jwtSigningKey = appOptions.JwtSecurityKey;
     }
 
-    /// <summary>
-    /// 解密
-    /// </summary>
-    /// <param name="source">密文</param>
-    /// <returns>解密的文本</returns>
     public string Decrypt(string source)
     {
-        byte[] encryptedBytes = Convert.FromBase64String(source);
-        using (RSACryptoServiceProvider rsa = new(2048))
+        using (RSA rsa = RSA.Create(2048))
         {
             rsa.ImportFromPem(rsaPrivateKey);
-            byte[] decryptedBytes = rsa.Decrypt(encryptedBytes, true);
+            byte[] decryptedBytes = rsa.Decrypt(Convert.FromBase64String(source), RSAEncryptionPadding.OaepSHA1);
             return Encoding.UTF8.GetString(decryptedBytes);
         }
     }
 
-    /// <summary>
-    /// 异步注册
-    /// </summary>
-    /// <param name="passport">账密</param>
-    /// <returns>结果</returns>
     public async Task<PassportResult> RegisterAsync(Passport passport)
     {
         if (await userManager.FindByNameAsync(passport.UserName).ConfigureAwait(false) is HutaoUser user)
         {
-            return new(false, "邮箱已被注册", "ServerPassportServiceEmailHasRegistered");
+            return new(false, "邮箱已被注册", ServerKeys.ServerPassportServiceEmailHasRegistered);
         }
-        else
+
+        HutaoUser newUser = new() { UserName = passport.UserName };
+        IdentityResult result = await userManager.CreateAsync(newUser, passport.Password).ConfigureAwait(false);
+
+        if (!result.Succeeded)
         {
-            HutaoUser newUser = new() { UserName = passport.UserName };
-            IdentityResult result = await userManager.CreateAsync(newUser, passport.Password).ConfigureAwait(false);
-            if (result.Succeeded)
-            {
-                return new(true, "注册成功", "ServerPassportRegisterSucceed", CreateToken(newUser));
-            }
-            else
-            {
-                StringBuilder messageBuilder = new();
+            StringBuilder messageBuilder = new();
 
-                foreach (IdentityError error in result.Errors)
-                {
-                    messageBuilder.AppendLine($"[{error.Code}]: {error.Description}");
-                }
-
-                return new(false, $"注册失败:{messageBuilder}", "ServerPassportServiceInternalException");
+            foreach (IdentityError error in result.Errors)
+            {
+                messageBuilder.AppendLine($"[{error.Code}]: {error.Description}");
             }
+
+            return new(false, $"注册失败:{messageBuilder}", ServerKeys.ServerPassportServiceInternalException);
         }
+
+        return new(true, "注册成功", ServerKeys.ServerPassportRegisterSucceed, CreateToken(newUser));
     }
 
-    /// <summary>
-    /// 异步修改密码
-    /// </summary>
-    /// <param name="passport">账密</param>
-    /// <returns>结果</returns>
     public async Task<PassportResult> ResetPasswordAsync(Passport passport)
     {
         if (await userManager.FindByNameAsync(passport.UserName).ConfigureAwait(false) is HutaoUser user)
@@ -87,37 +68,27 @@ public sealed class PassportService
             await userManager.RemovePasswordAsync(user).ConfigureAwait(false);
             await userManager.AddPasswordAsync(user, passport.Password).ConfigureAwait(false);
 
-            return new(true, "新密码设置成功", "ServerPassportResetPasswordSucceed", CreateToken(user));
+            return new(true, "新密码设置成功", ServerKeys.ServerPassportResetPasswordSucceed, CreateToken(user));
         }
         else
         {
-            return new(false, "该邮箱尚未注册", "ServerPassportServiceEmailHasNotRegistered");
+            return new(false, "该邮箱尚未注册", ServerKeys.ServerPassportServiceEmailHasNotRegistered);
         }
     }
 
-    /// <summary>
-    /// 异步登录
-    /// </summary>
-    /// <param name="passport">账密</param>
-    /// <returns>结果</returns>
     public async Task<PassportResult> LoginAsync(Passport passport)
     {
         if (await userManager.FindByNameAsync(passport.UserName).ConfigureAwait(false) is HutaoUser user)
         {
             if (await userManager.CheckPasswordAsync(user, passport.Password).ConfigureAwait(false))
             {
-                return new(true, "登录成功", "ServerPassportLoginSucceed", CreateToken(user));
+                return new(true, "登录成功", ServerKeys.ServerPassportLoginSucceed, CreateToken(user));
             }
         }
 
-        return new PassportResult(false, "邮箱或密码不正确", "ServerPassportUsernameOrPassportIncorrect");
+        return new PassportResult(false, "邮箱或密码不正确", ServerKeys.ServerPassportUserNameOrPasswordIncorrect);
     }
 
-    /// <summary>
-    /// 异步注销
-    /// </summary>
-    /// <param name="passport">账密</param>
-    /// <returns>结果</returns>
     public async Task<PassportResult> CancelAsync(Passport passport)
     {
         if (await userManager.FindByNameAsync(passport.UserName).ConfigureAwait(false) is HutaoUser user)
@@ -125,11 +96,11 @@ public sealed class PassportService
             if (await userManager.CheckPasswordAsync(user, passport.Password).ConfigureAwait(false))
             {
                 await userManager.DeleteAsync(user).ConfigureAwait(false);
-                return new(true, "用户注销成功", "ServerPassportUnregisterSucceed");
+                return new(true, "用户注销成功", ServerKeys.ServerPassportUnregisterSucceed);
             }
         }
 
-        return new PassportResult(false, "用户注销失败", "ServerPassportServiceUnregisterFailed");
+        return new PassportResult(false, "用户注销失败", ServerKeys.ServerPassportServiceUnregisterFailed);
     }
 
     private string CreateToken(HutaoUser user)
@@ -139,7 +110,7 @@ public sealed class PassportService
         {
             Subject = new(new Claim[]
             {
-                new Claim(PassportClaimTypes.UserId, user.Id.ToString()),
+                new(PassportClaimTypes.UserId, user.Id.ToString()),
             }),
             Expires = DateTime.UtcNow.AddHours(2),
             Issuer = "homa.snapgenshin.com",

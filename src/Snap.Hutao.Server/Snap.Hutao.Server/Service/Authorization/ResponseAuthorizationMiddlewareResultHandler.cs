@@ -2,12 +2,11 @@
 // Licensed under the MIT license.
 
 using Microsoft.AspNetCore.Authorization.Policy;
+using Snap.Hutao.Server.Model.Response;
 
 namespace Snap.Hutao.Server.Service.Authorization;
 
-/// <summary>
-/// 填充响应的权限验证中间件处理器
-/// </summary>
+// Singleton
 public class ResponseAuthorizationMiddlewareResultHandler : IAuthorizationMiddlewareResultHandler
 {
     /// <inheritdoc/>
@@ -28,6 +27,6 @@ public class ResponseAuthorizationMiddlewareResultHandler : IAuthorizationMiddle
             context.Response.StatusCode = StatusCodes.Status200OK;
         }
 
-        await context.Response.WriteAsJsonAsync(new Model.Response.Response(Model.Response.ReturnCode.LoginFail, "请先登录或注册胡桃账号")).ConfigureAwait(false);
+        await context.Response.WriteAsJsonAsync(Response.Fail(ReturnCode.LoginFail, "请先登录或注册胡桃账号", "ServerPassportLoginRequired")).ConfigureAwait(false);
     }
 }
