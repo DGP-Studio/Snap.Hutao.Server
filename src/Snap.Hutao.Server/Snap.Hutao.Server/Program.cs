@@ -237,6 +237,7 @@ public static class Program
             AppDbContext context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             if (context.Database.IsRelational() && context.Database.GetPendingMigrations().Any())
             {
+                context.Database.SetCommandTimeout(TimeSpan.FromMinutes(10));
                 context.Database.Migrate();
             }
         }
