@@ -29,8 +29,8 @@ public sealed class CountRequests : IAsyncActionFilter
         string? userAgent = context.HttpContext.Request.Headers.UserAgent;
 
         RequestStatistics? statistics = await appDbContext.RequestStatistics
-            .Where(statistics => statistics.Path == path)
-            .SingleOrDefaultAsync(statistics => statistics.UserAgent == userAgent)
+            .Where(statistics => statistics.Path == path && statistics.UserAgent == userAgent)
+            .SingleOrDefaultAsync()
             .ConfigureAwait(false);
 
         if (statistics == null)

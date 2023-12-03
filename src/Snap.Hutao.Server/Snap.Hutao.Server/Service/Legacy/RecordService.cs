@@ -191,6 +191,11 @@ public sealed class RecordService
 
         using (IDbContextTransaction transaction = await appDbContext.Database.BeginTransactionAsync())
         {
+            if (haveUploaded)
+            {
+                await appDbContext.Records.AsNoTracking().Where(r => r.Uid == record.Uid).ExecuteDeleteAsync().ConfigureAwait(false);
+            }
+
             // EntityRecord
             EntityRecord entityRecord = SimpleRecordToEntity(record);
             await appDbContext.Records.AddAndSaveAsync(entityRecord).ConfigureAwait(false);

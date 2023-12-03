@@ -67,8 +67,8 @@ internal sealed class RankService : IRankService, IDisposable
         {
             AppDbContext appDbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-            damage = appDbContext.DamageRanks.SingleOrDefault(r => r.Uid == uid);
-            takeDamage = appDbContext.TakeDamageRanks.SingleOrDefault(r => r.Uid == uid);
+            damage = appDbContext.DamageRanks.AsNoTracking().SingleOrDefault(r => r.Uid == uid);
+            takeDamage = appDbContext.TakeDamageRanks.AsNoTracking().SingleOrDefault(r => r.Uid == uid);
         }
 
         if (damage == null)
