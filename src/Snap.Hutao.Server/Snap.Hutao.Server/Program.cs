@@ -45,8 +45,9 @@ public static class Program
             .AddDbContextPool<AppDbContext>((serviceProvider, options) =>
             {
                 string connectionString = appBuilder.Configuration.GetConnectionString("PrimaryMysql8")!;
-                ILogger<AppDbContext> logger = serviceProvider.GetRequiredService<ILogger<AppDbContext>>();
-                logger.LogInformation("AppDbContext Using connection string: [{Constr}]", connectionString);
+                serviceProvider
+                    .GetRequiredService<ILogger<AppDbContext>>()
+                    .LogInformation("AppDbContext Using connection string: [{Constr}]", connectionString);
 
                 options
                     .UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
@@ -55,8 +56,9 @@ public static class Program
             .AddDbContextPool<MetadataDbContext>((serviceProvider, options) =>
             {
                 string connectionString = appBuilder.Configuration.GetConnectionString("MetadataMysql8")!;
-                ILogger<MetadataDbContext> logger = serviceProvider.GetRequiredService<ILogger<MetadataDbContext>>();
-                logger.LogInformation("Metadata Using connection string: [{Constr}]", connectionString);
+                serviceProvider
+                    .GetRequiredService<ILogger<MetadataDbContext>>()
+                    .LogInformation("MetadataDbContext Using connection string: [{Constr}]", connectionString);
 
                 options
                     .UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
@@ -96,8 +98,7 @@ public static class Program
                 options.SwaggerDoc("GachaLog", new() { Version = "1.0", Title = "祈愿记录", Description = "账户祈愿记录管理" });
                 options.SwaggerDoc("Services", new() { Version = "1.0", Title = "服务管理", Description = "维护专用管理接口，调用需要维护权限" });
 
-                string xmlPath = Path.Combine(AppContext.BaseDirectory, "Snap.Hutao.Server.xml");
-                options.IncludeXmlComments(xmlPath);
+                options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "Snap.Hutao.Server.xml"));
             })
             .AddTransient<CountRequests>()
             .AddTransient<GachaLogStatisticsRefreshJob>()
