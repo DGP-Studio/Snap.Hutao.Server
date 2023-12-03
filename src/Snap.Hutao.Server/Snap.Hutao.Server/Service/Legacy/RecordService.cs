@@ -78,9 +78,10 @@ public sealed class RecordService
         return result;
     }
 
-    public ValueTask<bool> HaveUidUploadedAsync(string uid)
+    public async ValueTask<bool> HaveUidUploadedAsync(string uid)
     {
-        return HaveUploadedForCurrentScheduleAsync(uid);
+        (bool result, _) = await HaveUploadedForCurrentScheduleAsync(uid);
+        return result;
     }
 
     public bool IsStatisticsServiceWorking()
@@ -186,12 +187,12 @@ public sealed class RecordService
 
     private async Task<RecordUploadResult> SaveRecordAsync(SimpleRecord record)
     {
-        bool haveUploaded = await HaveUploadedForCurrentScheduleAsync(record.Uid).ConfigureAwait(false);
+        (bool haveUploaded, bool recordExists) = await HaveUploadedForCurrentScheduleAsync(record.Uid).ConfigureAwait(false);
         RecordUploadResult result = await GetNonErrorRecordUploadResult(record, haveUploaded).ConfigureAwait(false);
 
         using (IDbContextTransaction transaction = await appDbContext.Database.BeginTransactionAsync())
         {
-            if (haveUploaded)
+            if (recordExists)
             {
                 await appDbContext.Records.AsNoTracking().Where(r => r.Uid == record.Uid).ExecuteDeleteAsync().ConfigureAwait(false);
             }
@@ -235,21 +236,21 @@ public sealed class RecordService
         return result;
     }
 
-    private async ValueTask<bool> HaveUploadedForCurrentScheduleAsync(string uid)
+    private async ValueTask<(bool AnyExists, bool RecordExists)> HaveUploadedForCurrentScheduleAsync(string uid)
     {
         EntityRecord? entityRecord = await appDbContext.Records.SingleOrDefaultAsync(r => r.Uid == uid).ConfigureAwait(false);
 
         if (entityRecord == null)
         {
-            return false;
+            return (false, false);
         }
 
         if (!await appDbContext.SpiralAbysses.AnyAsync(s => s.RecordId == entityRecord.PrimaryId).ConfigureAwait(false))
         {
-            return false;
+            return (false, true);
         }
 
-        return true;
+        return (true, true);
     }
 
     private async ValueTask<RecordUploadResult> GetNonErrorRecordUploadResult(SimpleRecord record, bool haveUploadedForCurrentSchedule)
