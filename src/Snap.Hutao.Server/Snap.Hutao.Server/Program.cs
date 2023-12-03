@@ -36,7 +36,7 @@ public static class Program
 
         IServiceCollection services = appBuilder.Services;
 
-        AppOptions appOptions = appBuilder.Configuration.Get<AppOptions>()!;
+        AppOptions appOptions = appBuilder.Configuration.GetSection("App").Get<AppOptions>()!;
 
         // Services
         services
@@ -166,11 +166,6 @@ public static class Program
         // Discord Bot
         appBuilder.Host.ConfigureDiscordBot<HutaoServerBot>((hostContext, botContext) =>
         {
-            ArgumentNullException.ThrowIfNull(appOptions.Discord);
-            ArgumentNullException.ThrowIfNull(appOptions.Discord.AllowedGuildId);
-            ArgumentNullException.ThrowIfNull(appOptions.Discord.KnownChannels);
-            ArgumentNullException.ThrowIfNull(appOptions.Discord.OwnerIds);
-            ArgumentNullException.ThrowIfNull(appOptions.Discord.Token);
             botContext.OwnerIds = appOptions.Discord.OwnerIds.Select(id => (Snowflake)id);
             botContext.Intents = GatewayIntents.LibraryRecommended | GatewayIntents.DirectMessages;
             botContext.Token = appOptions.Discord.Token;
