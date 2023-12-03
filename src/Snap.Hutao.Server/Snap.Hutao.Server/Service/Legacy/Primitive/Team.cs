@@ -6,43 +6,19 @@ using System.Runtime.InteropServices;
 
 namespace Snap.Hutao.Server.Service.Legacy.Primitive;
 
-/// <summary>
-/// 队伍
-/// </summary>
 public readonly struct Team : IEquatable<Team>
 {
-    /// <summary>
-    /// 位置1
-    /// </summary>
     public readonly AvatarId Position1;
-
-    /// <summary>
-    /// 位置2
-    /// </summary>
     public readonly AvatarId Position2;
-
-    /// <summary>
-    /// 位置3
-    /// </summary>
     public readonly AvatarId Position3;
-
-    /// <summary>
-    /// 位置4
-    /// </summary>
     public readonly AvatarId Position4;
-
-    /// <summary>
-    /// 队伍中的角色个数
-    /// </summary>
     public readonly int Count;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="Team"/> struct.
-    /// </summary>
-    /// <param name="list">value</param>
     public Team(List<int> list)
     {
-        CollectionsMarshal.AsSpan(list).CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.As<Team, int>(ref this), 4));
+        Span<int> source = CollectionsMarshal.AsSpan(list);
+        source.CopyTo(MemoryMarshal.CreateSpan(ref Unsafe.As<Team, int>(ref this), 4));
+        Count = source.Length;
     }
 
     public static implicit operator string(Team value)
@@ -81,7 +57,6 @@ public readonly struct Team : IEquatable<Team>
         return !(left == right);
     }
 
-    /// <inheritdoc/>
     public bool Equals(Team other)
     {
         return Position1 == other.Position1
@@ -90,13 +65,11 @@ public readonly struct Team : IEquatable<Team>
             && Position4 == other.Position4;
     }
 
-    /// <inheritdoc/>
     public override bool Equals(object? obj)
     {
         return obj is Team other && Equals(other);
     }
 
-    /// <inheritdoc/>
     public override int GetHashCode()
     {
         return HashCode.Combine(Position1, Position2, Position3, Position4);
