@@ -83,21 +83,21 @@ public sealed class DiscordService
 
         embed.WithDescription("Statistics run completed");
 
-        embed.AddField("Schedule Id", overview.ScheduleId);
-        embed.AddField("Record Total", overview.RecordTotal);
-        embed.AddField("SpiralAbyss Total", overview.SpiralAbyssTotal);
-        embed.AddField("SpiralAbyss Full Star", overview.SpiralAbyssFullStar);
-        embed.AddField("SpiralAbyss Passed", overview.SpiralAbyssPassed);
-        embed.AddField("SpiralAbyss Star Average", overview.SpiralAbyssStarTotal / (double)overview.SpiralAbyssTotal);
-        embed.AddField("SpiralAbyss Battle Average", overview.SpiralAbyssBattleTotal / (double)overview.SpiralAbyssTotal);
-        embed.AddField("Calc Time per Record", overview.TimeAverage);
+        embed.AddField("Schedule Id", overview.ScheduleId, true);
+        embed.AddField("Record Total", overview.RecordTotal, true);
+        embed.AddField("SpiralAbyss Total", overview.SpiralAbyssTotal, true);
+        embed.AddField("SpiralAbyss Full Star", overview.SpiralAbyssFullStar, true);
+        embed.AddField("SpiralAbyss Passed", overview.SpiralAbyssPassed, true);
+        embed.AddField("SpiralAbyss Star Average", overview.SpiralAbyssStarTotal / (double)overview.SpiralAbyssTotal, true);
+        embed.AddField("SpiralAbyss Battle Average", overview.SpiralAbyssBattleTotal / (double)overview.SpiralAbyssTotal, true);
+        embed.AddField("Calc Time per Record", overview.TimeAverage, true);
 
         await hutaoServerBot.SendMessageAsync(discordOptions.KnownChannels.PublicStatus, new LocalMessage().WithEmbeds(embed));
     }
 
     private static LocalEmbed CreateStandardEmbed(string title, string icon)
     {
-        string footer = $"DGP Studio | {DateTimeOffset.UtcNow:yyyy-MM-dd HH:mm:ss}";
+        string footer = $"DGP Studio | {DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss}";
         return new LocalEmbed().WithAuthor(title, icon).WithFooter(footer);
     }
 }
