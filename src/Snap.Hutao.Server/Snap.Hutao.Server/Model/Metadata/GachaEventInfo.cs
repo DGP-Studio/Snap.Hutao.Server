@@ -1,6 +1,8 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
+using Snap.Hutao.Server.Service.GachaLog;
+
 namespace Snap.Hutao.Server.Model.Metadata;
 
 [Table("gacha_events")]
@@ -20,6 +22,20 @@ public sealed class GachaEventInfo
 
     [Column(TypeName = "datetime")]
     public DateTime To { get; set; }
+
+    public uint UpOrangeItem1 { get; set; }
+
+    public uint UpOrangeItem2 { get; set; }
+
+    public uint UpPurpleItem1 { get; set; }
+
+    public uint UpPurpleItem2 { get; set; }
+
+    public uint UpPurpleItem3 { get; set; }
+
+    public uint UpPurpleItem4 { get; set; }
+
+    public uint UpPurpleItem5 { get; set; }
 
     public GachaConfigType Type { get; set; }
 }

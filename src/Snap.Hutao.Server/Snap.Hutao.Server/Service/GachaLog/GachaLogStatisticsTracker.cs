@@ -3,7 +3,6 @@
 
 using Snap.Hutao.Server.Extension;
 using Snap.Hutao.Server.Model.Context;
-using Snap.Hutao.Server.Model.Entity;
 using Snap.Hutao.Server.Model.Entity.GachaLog;
 using Snap.Hutao.Server.Model.GachaLog;
 using Snap.Hutao.Server.Model.Metadata;
@@ -18,6 +17,9 @@ public sealed class GachaLogStatisticsTracker
     private readonly GachaEventInfo currentAvatarEvent1;
     private readonly GachaEventInfo currentAvatarEvent2;
     private readonly GachaEventInfo currentWeaponEvent;
+    private readonly FrozenSet<int> currentAvatarEvent1Star5Ids;
+    private readonly FrozenSet<int> currentAvatarEvent2Star5Ids;
+    private readonly FrozenSet<int> currentWeaponEventStar5Ids;
 
     private readonly HashSet<string> invalidGachaUids = [];
 
@@ -42,6 +44,10 @@ public sealed class GachaLogStatisticsTracker
         currentAvatarEvent1 = bundle.AvatarEvent1;
         currentAvatarEvent2 = bundle.AvatarEvent2;
         currentWeaponEvent = bundle.WeaponEvent;
+
+        currentAvatarEvent1Star5Ids = currentAvatarEvent1.GetUpOrangeItems().ToFrozenSet();
+        currentAvatarEvent2Star5Ids = currentAvatarEvent2.GetUpOrangeItems().ToFrozenSet();
+        currentWeaponEventStar5Ids = currentWeaponEvent.GetUpOrangeItems().ToFrozenSet();
     }
 
     /// <summary>
@@ -177,7 +183,7 @@ public sealed class GachaLogStatisticsTracker
                 {
                     ++lastStar5Counter;
                     ++totalPullsCounter;
-                    TryIncreaseCurrentWishItemCounter(item);
+                    TryIncreaseCurrentWishItemCounter(item, 3);
                 }
 
                 break;
@@ -186,7 +192,7 @@ public sealed class GachaLogStatisticsTracker
                 {
                     ++lastStar5Counter;
                     ++totalPullsCounter;
-                    TryIncreaseCurrentWishItemCounter(item);
+                    TryIncreaseCurrentWishItemCounter(item, 4);
                 }
 
                 break;
@@ -195,7 +201,7 @@ public sealed class GachaLogStatisticsTracker
                 {
                     ++lastStar5Counter;
                     ++totalPullsCounter;
-                    TryIncreaseCurrentWishItemCounter(item);
+                    TryIncreaseCurrentWishItemCounter(item, 5);
 
                     if (lastStar5Counter > pullMaxThreshold)
                     {
@@ -212,19 +218,35 @@ public sealed class GachaLogStatisticsTracker
         }
     }
 
-    private void TryIncreaseCurrentWishItemCounter(EntityGachaItem item)
+    private void TryIncreaseCurrentWishItemCounter(EntityGachaItem item, int quality)
     {
-        if (item.GachaType == GachaConfigType.AvatarEventWish && item.Time >= currentAvatarEvent1.From && item.Time <= currentAvatarEvent1.To)
+        // TODO: Handle quality 4
+        if (currentAvatarEvent1.ItemInThisEvent(item))
         {
             currentAvatarEvent1Counter.IncreaseOne(item.ItemId);
+
+            if (quality is 5 && !(currentAvatarEvent1Star5Ids.Contains(item.ItemId) || SpecializedGachaLogItems.IsAvatarStandardWishItem(item)))
+            {
+                invalidGachaUids.Add(Uid);
+            }
         }
-        else if (item.GachaType == GachaConfigType.AvatarEventWish2 && item.Time >= currentAvatarEvent2.From && item.Time <= currentAvatarEvent2.To)
+        else if (currentAvatarEvent2.ItemInThisEvent(item))
         {
             currentAvatarEvent2Counter.IncreaseOne(item.ItemId);
+
+            if (quality is 5 && !(currentAvatarEvent2Star5Ids.Contains(item.ItemId) || SpecializedGachaLogItems.IsAvatarStandardWishItem(item)))
+            {
+                invalidGachaUids.Add(Uid);
+            }
         }
-        else if (item.GachaType == GachaConfigType.WeaponEventWish && item.Time >= currentWeaponEvent.From && item.Time <= currentWeaponEvent.To)
+        else if (currentWeaponEvent.ItemInThisEvent(item))
         {
             currentWeaponEventCounter.IncreaseOne(item.ItemId);
+
+            if (quality is 5 && !(currentWeaponEventStar5Ids.Contains(item.ItemId) || SpecializedGachaLogItems.IsWeaponStandardWishItem(item)))
+            {
+                invalidGachaUids.Add(Uid);
+            }
         }
     }
 }
