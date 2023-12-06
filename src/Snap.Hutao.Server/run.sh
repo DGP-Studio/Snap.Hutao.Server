@@ -14,7 +14,7 @@ echo start build...
 docker build -t $imageName:$version -f Dockerfile .
 
 echo port is $port
-docker run -d -p $port:80 \
+docker run -d -p $port:8080 \
     --ip=172.17.0.25 \
     --name="$containerName-$version" \
     $imageName:$version 

@@ -18,6 +18,7 @@ using Snap.Hutao.Server.Service.Announcement;
 using Snap.Hutao.Server.Service.Authorization;
 using Snap.Hutao.Server.Service.Discord;
 using Snap.Hutao.Server.Service.GachaLog;
+using Snap.Hutao.Server.Service.GachaLog.Statistics;
 using Snap.Hutao.Server.Service.Legacy;
 using Snap.Hutao.Server.Service.Legacy.PizzaHelper;
 using Snap.Hutao.Server.Service.Licensing;
@@ -69,7 +70,7 @@ public static class Program
             .AddMemoryCache()
             .AddQuartz(config =>
             {
-                config.ScheduleJob<GachaLogStatisticsRefreshJob>(t => t.StartNow().WithCronSchedule("0 30 */4 * * ?"));
+                config.ScheduleJob<GachaLogStatisticsRefreshJob>(t => t.StartNow().WithCronSchedule("0 30 */1 * * ?"));
                 config.ScheduleJob<LegacyStatisticsRefreshJob>(t => t.StartNow().WithCronSchedule("0 5 */1 * * ?"));
                 config.ScheduleJob<SpiralAbyssRecordCleanJob>(t => t.StartNow().WithCronSchedule("0 0 4 1,16 * ?"));
             })

@@ -26,17 +26,33 @@ public sealed class GachaLogService
 
     public async ValueTask<List<GachaEntry>> GetGachaEntriesForUserAsync(int userId)
     {
-        return await appDbContext.GachaItems
+        List<GachaEntry> entries = await appDbContext.GachaItems
             .AsNoTracking()
-            .Where(g => g.UserId == userId)
-            .GroupBy(g => g.Uid)
-            .Select(x => new GachaEntry()
+            .Where(item => item.UserId == userId)
+            .GroupBy(item => item.Uid)
+            .Select(grouping => new GachaEntry()
             {
-                Uid = x.Key,
-                ItemCount = x.AsQueryable().Count(),
+                Uid = grouping.Key,
+                ItemCount = grouping.AsQueryable().Count(),
             })
             .ToListAsync()
             .ConfigureAwait(false);
+
+        List<string> uids = entries.SelectList(entries => entries.Uid);
+
+        HashSet<string> excludedUids = appDbContext.InvalidGachaUids
+            .AsNoTracking()
+            .Where(uid => uids.Contains(uid.Uid))
+            .Select(uid => uid.Uid)
+            .AsEnumerable()
+            .ToHashSet();
+
+        foreach (GachaEntry entry in entries)
+        {
+            entry.Excluded = excludedUids.Contains(entry.Uid);
+        }
+
+        return entries;
     }
 
     public async ValueTask<EndIds> GetNewestEndIdsAsync(int userId, string uid)
@@ -123,11 +139,14 @@ public sealed class GachaLogService
 
     public async ValueTask<int> DeleteGachaItemsAsync(int userId, string uid)
     {
-        return await appDbContext.GachaItems
+        int count = await appDbContext.GachaItems
             .Where(i => i.UserId == userId)
             .Where(i => i.Uid == uid)
             .ExecuteDeleteAsync()
             .ConfigureAwait(false);
+
+        await appDbContext.InvalidGachaUids.Where(u => u.Uid == uid).ExecuteDeleteAsync().ConfigureAwait(false);
+        return count;
     }
 
     public T? GetGachaLogStatistics<T>(string name)

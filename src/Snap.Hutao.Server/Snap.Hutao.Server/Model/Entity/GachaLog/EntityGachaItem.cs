@@ -3,6 +3,7 @@
 
 using Snap.Hutao.Server.Model.Entity.Passport;
 using Snap.Hutao.Server.Model.Metadata;
+using System.ComponentModel;
 
 namespace Snap.Hutao.Server.Model.Entity.GachaLog;
 
@@ -20,6 +21,7 @@ public sealed class EntityGachaItem
 
     public long Id { get; set; }
 
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public bool IsTrusted { get; set; }
 
     public GachaConfigType GachaType { get; set; }

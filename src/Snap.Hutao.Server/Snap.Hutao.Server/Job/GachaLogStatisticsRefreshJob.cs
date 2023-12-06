@@ -2,7 +2,7 @@
 // Licensed under the MIT license.
 
 using Quartz;
-using Snap.Hutao.Server.Service.GachaLog;
+using Snap.Hutao.Server.Service.GachaLog.Statistics;
 
 namespace Snap.Hutao.Server.Job;
 

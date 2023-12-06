@@ -9,7 +9,7 @@ using Snap.Hutao.Server.Model.Metadata;
 using Snap.Hutao.Server.Service.Legacy.Primitive;
 using System.Runtime.InteropServices;
 
-namespace Snap.Hutao.Server.Service.GachaLog;
+namespace Snap.Hutao.Server.Service.GachaLog.Statistics;
 
 public sealed class GachaLogStatisticsTracker
 {

@@ -9,7 +9,7 @@ using Snap.Hutao.Server.Service.Discord;
 using Snap.Hutao.Server.Service.Legacy.Primitive;
 using System.Runtime.InteropServices;
 
-namespace Snap.Hutao.Server.Service.GachaLog;
+namespace Snap.Hutao.Server.Service.GachaLog.Statistics;
 
 // Transient
 public sealed class GachaLogStatisticsService

@@ -3,7 +3,7 @@
 
 using Snap.Hutao.Server.Model.Metadata;
 
-namespace Snap.Hutao.Server.Service.GachaLog;
+namespace Snap.Hutao.Server.Service.GachaLog.Statistics;
 
 internal sealed class GachaEventBundle
 {
