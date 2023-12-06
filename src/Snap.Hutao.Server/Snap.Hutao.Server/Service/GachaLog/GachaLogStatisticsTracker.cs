@@ -61,6 +61,7 @@ public sealed class GachaLogStatisticsTracker
     /// <param name="gachaItems">祈愿记录</param>
     public void Track(List<EntityGachaItem> gachaItems)
     {
+        // Ignore items before first star5 item
         bool avatarEventFirstStar5Found = false;
         bool weaponEventFirstStar5Found = false;
         bool standardFirstStar5Found = false;
@@ -174,6 +175,25 @@ public sealed class GachaLogStatisticsTracker
         appDbContext.SaveChanges();
     }
 
+    private static bool ImpossiblePresence(FrozenSet<int> upStar5Items, EntityGachaItem item, int quality)
+    {
+        // TODO: Handle quality 4
+        if (quality is 5)
+        {
+            if (upStar5Items.Contains(item.ItemId))
+            {
+                return false;
+            }
+
+            if (SpecializedGachaLogItems.IsStandardWishItem(item))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     private void TrackForSpecficQueryTypeWish(EntityGachaItem item, ref bool star5Found, ref int lastStar5Counter, ref long totalPullsCounter, Map<int, long> distribution, int pullMaxThreshold)
     {
         switch (idQualityMap[item.ItemId])
@@ -220,12 +240,11 @@ public sealed class GachaLogStatisticsTracker
 
     private void TryIncreaseCurrentWishItemCounter(EntityGachaItem item, int quality)
     {
-        // TODO: Handle quality 4
         if (currentAvatarEvent1.ItemInThisEvent(item))
         {
             currentAvatarEvent1Counter.IncreaseOne(item.ItemId);
 
-            if (quality is 5 && !(currentAvatarEvent1Star5Ids.Contains(item.ItemId) || SpecializedGachaLogItems.IsAvatarStandardWishItem(item)))
+            if (ImpossiblePresence(currentAvatarEvent1Star5Ids, item, quality))
             {
                 invalidGachaUids.Add(Uid);
             }
@@ -234,7 +253,7 @@ public sealed class GachaLogStatisticsTracker
         {
             currentAvatarEvent2Counter.IncreaseOne(item.ItemId);
 
-            if (quality is 5 && !(currentAvatarEvent2Star5Ids.Contains(item.ItemId) || SpecializedGachaLogItems.IsAvatarStandardWishItem(item)))
+            if (ImpossiblePresence(currentAvatarEvent2Star5Ids, item, quality))
             {
                 invalidGachaUids.Add(Uid);
             }
@@ -243,7 +262,7 @@ public sealed class GachaLogStatisticsTracker
         {
             currentWeaponEventCounter.IncreaseOne(item.ItemId);
 
-            if (quality is 5 && !(currentWeaponEventStar5Ids.Contains(item.ItemId) || SpecializedGachaLogItems.IsWeaponStandardWishItem(item)))
+            if (ImpossiblePresence(currentWeaponEventStar5Ids, item, quality))
             {
                 invalidGachaUids.Add(Uid);
             }
