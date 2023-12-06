@@ -15,11 +15,6 @@ namespace Snap.Hutao.Server.Service.Discord;
 // Singleton
 public sealed class DiscordService
 {
-    // TODO: move to options
-    private const string AfdianOrderIcon = "https://static.afdiancdn.com/static/img/logo/logo.png";
-    private const string SpiralAbyssIcon = "https://homa.snapgenshin.com/img/SpiralAbyss.png";
-    private const string GachaLogIcon = "https://homa.snapgenshin.com/img/GachaLog.png";
-
     private readonly HutaoServerBot hutaoServerBot;
     private readonly DiscordOptions discordOptions;
 
@@ -31,7 +26,7 @@ public sealed class DiscordService
 
     public async ValueTask ReportAfdianOrderAsync(AfdianOrderInformation info)
     {
-        LocalEmbed embed = CreateStandardEmbed("Afdian Order", AfdianOrderIcon);
+        LocalEmbed embed = Embed.CreateStandardEmbed("Afdian Order", Embed.AfdianOrderIcon);
 
         embed.WithDescription($"Status: {info.Status}");
 
@@ -45,7 +40,7 @@ public sealed class DiscordService
 
     public async ValueTask ReportSpiralAbyssCleanResultAsync(SpiralAbyssRecordCleanResult result)
     {
-        LocalEmbed embed = CreateStandardEmbed("Spiral Abyss Record Cleanup", SpiralAbyssIcon);
+        LocalEmbed embed = Embed.CreateStandardEmbed("Spiral Abyss Record Cleanup", Embed.SpiralAbyssIcon);
 
         embed.WithDescription($"In this cleanup, we cleanned:");
 
@@ -58,7 +53,7 @@ public sealed class DiscordService
 
     public async ValueTask ReportGachaEventStatisticsAsync(GachaEventStatistics statistics)
     {
-        LocalEmbed embed = CreateStandardEmbed("Gacha Event Statistics", GachaLogIcon);
+        LocalEmbed embed = Embed.CreateStandardEmbed("Gacha Event Statistics", Embed.GachaLogIcon);
 
         embed.WithDescription($"Status: {statistics.Status}");
 
@@ -79,7 +74,7 @@ public sealed class DiscordService
 
     public async ValueTask ReportSpiralAbyssStatisticsAsync(Overview overview)
     {
-        LocalEmbed embed = CreateStandardEmbed("Spiral Abyss Statistics", SpiralAbyssIcon);
+        LocalEmbed embed = Embed.CreateStandardEmbed("Spiral Abyss Statistics", Embed.SpiralAbyssIcon);
 
         embed.WithDescription("Statistics run completed");
 
@@ -93,11 +88,5 @@ public sealed class DiscordService
         embed.AddField("Calc Time per Record", overview.TimeAverage, true);
 
         await hutaoServerBot.SendMessageAsync(discordOptions.KnownChannels.PublicStatus, new LocalMessage().WithEmbeds(embed));
-    }
-
-    private static LocalEmbed CreateStandardEmbed(string title, string icon)
-    {
-        string footer = $"DGP Studio | {DateTimeOffset.Now:yyyy-MM-dd HH:mm:ss}";
-        return new LocalEmbed().WithAuthor(title, icon).WithFooter(footer);
     }
 }

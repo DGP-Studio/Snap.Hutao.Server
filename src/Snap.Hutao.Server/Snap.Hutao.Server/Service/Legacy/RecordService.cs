@@ -47,6 +47,11 @@ public sealed class RecordService
             return RecordUploadResult.UidBanned;
         }
 
+        if (record.SpiralAbyss is null)
+        {
+            return RecordUploadResult.InvalidData;
+        }
+
         if (record.SpiralAbyss.ScheduleId != SpiralAbyssScheduleId.GetForNow())
         {
             return RecordUploadResult.NotCurrentSchedule;
