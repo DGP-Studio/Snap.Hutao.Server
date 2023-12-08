@@ -4,6 +4,7 @@
 using Disqord;
 using Disqord.Bot.Commands.Application;
 using Qmmands;
+using Snap.Hutao.Server.Service.GachaLog.Statistics;
 
 namespace Snap.Hutao.Server.Discord;
 
@@ -14,11 +15,11 @@ public sealed class HutaoServerCommands : DiscordApplicationModuleBase
     [Description("运行祈愿记录统计")]
     public async ValueTask<Qmmands.IResult> RunGachaLogStatisticsAsync()
     {
+        await Context.Services.GetRequiredService<GachaLogStatisticsService>().RunAsync().ConfigureAwait(false);
         LocalEmbed embed = Embed.CreateStandardEmbed("祈愿记录统计", Embed.GachaLogIcon);
-        embed.WithDescription("[TEST] 正在统计祈愿记录，请稍候");
+        embed.WithDescription("祈愿记录统计完成");
         LocalInteractionMessageResponse response = new LocalInteractionMessageResponse()
             .WithEmbeds(embed);
-        await Task.Yield();
         return Response(response);
     }
 }

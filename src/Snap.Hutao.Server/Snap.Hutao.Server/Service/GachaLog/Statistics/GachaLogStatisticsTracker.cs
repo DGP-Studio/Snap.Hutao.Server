@@ -189,9 +189,11 @@ public sealed class GachaLogStatisticsTracker
             {
                 return false;
             }
+
+            return true;
         }
 
-        return true;
+        return false;
     }
 
     private void TrackForSpecficQueryTypeWish(EntityGachaItem item, ref bool star5Found, ref int lastStar5Counter, ref long totalPullsCounter, Map<int, long> distribution, int pullMaxThreshold)
