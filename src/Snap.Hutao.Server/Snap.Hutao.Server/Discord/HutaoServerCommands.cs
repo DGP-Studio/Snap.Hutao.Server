@@ -18,7 +18,7 @@ public sealed class HutaoServerCommands : DiscordApplicationModuleBase
         embed.WithDescription("[TEST] 正在统计祈愿记录，请稍候");
         LocalInteractionMessageResponse response = new LocalInteractionMessageResponse()
             .WithEmbeds(embed);
-
+        await Task.Yield();
         return Response(response);
     }
 }
