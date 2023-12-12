@@ -73,7 +73,14 @@ public sealed class RecordService
         }
 
         RecordUploadResult result = await SaveRecordAsync(record).ConfigureAwait(false);
-        await pizzaHelperRecordService.TryPostRecordAsync(record).ConfigureAwait(false);
+        try
+        {
+            await pizzaHelperRecordService.TryPostRecordAsync(record).ConfigureAwait(false);
+        }
+        catch
+        {
+            // Any exception will be ignored.
+        }
 
         if (!UploadingUids.TryRemove(record.Uid, out _))
         {
