@@ -146,7 +146,7 @@ public class PassportController : ControllerBase
         PassportResult result = await passportService.ResetPasswordAsync(passport).ConfigureAwait(false);
 
         return result.Success
-            ? Response<string>.Success("密码设置成功", result.Token, result.LocalizationKey!)
+            ? Response<string>.Success("密码设置成功", result.LocalizationKey!, result.Token)
             : Model.Response.Response.Fail(ReturnCode.RegisterFail, result.Message, result.LocalizationKey!);
     }
 
