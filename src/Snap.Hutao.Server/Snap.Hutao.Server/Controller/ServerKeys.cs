@@ -5,6 +5,7 @@ namespace Snap.Hutao.Server.Controller;
 
 public static class ServerKeys
 {
+    public const string ServerGachaLogServiceDeleteEntrySucceed = "ServerGachaLogServiceDeleteEntrySucceed";
     public const string ServerGachaLogServiceInsufficientRecordSlot = "ServerGachaLogServiceInsufficientRecordSlot";
     public const string ServerGachaLogServiceInsufficientTime = "ServerGachaLogServiceInsufficientTime";
     public const string ServerGachaLogServiceInvalidGachaLogData = "ServerGachaLogServiceInvalidGachaLogData";
@@ -26,6 +27,14 @@ public static class ServerKeys
     public const string ServerPassportVerifyRequestSuccess = "ServerPassportVerifyRequestSuccess";
     public const string ServerPassportVerifyRequestNotCurrentUser = "ServerPassportVerifyRequestNotCurrentUser";
     public const string ServerPassportVerifyRequestUserAlreadyExisted = "ServerPassportVerifyRequestUserAlreadyExisted";
+    public const string ServerRecordBannedUid = "ServerRecordBannedUid";
+    public const string ServerRecordComputingStatistics = "ServerRecordComputingStatistics";
+    public const string ServerRecordComputingStatistics2 = "ServerRecordComputingStatistics2";
+    public const string ServerRecordInternalException = "ServerRecordInternalException";
+    public const string ServerRecordInvalidData = "ServerRecordInvalidData";
+    public const string ServerRecordInvalidUid = "ServerRecordInvalidUid";
+    public const string ServerRecordNotCurrentSchedule = "ServerRecordNotCurrentSchedule";
+    public const string ServerRecordPreviousRequestNotCompleted = "ServerRecordPreviousRequestNotCompleted";
     public const string ServerRecordUploadSuccessAndGachaLogServiceTimeExtended = "ServerRecordUploadSuccessAndGachaLogServiceTimeExtended";
     public const string ServerRecordUploadSuccessButNoPassport = "ServerRecordUploadSuccessButNoPassport";
     public const string ServerRecordUploadSuccessButNoSuchUser = "ServerRecordUploadSuccessButNoSuchUser";
