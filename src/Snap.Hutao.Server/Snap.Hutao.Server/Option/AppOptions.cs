@@ -5,9 +5,9 @@ namespace Snap.Hutao.Server.Option;
 
 public sealed class AppOptions
 {
-    public string AfdianUserToken { get; set; } = default!;
-
     public string JwtRaw { get; set; } = default!;
+
+    public string MailerSecret { get; set; } = default!;
 
     public string ReCaptchaKey { get; set; } = default!;
 

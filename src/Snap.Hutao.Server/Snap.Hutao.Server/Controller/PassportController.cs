@@ -146,8 +146,8 @@ public class PassportController : ControllerBase
         PassportResult result = await passportService.ResetPasswordAsync(passport).ConfigureAwait(false);
 
         return result.Success
-            ? Response<string>.Success("密码设置成功", result.LocalizationKey!, result.Token)
-            : Model.Response.Response.Fail(ReturnCode.RegisterFail, result.LocalizationKey!, result.Message);
+            ? Response<string>.Success("密码设置成功", result.Token, result.LocalizationKey!)
+            : Model.Response.Response.Fail(ReturnCode.RegisterFail, result.Message, result.LocalizationKey!);
     }
 
     [HttpPost("Login")]
@@ -163,7 +163,7 @@ public class PassportController : ControllerBase
 
         return result.Success
             ? Response<string>.Success("登录成功", result.LocalizationKey!, result.Token)
-            : Model.Response.Response.Fail(ReturnCode.LoginFail, result.LocalizationKey!, result.Message);
+            : Model.Response.Response.Fail(ReturnCode.LoginFail, result.Message, result.LocalizationKey!);
     }
 
     [Authorize]

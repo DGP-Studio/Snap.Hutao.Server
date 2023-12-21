@@ -1,24 +1,23 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
-using MailKit.Net.Smtp;
-using MimeKit;
 using Snap.Hutao.Server.Option;
-using System.Runtime.CompilerServices;
 
 namespace Snap.Hutao.Server.Service;
 
 public sealed class MailService
 {
+    private readonly IHttpClientFactory httpClientFactory;
     private readonly ILogger<MailService> logger;
     private readonly SmtpOptions smtpOptions;
+    private readonly string mailerSecret;
 
-    public MailService(AppOptions appOptions, ILogger<MailService> logger)
+    public MailService(IHttpClientFactory httpClientFactory, AppOptions appOptions, ILogger<MailService> logger)
     {
+        this.httpClientFactory = httpClientFactory;
         this.logger = logger;
         smtpOptions = appOptions.Smtp;
-
-        logger.LogInformation("Initialized with UserName:{UserName} Password:{Password}", smtpOptions.UserName, smtpOptions.Password);
+        mailerSecret = appOptions.MailerSecret;
     }
 
     public Task SendRegistrationVerifyCodeAsync(string emailAddress, string code)
@@ -204,29 +203,33 @@ public sealed class MailService
 
     private async Task SendMailAsync(MailOptions options)
     {
-        MimeMessage mimeMessage = new()
+        using (HttpClient httpClient = httpClientFactory.CreateClient())
         {
-            Subject = options.Subject,
-            From =
+            MailData data = new()
             {
-                new MailboxAddress("DGP Studio", smtpOptions.UserName),
-            },
-            To =
-            {
-                new MailboxAddress(options.Address, options.Address),
-            },
-            Body = new TextPart("html")
-            {
-                Text = ComposeMailBody(options),
-            },
-        };
+                From = "DGP Studio <no-reply@snapgenshin.cn>",
+                To = options.Address,
+                Subject = options.Subject,
+                BodyHtml = ComposeMailBody(options),
+            };
 
-        using (SmtpClient client = new())
-        {
-            await client.ConnectAsync(smtpOptions.Server).ConfigureAwait(false);
-            await client.AuthenticateAsync(smtpOptions.UserName, smtpOptions.Password).ConfigureAwait(false);
-            await client.SendAsync(mimeMessage).ConfigureAwait(false);
-            await client.DisconnectAsync(true).ConfigureAwait(false);
+            httpClient.DefaultRequestHeaders.Authorization = new("SECRET", mailerSecret);
+            await httpClient.PostAsJsonAsync("https://mailer.snapgenshin.cn/api/sendEmail", data).ConfigureAwait(false);
         }
+    }
+
+    private sealed class MailData
+    {
+        [JsonPropertyName("from")]
+        public string From { get; set; } = default!;
+
+        [JsonPropertyName("to")]
+        public string To { get; set; } = default!;
+
+        [JsonPropertyName("subject")]
+        public string Subject { get; set; } = default!;
+
+        [JsonPropertyName("bodyHtml")]
+        public string BodyHtml { get; set; } = default!;
     }
 }
