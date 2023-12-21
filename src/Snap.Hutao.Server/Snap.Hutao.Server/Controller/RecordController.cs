@@ -45,12 +45,12 @@ public class RecordController : ControllerBase
                 RecordUploadResult.OkWithGachaLogExtented => Model.Response.Response.Success("数据提交成功，获赠 3 天祈愿记录上传服务时长", ServerKeys.ServerRecordUploadSuccessAndGachaLogServiceTimeExtended),
                 RecordUploadResult.OkWithGachaLogNoSuchUser => Model.Response.Response.Success("数据提交成功，但不存在该胡桃账号", ServerKeys.ServerRecordUploadSuccessButNoSuchUser),
 
-                RecordUploadResult.ComputingStatistics => Model.Response.Response.Fail(ReturnCode.ComputingStatistics, "正在计算统计数据", "ServerRecordComputingStatistics"),
-                RecordUploadResult.UidBanned => Model.Response.Response.Fail(ReturnCode.BannedUid, "Uid 已被数据库封禁", "ServerRecordBannedUid"),
-                RecordUploadResult.NotCurrentSchedule => Model.Response.Response.Fail(ReturnCode.NotCurrentSchedule, "非当前深渊数据", "ServerRecordNotCurrentSchedule"),
-                RecordUploadResult.InvalidData => Model.Response.Response.Fail(ReturnCode.InvalidUploadData, "无效的提交数据", "ServerRecordInvalidData"),
-                RecordUploadResult.ConcurrencyNotSupported => Model.Response.Response.Fail(ReturnCode.PreviousRequestNotCompleted, "该UID的请求尚在处理", "ServerRecordPreviousRequestNotCompleted"),
-                RecordUploadResult.ConcurrencyStateErrorAdd or RecordUploadResult.ConcurrencyStateErrorRemove => Model.Response.Response.Fail(ReturnCode.InternalStateException, "提交状态异常", "ServerRecordInternalException"),
+                RecordUploadResult.ComputingStatistics => Model.Response.Response.Fail(ReturnCode.ComputingStatistics, "正在计算统计数据", ServerKeys.ServerRecordComputingStatistics),
+                RecordUploadResult.UidBanned => Model.Response.Response.Fail(ReturnCode.BannedUid, "Uid 已被数据库封禁", ServerKeys.ServerRecordBannedUid),
+                RecordUploadResult.NotCurrentSchedule => Model.Response.Response.Fail(ReturnCode.NotCurrentSchedule, "非当前深渊数据", ServerKeys.ServerRecordNotCurrentSchedule),
+                RecordUploadResult.InvalidData => Model.Response.Response.Fail(ReturnCode.InvalidUploadData, "无效的提交数据", ServerKeys.ServerRecordInvalidData),
+                RecordUploadResult.ConcurrencyNotSupported => Model.Response.Response.Fail(ReturnCode.PreviousRequestNotCompleted, "该UID的请求尚在处理", ServerKeys.ServerRecordPreviousRequestNotCompleted),
+                RecordUploadResult.ConcurrencyStateErrorAdd or RecordUploadResult.ConcurrencyStateErrorRemove => Model.Response.Response.Fail(ReturnCode.InternalStateException, "提交状态异常", ServerKeys.ServerRecordInternalException),
                 _ => Model.Response.Response.Success("数据提交成功"),
             };
         }
@@ -61,12 +61,12 @@ public class RecordController : ControllerBase
     {
         if (recordService.IsStatisticsServiceWorking())
         {
-            return Model.Response.Response.Fail(ReturnCode.ComputingStatistics, "正在计算统计数据", "ServerRecordComputingStatistics2");
+            return Model.Response.Response.Fail(ReturnCode.ComputingStatistics, "正在计算统计数据", ServerKeys.ServerRecordComputingStatistics2);
         }
 
         if (!int.TryParse(uid, out _) || uid.Length != 9)
         {
-            return Model.Response.Response.Fail(ReturnCode.InvalidQueryString, $"{uid}不是合法的uid", "ServerRecordInvalidUid");
+            return Model.Response.Response.Fail(ReturnCode.InvalidQueryString, $"{uid}不是合法的uid", ServerKeys.ServerRecordInvalidUid);
         }
 
         bool uploaded = await recordService.HaveUidUploadedAsync(uid).ConfigureAwait(false);
@@ -78,12 +78,12 @@ public class RecordController : ControllerBase
     {
         if (recordService.IsStatisticsServiceWorking())
         {
-            return Model.Response.Response.Fail(ReturnCode.ComputingStatistics, "正在计算统计数据", "ServerRecordComputingStatistics2");
+            return Model.Response.Response.Fail(ReturnCode.ComputingStatistics, "正在计算统计数据", ServerKeys.ServerRecordComputingStatistics2);
         }
 
         if (!int.TryParse(uid, out _) || uid.Length != 9)
         {
-            return Model.Response.Response.Fail(ReturnCode.InvalidQueryString, $"{uid}不是合法的uid", "ServerRecordInvalidUid");
+            return Model.Response.Response.Fail(ReturnCode.InvalidQueryString, $"{uid}不是合法的uid", ServerKeys.ServerRecordInvalidUid);
         }
 
         Rank rank = await rankService.RetriveRankAsync(uid).ConfigureAwait(false);

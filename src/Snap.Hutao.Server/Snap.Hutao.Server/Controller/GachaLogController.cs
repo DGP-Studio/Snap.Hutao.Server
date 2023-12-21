@@ -104,7 +104,7 @@ public class GachaLogController : ControllerBase
     public async Task<IActionResult> DeleteAsync([FromQuery(Name = "Uid")] string uid)
     {
         int count = await gachaLogService.DeleteGachaItemsAsync(this.GetUserId(), uid).ConfigureAwait(false);
-        return Response<int>.Success($"删除了 {count} 条记录", "ServerGachaLogServiceDeleteEntrySucceed", count);
+        return Response<int>.Success($"删除了 {count} 条记录", ServerKeys.ServerGachaLogServiceDeleteEntrySucceed, count);
     }
 
     private IActionResult GetGachaLogStatistics<T>(string name)
