@@ -31,7 +31,7 @@ public sealed class PassportVerificationService
             return false;
         }
 
-        if (verification.ExpireTimestamp > DateTimeOffset.UtcNow.ToUnixTimeSeconds())
+        if (verification.ExpireTimestamp < DateTimeOffset.UtcNow.ToUnixTimeSeconds())
         {
             // Expired, remove
             appDbContext.PassportVerifications.RemoveAndSave(verification);
