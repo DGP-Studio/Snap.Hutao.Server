@@ -11,5 +11,7 @@ public class PassportVerification
 
     public string VerifyCode { get; set; } = default!;
 
+    public long GeneratedTimestamp { get; set; } = default!;
+
     public long ExpireTimestamp { get; set; } = default!;
 }

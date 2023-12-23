@@ -11,7 +11,8 @@ namespace Snap.Hutao.Server.Service.Authorization;
 // Scoped
 public sealed class PassportVerificationService
 {
-    private const int ExpireSeconds = 120;
+    private const int ExpireThresholdSeconds = 15 * 60;
+    private const int RegenerateThresholdSeconds = 60;
 
     private readonly AppDbContext appDbContext;
 
@@ -31,9 +32,9 @@ public sealed class PassportVerificationService
             return false;
         }
 
-        if (verification.ExpireTimestamp < DateTimeOffset.UtcNow.ToUnixTimeSeconds())
+        if (verification.GeneratedTimestamp + RegenerateThresholdSeconds < DateTimeOffset.UtcNow.ToUnixTimeSeconds())
         {
-            // Expired, remove
+            // Remove past code
             appDbContext.PassportVerifications.RemoveAndSave(verification);
             code = default;
             return false;
@@ -46,11 +47,13 @@ public sealed class PassportVerificationService
     public string GenerateVerifyCodeForUserName(string normalizedUserName)
     {
         string code = RandomHelper.GetUpperAndNumberString(8);
+        long now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         PassportVerification verification = new()
         {
             NormalizedUserName = normalizedUserName,
             VerifyCode = code,
-            ExpireTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds() + ExpireSeconds,
+            GeneratedTimestamp = now,
+            ExpireTimestamp = now + ExpireThresholdSeconds,
         };
 
         appDbContext.PassportVerifications.AddAndSave(verification);
