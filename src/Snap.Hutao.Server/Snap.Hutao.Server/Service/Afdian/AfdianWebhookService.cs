@@ -74,6 +74,15 @@ public sealed class AfdianWebhookService
             {
                 await mailService.SendPurchaseGachaLogStorageServiceAsync(info.UserName, result.ExpiredAt.ToString("yyy/MM/dd HH:mm:ss"), info.OrderNumber).ConfigureAwait(false);
             }
+            else
+            {
+                info.Status = result.Kind switch
+                {
+                    GachaLogTermExtendResultKind.NoSuchUser => AfdianOrderStatus.GachaLogTermExtendNoSuchUser,
+                    GachaLogTermExtendResultKind.DbError => AfdianOrderStatus.GachaLogTermExtendDbError,
+                    _ => info.Status,
+                };
+            }
         }
         else
         {

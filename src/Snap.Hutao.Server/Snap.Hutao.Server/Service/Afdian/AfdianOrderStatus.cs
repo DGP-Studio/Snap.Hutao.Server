@@ -13,4 +13,6 @@ public enum AfdianOrderStatus
     ValidationResponseNoOrder,
     ValidationResponseNoSkuDetail,
     ValidationResponseSkuDetailNotMatch,
+    GachaLogTermExtendNoSuchUser,
+    GachaLogTermExtendDbError,
 }
