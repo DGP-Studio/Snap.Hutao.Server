@@ -37,7 +37,7 @@ public class PassportController : ControllerBase
 
         if (passportVerificationService.TryGetNonExpiredVerifyCode(normalizedUserName, out _))
         {
-            return Model.Response.Response.Fail(ReturnCode.VerifyCodeTooFrequently, "请求过快，请 2 分钟后再试", ServerKeys.ServerPassportVerifyTooFrequent);
+            return Model.Response.Response.Fail(ReturnCode.VerifyCodeTooFrequently, "请求过快，请 1 分钟后再试", ServerKeys.ServerPassportVerifyTooFrequent);
         }
 
         string code = passportVerificationService.GenerateVerifyCodeForUserName(normalizedUserName);
