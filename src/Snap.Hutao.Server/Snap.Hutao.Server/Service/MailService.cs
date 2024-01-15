@@ -146,45 +146,62 @@ public sealed class MailService
             <!DOCTYPE html>
             <html lang="en">
             <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <style>
-                    body {
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        height: 100vh;
-                        margin: 0;
+                <meta name="format-detection" content="email=no"/>
+                <meta name="format-detection" content="date=no"/>
+                <style nonce="64080I9IgI8JfUgIIJ2Qfg">
+                    .awl a {color: #FFFFFF; text-decoration: none;}
+                    .abml a {color: #000000; font-family: Roboto-Medium,Helvetica,Arial,sans-serif; font-weight: bold; text-decoration: none;}
+                    .adgl a {color: rgba(0, 0, 0, 0.87); text-decoration: none;}
+                    .afal a {color: #b0b0b0; text-decoration: none;}
+                    @media screen and (min-width: 600px) {
+                        .v2sp {padding: 6px 30px 0px;}
+                        .v2rsp {padding: 0px 10px;}
                     }
-                    div {
-                        background: linear-gradient(120deg, #f1c40f, #f39c12);
-                        box-shadow: 4px 4px 8px #e67e2280;
-                        max-width: 400px;
-                        padding: 16px;
-                    }
-                    h3 {
-                        margin: 0;
-                        color: #2c3e50;
-                    }
-                    h2 {
-                        background-color: #2c3e50;
-                        padding: 12px;
-                        color: #ecf0f1;
-                        margin: 0;
-                    }
-                    p {
-                        color: #34495e;
-                        margin-bottom: 8px;
-                    }
-                    p:last-child {
-                        margin-bottom: 0;
+                    @media screen and (min-width: 600px) {
+                        .mdv2rw {
+                            padding: 40px 40px;
+                            box-shadow: 0 0 10px 0 rgba(255, 165, 0, 0.5); /* Add orange shadow */
+                        }
                     }
                 </style>
             </head>
-            <body>
-                <div>
-            {{BuildBodyHeader()}}
-                </div>
+            <body style="margin: 0; padding: 0;" bgcolor="#FFFFFF">
+                <table width="100%" height="100%" style="min-width: 348px;" border="0" cellspacing="0" cellpadding="0" lang="en">
+                    <tr height="32" style="height: 32px;"><td></td></tr>
+                    <tr align="center">
+                        <td>
+                            <div itemscope itemtype="//schema.org/EmailMessage">
+                                <div itemprop="action" itemscope itemtype="//schema.org/ViewAction">
+                                    <meta itemprop="name" content="Review Activity"/>
+                                </div>
+                            </div>
+                            <table border="0" cellspacing="0" cellpadding="0" style="padding-bottom: 20px; max-width: 516px; min-width: 220px;">
+                                <tr>
+                                    <td width="8" style="width: 8px;"></td>
+                                    <td>
+                                        <div style="border-style: solid; border-width: thin; border-color:#dadce0; border-radius: 8px; padding: 40px 20px;" align="center" class="mdv2rw">
+                                            <img src="https://img.alicdn.com/imgextra/i2/1797064093/O1CN01UWZbb81g6e146Uazl_!!1797064093.png" width="134" height="78" aria-hidden="true" style="margin-bottom: 16px;" alt="Google">
+                                            <div style="font-family: 'Google Sans',Roboto,RobotoDraft,Helvetica,Arial,sans-serif;border-bottom: thin solid #dadce0; color: rgba(0,0,0,0.87); line-height: 32px; padding-bottom: 24px;text-align: center; word-break: break-word;">
+                                                <div style="font-size: 24px;">{{BuildBodyTitle()}}</div>
+                                            </div>
+                                            <div style="font-family: Roboto-Regular,Helvetica,Arial,sans-serif; font-size: 14px; color: rgba(0,0,0,0.87); line-height: 20px;padding-top: 20px; text-align: left;">
+                                                {{BuildBodyHeader()}}
+                                            </div>
+                                        </div>
+                                        <div style="text-align: left;">
+                                            <div style="font-family: Roboto-Regular,Helvetica,Arial,sans-serif;color: rgba(0,0,0,0.54); font-size: 11px; line-height: 18px; padding-top: 12px; text-align: center;">
+                                                <div>{{BuildBodyFooter()}}</div>
+                                                <div style="direction: ltr;">&copy; 2023 DGP-Studio</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td width="8" style="width: 8px;"></td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr height="32" style="height: 32px;"><td></td></tr>
+                </table>
             </body>
             </html>
             """;
