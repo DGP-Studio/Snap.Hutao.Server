@@ -30,9 +30,7 @@ public sealed class MailService
             Title = "感谢您注册 Snap Hutao 账号",
             RawContent = $"""
                 <p>以下是您注册账号所需的验证码：</p>
-                <td style="padding-bottom: 10px; padding-top: 10px;">
-                    <span class="mail-code">{code}</span>
-                </td>
+                <span class="mail-code">{code}</span>
                 <p>如果您没有注册账号，请忽略此邮件，不会有任何事情发生。</p>
                 """,
             Footer = "DGP Studio | 胡桃开发团队",
@@ -51,9 +49,7 @@ public sealed class MailService
             Title = "您正在修改 Snap Hutao 账号密码",
             RawContent = $"""
                 <p>以下是您修改密码所需的验证码：</p>
-                <td style="padding-bottom: 10px; padding-top: 10px;">
-                    <span class="mail-code">{code}</span>
-                </td>
+                <span class="mail-code">{code}</span>
                 <p>如果您没有重置密码，请忽略此邮件，不会有任何事情发生。</p>
                 """,
             Footer = "DGP Studio | 胡桃开发团队",
@@ -72,9 +68,7 @@ public sealed class MailService
             Title = "您正在注销 Snap Hutao 账号",
             RawContent = $"""
                 <p>以下是您注销账号所需的验证码：</p>
-                <td style="padding-bottom: 10px; padding-top: 10px;">
-                    <span class="mail-code">{code}</span>
-                </td>
+                <span class="mail-code">{code}</span>
                 <p>如果您没有注销账号，请忽略此邮件，不会有任何事情发生。</p>
                 """,
             Footer = "DGP Studio | 胡桃开发团队",
@@ -93,9 +87,7 @@ public sealed class MailService
             Title = "感谢您购买 Snap Hutao 祈愿记录上传服务",
             RawContent = $"""
                 <p>服务有效期至</p>
-                <td style="padding-bottom: 10px; padding-top: 10px;">
-                    <span class="mail-code">{expireAt}</span>
-                </td>
+                <span class="mail-code">{code}</span>
                 <p>请妥善保存此邮件，订单编号：{tradeNumber}</p>
                 """,
             Footer = "DGP Studio | 胡桃开发团队",
@@ -127,7 +119,7 @@ public sealed class MailService
             Title = "胡桃开放平台开发者申请",
             RawContent = $"""
                 <p>申请账号：{userName}</p>
-                维护网站：<a href="{url}">{url}</a>
+                <p>维护网站：<a href="{url}">{url}</a></p>
                 <a href="https://homa.snapgenshin.com/Accession/ApproveOpenSourceLicense?userName={userName}&code={code}">批准</a>
                 """,
             Footer = "DGP Studio | 胡桃开发团队",
