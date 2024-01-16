@@ -1,4 +1,4 @@
-﻿// Copyright (c) DGP Studio. All rights reserved.
+// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
 using Snap.Hutao.Server.Option;
@@ -31,7 +31,8 @@ public sealed class MailService
             {
                 ("h3", null, "感谢您注册 Snap Hutao 账号"),
                 ("p", null, "以下是您注册账号所需的验证码："),
-                ("h2", null, code),
+                ("td", "style=\"padding-bottom: 10px; padding-top: 10px;\"", 
+                        "<span style=\"font-family:'Monaco', monospace;border:1px solid #DAE1E9;letter-spacing:2px;padding:5px 8px;border-radius:4px;background-color:#F4F7FA;color:#2E7BC4;\">{code}</span>")
                 ("p", null, "如果您没有注册账号，请忽略此邮件，不会有任何事情发生。"),
                 ("p", null, "DGP Studio 胡桃开发团队"),
             },
