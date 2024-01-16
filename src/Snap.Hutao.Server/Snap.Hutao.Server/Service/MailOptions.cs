@@ -5,9 +5,13 @@ namespace Snap.Hutao.Server.Service;
 
 public sealed class MailOptions
 {
-    public string Address { get; set; } = default!;
+    public required string Address { get; set; }
 
-    public string Subject { get; set; } = default!;
+    public required string Subject { get; set; }
 
-    public List<(string Tag, string? Attribute, string Content)> Bodys { get; set; } = [];
+    public required string Title { get; set; }
+
+    public required string Footer { get; set; }
+
+    public required string RawContent { get; set; }
 }

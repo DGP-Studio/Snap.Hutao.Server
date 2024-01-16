@@ -27,15 +27,15 @@ public sealed class MailService
         {
             Subject = "Snap Hutao 账号安全",
             Address = emailAddress,
-            Bodys =
-            {
-                ("h3", null, "感谢您注册 Snap Hutao 账号"),
-                ("p", null, "以下是您注册账号所需的验证码："),
-                ("td", "style=\"padding-bottom: 10px; padding-top: 10px;\"", 
-                        "<span style=\"font-family:'Monaco', monospace;border:1px solid #DAE1E9;letter-spacing:2px;padding:5px 8px;border-radius:4px;background-color:#F4F7FA;color:#2E7BC4;\">{code}</span>")
-                ("p", null, "如果您没有注册账号，请忽略此邮件，不会有任何事情发生。"),
-                ("p", null, "DGP Studio 胡桃开发团队"),
-            },
+            Title = "感谢您注册 Snap Hutao 账号",
+            RawContent = $"""
+                <p>以下是您注册账号所需的验证码：</p>
+                <td style="padding-bottom: 10px; padding-top: 10px;">
+                    <span class="mail-code">{code}</span>
+                </td>
+                <p>如果您没有注册账号，请忽略此邮件，不会有任何事情发生。</p>
+                """,
+            Footer = "DGP Studio | 胡桃开发团队",
         };
 
         return SendMailAsync(options);
@@ -48,14 +48,15 @@ public sealed class MailService
         {
             Subject = "Snap Hutao 账号安全",
             Address = emailAddress,
-            Bodys =
-            {
-                ("h3", null, "您正在重置 Snap Hutao 账号密码"),
-                ("p", null, "以下是您修改密码所需的验证码："),
-                ("h2", null, code),
-                ("p", null, "如果您没有重置密码，请忽略此邮件，不会有任何事情发生。"),
-                ("p", null, "DGP Studio 胡桃开发团队"),
-            },
+            Title = "您正在修改 Snap Hutao 账号密码",
+            RawContent = $"""
+                <p>以下是您修改密码所需的验证码：</p>
+                <td style="padding-bottom: 10px; padding-top: 10px;">
+                    <span class="mail-code">{code}</span>
+                </td>
+                <p>如果您没有重置密码，请忽略此邮件，不会有任何事情发生。</p>
+                """,
+            Footer = "DGP Studio | 胡桃开发团队",
         };
 
         return SendMailAsync(options);
@@ -68,14 +69,15 @@ public sealed class MailService
         {
             Subject = "Snap Hutao 账号安全",
             Address = emailAddress,
-            Bodys =
-            {
-                ("h3", null, "您正在注销 Snap Hutao 账号"),
-                ("p", null, "以下是您注销账号所需的验证码："),
-                ("h2", null, code),
-                ("p", null, "如果您没有注销账号，请忽略此邮件，不会有任何事情发生。"),
-                ("p", null, "DGP Studio 胡桃开发团队"),
-            },
+            Title = "您正在注销 Snap Hutao 账号",
+            RawContent = $"""
+                <p>以下是您注销账号所需的验证码：</p>
+                <td style="padding-bottom: 10px; padding-top: 10px;">
+                    <span class="mail-code">{code}</span>
+                </td>
+                <p>如果您没有注销账号，请忽略此邮件，不会有任何事情发生。</p>
+                """,
+            Footer = "DGP Studio | 胡桃开发团队",
         };
 
         return SendMailAsync(options);
@@ -88,14 +90,15 @@ public sealed class MailService
         {
             Subject = "胡桃云服务",
             Address = emailAddress,
-            Bodys =
-            {
-                ("h3", null, "感谢您购买 Snap Hutao 祈愿记录上传服务"),
-                ("p", null, "服务有效期至"),
-                ("h2", null, expireAt),
-                ("p", null, $"请妥善保存此邮件，订单编号：{tradeNumber}"),
-                ("p", null, "DGP Studio 胡桃开发团队"),
-            },
+            Title = "感谢您购买 Snap Hutao 祈愿记录上传服务",
+            RawContent = $"""
+                <p>服务有效期至</p>
+                <td style="padding-bottom: 10px; padding-top: 10px;">
+                    <span class="mail-code">{expireAt}</span>
+                </td>
+                <p>请妥善保存此邮件，订单编号：{tradeNumber}</p>
+                """,
+            Footer = "DGP Studio | 胡桃开发团队",
         };
 
         return SendMailAsync(options);
@@ -107,14 +110,9 @@ public sealed class MailService
         {
             Subject = "胡桃开放平台",
             Address = emailAddress,
-            Bodys =
-            {
-                ("h3", null, "胡桃开放平台开发者申请"),
-                ("hr", null, string.Empty),
-                ("p", null, $"{emailAddress}，你的开发者许可申请已经通过"),
-                ("hr", null, string.Empty),
-                ("p", null, "DGP Studio 胡桃开发团队"),
-            },
+            Title = "胡桃开放平台开发者申请",
+            RawContent = $"{emailAddress}，你的开发者许可申请已经通过",
+            Footer = "DGP Studio | 胡桃开发团队",
         };
 
         return SendMailAsync(options);
@@ -126,16 +124,13 @@ public sealed class MailService
         {
             Subject = "胡桃开放平台",
             Address = smtpOptions.DiagnosticEmailAddress,
-            Bodys =
-            {
-                ("h3", null, "胡桃开放平台开发者申请"),
-                ("hr", null, string.Empty),
-                ("p", null, $"申请账号：{userName}"),
-                ("p", null, $"维护网站：<a href=\"{url}\">{url}</a>"),
-                ("a", $"href=\"https://homa.snapgenshin.com/Accession/ApproveOpenSourceLicense?userName={userName}&code={code}\"", "批准"),
-                ("hr", null, string.Empty),
-                ("p", null, "DGP Studio 胡桃开发团队"),
-            },
+            Title = "胡桃开放平台开发者申请",
+            RawContent = $"""
+                <p>申请账号：{userName}</p>
+                维护网站：<a href="{url}">{url}</a>
+                <a href="https://homa.snapgenshin.com/Accession/ApproveOpenSourceLicense?userName={userName}&code={code}">批准</a>
+                """,
+            Footer = "DGP Studio | 胡桃开发团队",
         };
 
         return SendMailAsync(options);
@@ -156,13 +151,12 @@ public sealed class MailService
                 <div id="mail-body">
                     <img alt="google"
                          id="mail-logo"
-                         src="https://img.alicdn.com/imgextra/i2/1797064093/O1CN01UWZbb81g6e146Uazl_!!1797064093.png"
-                    >
-                    <div id="mail-title">{{BuildBodyTitle()}}</div>
-                    <div id="mail-content">{{buildBodyHeader()}}</div>
+                         src="https://img.alicdn.com/imgextra/i2/1797064093/O1CN01UWZbb81g6e146Uazl_!!1797064093.png">
+                    <div id="mail-title">{{options.Title}}</div>
+                    <div id="mail-content">{{options.RawContent}}</div>
                 </div>
                 <div id="mail-footer">
-                    <span>{{buildBodyFooter()}}</span>
+                    <span>{{options.Footer}}</span>
                     <span>&copy; 2023 DGP-Studio</span>
                 </div>
             </div>
@@ -212,6 +206,16 @@ public sealed class MailService
                     white-space: pre-wrap;
                 }
 
+                .mail-code {
+                    font-family:'Monaco', monospace;
+                    border:1px solid #DAE1E9;
+                    letter-spacing:2px;
+                    padding:5px 8px;
+                    border-radius:4px;
+                    background-color:#F4F7FA;
+                    color:#2E7BC4;
+                }
+
                 #mail-footer {
                     font-family: Roboto-Regular, Helvetica, Arial, sans-serif;
                     width: 100%;
@@ -225,17 +229,6 @@ public sealed class MailService
             </style>
             </html>
             """;
-
-        string BuildBodyHeader()
-        {
-            StringBuilder builder = new();
-            foreach ((string tag, string? attribute, string content) in options.Bodys)
-            {
-                builder.Append("        ").AppendLine($"<{tag} {attribute}>{content}</{tag}>");
-            }
-
-            return builder.ToString();
-        }
     }
 
     private async Task SendMailAsync(MailOptions options)
