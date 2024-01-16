@@ -87,7 +87,7 @@ public sealed class MailService
             Title = "感谢您购买 Snap Hutao 祈愿记录上传服务",
             RawContent = $"""
                 <p>服务有效期至</p>
-                <span class="mail-code">{code}</span>
+                <span class="mail-code">{expireAt}</span>
                 <p>请妥善保存此邮件，订单编号：{tradeNumber}</p>
                 """,
             Footer = "DGP Studio | 胡桃开发团队",
