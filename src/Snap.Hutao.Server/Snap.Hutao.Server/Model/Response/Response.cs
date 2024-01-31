@@ -39,6 +39,11 @@ public class Response
     {
         return new JsonResult(new Response(code, msg) { LocalizationKey = key });
     }
+
+    public static Response FailResponse(ReturnCode code, string msg, string key)
+    {
+        return new(code, msg) { LocalizationKey = key };
+    }
 }
 
 [SuppressMessage("", "SA1402")]
