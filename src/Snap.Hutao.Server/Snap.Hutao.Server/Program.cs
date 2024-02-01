@@ -68,6 +68,7 @@ public static class Program
             .AddEndpointsApiExplorer()
             .AddHttpClient()
             .AddMemoryCache()
+            .AddProblemDetails()
             .AddQuartz(config =>
             {
                 config.ScheduleJob<GachaLogStatisticsRefreshJob>(t => t.StartNow().WithCronSchedule("0 30 */1 * * ?"));
@@ -176,6 +177,7 @@ public static class Program
         // 中间件的顺序敏感
         // https://learn.microsoft.com/zh-cn/aspnet/core/fundamentals/middleware/#middleware-order
         // ExceptionHandler
+        app.UseExceptionHandler();
 
         // HSTS
         // HttpsRedirection
