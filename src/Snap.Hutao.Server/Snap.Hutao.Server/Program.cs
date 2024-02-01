@@ -203,7 +203,7 @@ public static class Program
 
         // Routes
         // CORS
-        app.UseCors("CorsPolicy");
+        app.UseCors();
 
         // Authentication
         app.UseAuthentication();
