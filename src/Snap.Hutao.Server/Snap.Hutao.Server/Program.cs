@@ -11,6 +11,7 @@ using Snap.Hutao.Server.Discord;
 using Snap.Hutao.Server.Job;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity.Passport;
+using Snap.Hutao.Server.Model.Response;
 using Snap.Hutao.Server.Option;
 using Snap.Hutao.Server.Service;
 using Snap.Hutao.Server.Service.Afdian;
@@ -68,7 +69,14 @@ public static class Program
             .AddEndpointsApiExplorer()
             .AddHttpClient()
             .AddMemoryCache()
-            .AddProblemDetails()
+            .AddProblemDetails(options =>
+            {
+                options.CustomizeProblemDetails = context =>
+                {
+                    context.ProblemDetails.Extensions["retcode"] = context.ProblemDetails.Status ?? (int)ReturnCode.InternalStateException;
+                    context.ProblemDetails.Extensions["message"] = context.Exception?.Message ?? string.Empty;
+                };
+            })
             .AddQuartz(config =>
             {
                 config.ScheduleJob<GachaLogStatisticsRefreshJob>(t => t.StartNow().WithCronSchedule("0 30 */1 * * ?"));
