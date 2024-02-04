@@ -10,7 +10,7 @@ public class EntityRecord
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public long PrimaryId { get; set; }
 
-    [StringLength(9, MinimumLength = 9)]
+    [StringLength(10, MinimumLength = 9)]
     public string Uid { get; set; } = null!;
 
     [StringLength(64)]

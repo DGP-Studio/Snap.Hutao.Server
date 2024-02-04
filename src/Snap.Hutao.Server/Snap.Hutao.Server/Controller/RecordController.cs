@@ -64,7 +64,7 @@ public class RecordController : ControllerBase
             return Model.Response.Response.Fail(ReturnCode.ComputingStatistics, "正在计算统计数据", ServerKeys.ServerRecordComputingStatistics2);
         }
 
-        if (!int.TryParse(uid, out _) || uid.Length != 9)
+        if (!int.TryParse(uid, out _) || uid.Length < 9)
         {
             return Model.Response.Response.Fail(ReturnCode.InvalidQueryString, $"{uid}不是合法的uid", ServerKeys.ServerRecordInvalidUid);
         }
@@ -81,7 +81,7 @@ public class RecordController : ControllerBase
             return Model.Response.Response.Fail(ReturnCode.ComputingStatistics, "正在计算统计数据", ServerKeys.ServerRecordComputingStatistics2);
         }
 
-        if (!int.TryParse(uid, out _) || uid.Length != 9)
+        if (!int.TryParse(uid, out _) || uid.Length < 9)
         {
             return Model.Response.Response.Fail(ReturnCode.InvalidQueryString, $"{uid}不是合法的uid", ServerKeys.ServerRecordInvalidUid);
         }

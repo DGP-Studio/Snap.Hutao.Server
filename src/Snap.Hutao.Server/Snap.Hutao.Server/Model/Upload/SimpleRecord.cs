@@ -25,7 +25,7 @@ public sealed class SimpleRecord
             return false;
         }
 
-        if (Uid == null || Uid.Length != 9)
+        if (Uid == null || Uid.Length < 9)
         {
             return false;
         }
