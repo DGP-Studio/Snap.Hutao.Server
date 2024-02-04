@@ -21,33 +21,34 @@ namespace Snap.Hutao.Server.Model.Response;
 public enum ReturnCode
 {
     Success = 0,
-
     InvalidUploadData           = 511001,
-    RequestTooFrequently        = 521001,
-    PreviousRequestNotCompleted = 541001,
-    InternalStateException      = 551001,
     InvalidQueryString          = 511002,
-
     BannedUid                   = 512001,
-    ComputingStatistics         = 542001,
     NotCurrentSchedule          = 512002,
-
     GachaLogServiceNotAllowed   = 513001,
-    TooManyGachaLogUids         = 533001,
-    GachaLogDbException         = 553001,
     InvalidGachaLogItems        = 513002,
-    GachaLogExtendDbException   = 553002,
-
     RegisterFail                = 514001,
-    VerifyCodeTooFrequently     = 524001,
-    VerifyCodeNotAllowed        = 544001,
     LoginFail                   = 514002,
     CancelFail                  = 514003,
-
+    InternalGithubAuthException = 514004,
+    InvalidGithubAuthState      = 514005,
+    GithubAlreadyAuthorized     = 514006,
     ReCaptchaVerifyFailed       = 515001,
-    AlreadyAppliedForLicense    = 545001,
-    LicenseApprovalFailed       = 555001,
-
     ServiceKeyInvalid           = 516001,
     UserNameNotExists           = 516002,
+
+    RequestTooFrequently        = 521001,
+    VerifyCodeTooFrequently     = 524001,
+
+    TooManyGachaLogUids         = 533001,
+
+    PreviousRequestNotCompleted = 541001,
+    ComputingStatistics         = 542001,
+    VerifyCodeNotAllowed        = 544001,
+    AlreadyAppliedForLicense    = 545001,
+
+    InternalStateException      = 551001,
+    GachaLogDbException         = 553001,
+    GachaLogExtendDbException   = 553002,
+    LicenseApprovalFailed       = 555001,
 }

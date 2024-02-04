@@ -30,6 +30,8 @@ public sealed class AppDbContext : IdentityDbContext<HutaoUser, IdentityRole<int
     public DbSet<EntityAnnouncement> Announcements { get; set; } = default!;
 
     public DbSet<PassportVerification> PassportVerifications { get; set; } = default!;
+
+    public DbSet<GithubIdentity> GithubIdentities { get; set; } = default!;
     #endregion
 
     #region Telemetry

@@ -103,14 +103,14 @@ public sealed class PassportService
         return new PassportResult(false, "用户注销失败", ServerKeys.ServerPassportServiceUnregisterFailed);
     }
 
-    private string CreateToken(HutaoUser user)
+    public string CreateTokenByUserId(int userId)
     {
         JwtSecurityTokenHandler handler = new();
         SecurityTokenDescriptor descriptor = new()
         {
             Subject = new(new Claim[]
             {
-                new(PassportClaimTypes.UserId, user.Id.ToString()),
+                new(PassportClaimTypes.UserId, userId.ToString()),
             }),
             Expires = DateTime.UtcNow.AddHours(2),
             Issuer = "homa.snapgenshin.com",
@@ -119,5 +119,10 @@ public sealed class PassportService
 
         SecurityToken token = handler.CreateToken(descriptor);
         return handler.WriteToken(token);
+    }
+
+    private string CreateToken(HutaoUser user)
+    {
+        return CreateTokenByUserId(user.Id);
     }
 }

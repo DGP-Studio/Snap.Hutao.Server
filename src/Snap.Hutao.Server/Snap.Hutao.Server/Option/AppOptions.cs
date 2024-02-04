@@ -22,4 +22,6 @@ public sealed class AppOptions
     public GenshinPizzaHelperOptions GenshinPizzaHelper { get; set; } = default!;
 
     public SmtpOptions Smtp { get; set; } = default!;
+
+    public GithubOptions Github { get; set; } = default!;
 }
