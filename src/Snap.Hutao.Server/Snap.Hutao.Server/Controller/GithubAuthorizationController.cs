@@ -99,7 +99,7 @@ public class GithubAuthorizationController : ControllerBase
         try
         {
             logger.LogInformation("State: {State}", state);
-            userIdentity = JsonSerializer.Deserialize<UserIdentity>(DecryptState(HttpUtility.UrlDecode(state)));
+            userIdentity = JsonSerializer.Deserialize<UserIdentity>(DecryptState(state));
             ArgumentNullException.ThrowIfNull(userIdentity);
         }
         catch (Exception)
