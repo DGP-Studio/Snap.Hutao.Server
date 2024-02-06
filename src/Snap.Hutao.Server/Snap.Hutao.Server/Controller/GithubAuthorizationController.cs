@@ -14,7 +14,7 @@ using System.Security.Cryptography;
 namespace Snap.Hutao.Server.Controller;
 
 [ApiController]
-[Route("[controller]")]
+[Route("OAuth/Github")]
 [ServiceFilter(typeof(CountRequests))]
 [ApiExplorerSettings(GroupName = "Passport")]
 public class GithubAuthorizationController : ControllerBase
@@ -33,7 +33,7 @@ public class GithubAuthorizationController : ControllerBase
     }
 
     [Authorize]
-    [HttpGet("Github/RedirectLogin")]
+    [HttpGet("RedirectLogin")]
     public async Task<IActionResult> RedirectLoginAsync()
     {
         HutaoUser? user = await this.GetUserAsync(appDbContext.Users).ConfigureAwait(false);
@@ -51,7 +51,7 @@ public class GithubAuthorizationController : ControllerBase
         return Redirect($"https://github.com/login/oauth/authorize?client_id={githubOptions.ClientId}&state={state}");
     }
 
-    [HttpGet("Github/Authorize")]
+    [HttpGet("Authorize")]
     public async Task<IActionResult> HandleAuthorizationCallbackAsync([FromQuery(Name = "code")] string code, [FromQuery(Name = "state")] string state)
     {
         if (string.IsNullOrEmpty(code) || string.IsNullOrEmpty(state))
@@ -146,7 +146,7 @@ public class GithubAuthorizationController : ControllerBase
     }
 
     [Authorize]
-    [HttpGet("Github/UnAuthorize")]
+    [HttpGet("UnAuthorize")]
     public async Task<IActionResult> UnAuthorizeAsync()
     {
         int userId = this.GetUserId();
@@ -155,7 +155,7 @@ public class GithubAuthorizationController : ControllerBase
     }
 
     [Authorize]
-    [HttpGet("Github/AuthorizationStatus")]
+    [HttpGet("AuthorizationStatus")]
     public async Task<IActionResult> GetAuthorizationStatusAsync()
     {
         int userId = this.GetUserId();
