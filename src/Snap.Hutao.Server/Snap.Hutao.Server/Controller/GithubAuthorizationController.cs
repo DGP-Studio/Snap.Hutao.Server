@@ -33,7 +33,7 @@ public class GithubAuthorizationController : ControllerBase
     }
 
     [Authorize]
-    [HttpGet("RedirectLogin")]
+    [HttpGet("Github/RedirectLogin")]
     public async Task<IActionResult> RedirectLoginAsync()
     {
         HutaoUser? user = await this.GetUserAsync(appDbContext.Users).ConfigureAwait(false);
@@ -142,7 +142,25 @@ public class GithubAuthorizationController : ControllerBase
 
         // Authorized
         string token = passportService.CreateTokenByUserId(identity.UserId);
-        return Redirect($"https://passport.snapgenshin.com/api/login?token={token}");
+        return Redirect($"https://passport.snapgenshin.cn/api/login?token={token}");
+    }
+
+    [Authorize]
+    [HttpGet("Github/UnAuthorize")]
+    public async Task<IActionResult> UnAuthorizeAsync()
+    {
+        int userId = this.GetUserId();
+        int count = await appDbContext.GithubIdentities.Where(g => g.UserId == userId).ExecuteDeleteAsync().ConfigureAwait(false);
+        return Response<UnAuthorizeResult>.Success("操作完成", new() { Count = count });
+    }
+
+    [Authorize]
+    [HttpGet("Github/AuthorizationStatus")]
+    public async Task<IActionResult> GetAuthorizationStatusAsync()
+    {
+        int userId = this.GetUserId();
+        bool isAuthorized = await appDbContext.GithubIdentities.AnyAsync(g => g.UserId == userId).ConfigureAwait(false);
+        return Response<IsAuthorizedResult>.Success("查询成功", new() { IsAuthorized = isAuthorized });
     }
 
     private string EncryptState(string state)
@@ -202,7 +220,7 @@ public class GithubAuthorizationController : ControllerBase
 
     private RedirectResult RedirectToError(ReturnCode errorCode)
     {
-        return Redirect($"https://passport.snapgenshin.com/auth/error?code={errorCode:D}");
+        return Redirect($"https://passport.snapgenshin.cn/auth/error?code={errorCode:D}");
     }
 
     private sealed class UserIdentity
@@ -238,5 +256,15 @@ public class GithubAuthorizationController : ControllerBase
 
         [JsonPropertyName("node_id")]
         public string NodeId { get; set; } = default!;
+    }
+
+    private sealed class UnAuthorizeResult
+    {
+        public int Count { get; set; }
+    }
+
+    private sealed class IsAuthorizedResult
+    {
+        public bool IsAuthorized { get; set; }
     }
 }
