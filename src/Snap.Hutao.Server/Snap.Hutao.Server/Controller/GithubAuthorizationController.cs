@@ -111,6 +111,8 @@ public class GithubAuthorizationController : ControllerBase
                 ["client_secret"] = githubOptions.ClientSecret,
                 ["code"] = code,
             });
+            requestMessage.Headers.Accept.Add(new("application/json"));
+            requestMessage.Headers.Authorization = new("token", code);
 
             using (HttpResponseMessage responseMessage = await httpClient.SendAsync(requestMessage))
             {
