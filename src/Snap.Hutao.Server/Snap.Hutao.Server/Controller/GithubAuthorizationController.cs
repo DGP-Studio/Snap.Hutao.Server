@@ -27,6 +27,7 @@ public class GithubAuthorizationController : ControllerBase
     private readonly GithubOptions githubOptions;
     private readonly PassportService passportService;
     private readonly IOptionsMonitor<JwtBearerOptions> jwtBearerOptions;
+    private readonly ILogger<GithubAuthorizationController> logger;
     private readonly JwtSecurityTokenHandler jwtSecurityTokenHandler = new();
 
     public GithubAuthorizationController(IServiceProvider serviceProvider)
@@ -35,6 +36,7 @@ public class GithubAuthorizationController : ControllerBase
         appDbContext = serviceProvider.GetRequiredService<AppDbContext>();
         githubOptions = serviceProvider.GetRequiredService<AppOptions>().Github;
         passportService = serviceProvider.GetRequiredService<PassportService>();
+        logger = serviceProvider.GetRequiredService<ILogger<GithubAuthorizationController>>();
         jwtBearerOptions = serviceProvider.GetRequiredService<IOptionsMonitor<JwtBearerOptions>>();
     }
 
@@ -94,6 +96,7 @@ public class GithubAuthorizationController : ControllerBase
         UserIdentity? userIdentity;
         try
         {
+            logger.LogInformation("State: {State}", state);
             userIdentity = JsonSerializer.Deserialize<UserIdentity>(DecryptState(Uri.UnescapeDataString(state)));
             ArgumentNullException.ThrowIfNull(userIdentity);
         }
