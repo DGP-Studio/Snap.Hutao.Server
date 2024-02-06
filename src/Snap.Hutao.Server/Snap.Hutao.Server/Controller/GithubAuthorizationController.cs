@@ -136,7 +136,7 @@ public class GithubAuthorizationController : ControllerBase
         using (HttpRequestMessage requestMessage = new(HttpMethod.Get, "https://api.github.com/user"))
         {
             requestMessage.Headers.Accept.Add(new("application/vnd.github+json"));
-            requestMessage.Headers.UserAgent.Add(new("Snap Hutao Server/1.0"));
+            requestMessage.Headers.UserAgent.ParseAdd("Snap Hutao Server/1.0");
             requestMessage.Headers.Authorization = new("Bearer", accessTokenResponse.AccessToken);
 
             using (HttpResponseMessage responseMessage = await httpClient.SendAsync(requestMessage))
