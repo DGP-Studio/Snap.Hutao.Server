@@ -133,6 +133,7 @@ public class GithubAuthorizationController : ControllerBase
         GithubUserResponse? userResponse;
         using (HttpRequestMessage requestMessage = new(HttpMethod.Get, "https://api.github.com/user"))
         {
+            requestMessage.Headers.Accept.Add(new("application/vnd.github+json"));
             requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessTokenResponse.AccessToken);
 
             using (HttpResponseMessage responseMessage = await httpClient.SendAsync(requestMessage))
