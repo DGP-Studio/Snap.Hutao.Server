@@ -135,6 +135,7 @@ public class GithubAuthorizationController : ControllerBase
         {
             requestMessage.Headers.Accept.Add(new("application/vnd.github+json"));
             requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessTokenResponse.AccessToken);
+            requestMessage.Headers.Add("X-GitHub-Api-Version", "2022-11-28");
 
             using (HttpResponseMessage responseMessage = await httpClient.SendAsync(requestMessage))
             {
