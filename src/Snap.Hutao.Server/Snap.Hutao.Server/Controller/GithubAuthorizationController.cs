@@ -12,6 +12,7 @@ using Snap.Hutao.Server.Service.Authorization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Headers;
 using System.Security.Cryptography;
+using System.Security.Policy;
 
 namespace Snap.Hutao.Server.Controller;
 
@@ -80,7 +81,12 @@ public class GithubAuthorizationController : ControllerBase
     [HttpGet("Authorize")]
     public async Task<IActionResult> HandleAuthorizationCallbackAsync([FromQuery(Name = "code")] string code, [FromQuery(Name = "state")] string state)
     {
-        if (string.IsNullOrEmpty(code) || string.IsNullOrEmpty(state))
+        if (string.IsNullOrEmpty(code))
+        {
+            return RedirectToError(ReturnCode.GithubAuthrizationCanceled);
+        }
+
+        if (string.IsNullOrEmpty(state))
         {
             return RedirectToError(ReturnCode.InvalidQueryString);
         }
@@ -88,7 +94,7 @@ public class GithubAuthorizationController : ControllerBase
         UserIdentity? userIdentity;
         try
         {
-            userIdentity = JsonSerializer.Deserialize<UserIdentity>(DecryptState(state));
+            userIdentity = JsonSerializer.Deserialize<UserIdentity>(DecryptState(Uri.UnescapeDataString(state)));
             ArgumentNullException.ThrowIfNull(userIdentity);
         }
         catch (Exception)

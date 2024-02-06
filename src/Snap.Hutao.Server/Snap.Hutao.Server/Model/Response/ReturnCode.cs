@@ -33,6 +33,7 @@ public enum ReturnCode
     InternalGithubAuthException = 514004,
     InvalidGithubAuthState      = 514005,
     GithubAlreadyAuthorized     = 514006,
+    GithubAuthrizationCanceled  = 514007,
     ReCaptchaVerifyFailed       = 515001,
     ServiceKeyInvalid           = 516001,
     UserNameNotExists           = 516002,
