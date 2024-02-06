@@ -112,7 +112,7 @@ public sealed class PassportService
             {
                 new(PassportClaimTypes.UserId, userId.ToString()),
             }),
-            Expires = DateTime.UtcNow.AddHours(2),
+            Expires = DateTime.UtcNow.AddHours(3),
             Issuer = "homa.snapgenshin.com",
             SigningCredentials = new(jwtSigningKey, SecurityAlgorithms.HmacSha256Signature),
         };

@@ -180,7 +180,7 @@ public class GithubAuthorizationController : ControllerBase
 
         // Authorized
         string token = passportService.CreateTokenByUserId(identity.UserId);
-        return Redirect($"https://passport.snapgenshin.cn/api/login?token={token}");
+        return Redirect($"https://passport.snapgenshin.cn/api/users/login?token={token}");
     }
 
     [Authorize]
