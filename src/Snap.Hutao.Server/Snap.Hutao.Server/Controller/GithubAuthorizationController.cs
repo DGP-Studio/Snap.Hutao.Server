@@ -45,7 +45,8 @@ public class GithubAuthorizationController : ControllerBase
             return RedirectToError(ReturnCode.InvalidQueryString);
         }
 
-        jwtSecurityTokenHandler.ValidateToken(token, jwtBearerOptions.CurrentValue.TokenValidationParameters, out SecurityToken validatedToken);
+        JwtBearerOptions options = jwtBearerOptions.Get(JwtBearerDefaults.AuthenticationScheme);
+        jwtSecurityTokenHandler.ValidateToken(token, options.TokenValidationParameters, out SecurityToken validatedToken);
         if (validatedToken is not JwtSecurityToken jwtSecurityToken)
         {
             return RedirectToError(ReturnCode.LoginFail);
