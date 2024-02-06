@@ -103,14 +103,9 @@ public class GithubAuthorizationController : ControllerBase
         }
 
         GithubAccessTokenResponse? accessTokenResponse;
-        using (HttpRequestMessage requestMessage = new(HttpMethod.Post, "https://github.com/login/oauth/access_token"))
+        string accessTokenQuery = $"client_id={githubOptions.ClientId}&client_secret={githubOptions.ClientSecret}&code={code}";
+        using (HttpRequestMessage requestMessage = new(HttpMethod.Post, $"https://github.com/login/oauth/access_token?{accessTokenQuery}"))
         {
-            requestMessage.Content = new FormUrlEncodedContent(new Dictionary<string, string>
-            {
-                ["client_id"] = githubOptions.ClientId,
-                ["client_secret"] = githubOptions.ClientSecret,
-                ["code"] = code,
-            });
             requestMessage.Headers.Accept.Add(new("application/json"));
             requestMessage.Headers.Authorization = new("token", code);
 
