@@ -1,6 +1,7 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
+using Microsoft.Extensions.Options;
 using Snap.Hutao.Server.Controller.Filter;
 using Snap.Hutao.Server.Extension;
 using Snap.Hutao.Server.Model.Context;
@@ -8,6 +9,7 @@ using Snap.Hutao.Server.Model.Entity.Passport;
 using Snap.Hutao.Server.Model.Response;
 using Snap.Hutao.Server.Option;
 using Snap.Hutao.Server.Service.Authorization;
+using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Headers;
 using System.Security.Cryptography;
 
@@ -23,6 +25,8 @@ public class GithubAuthorizationController : ControllerBase
     private readonly AppDbContext appDbContext;
     private readonly GithubOptions githubOptions;
     private readonly PassportService passportService;
+    private readonly IOptionsMonitor<JwtBearerOptions> jwtBearerOptions;
+    private readonly JwtSecurityTokenHandler jwtSecurityTokenHandler = new();
 
     public GithubAuthorizationController(IServiceProvider serviceProvider)
     {
@@ -30,13 +34,34 @@ public class GithubAuthorizationController : ControllerBase
         appDbContext = serviceProvider.GetRequiredService<AppDbContext>();
         githubOptions = serviceProvider.GetRequiredService<AppOptions>().Github;
         passportService = serviceProvider.GetRequiredService<PassportService>();
+        jwtBearerOptions = serviceProvider.GetRequiredService<IOptionsMonitor<JwtBearerOptions>>();
     }
 
-    [Authorize]
     [HttpGet("RedirectLogin")]
-    public async Task<IActionResult> RedirectLoginAsync()
+    public async Task<IActionResult> RedirectLoginAsync([FromQuery(Name = "token")] string token)
     {
-        HutaoUser? user = await this.GetUserAsync(appDbContext.Users).ConfigureAwait(false);
+        if (string.IsNullOrEmpty(token))
+        {
+            return RedirectToError(ReturnCode.InvalidQueryString);
+        }
+
+        jwtSecurityTokenHandler.ValidateToken(token, jwtBearerOptions.CurrentValue.TokenValidationParameters, out SecurityToken validatedToken);
+        if (validatedToken is not JwtSecurityToken jwtSecurityToken)
+        {
+            return RedirectToError(ReturnCode.LoginFail);
+        }
+
+        int userId;
+        try
+        {
+            userId = int.Parse(jwtSecurityToken.Claims.Single(c => c.Type == PassportClaimTypes.UserId).Value);
+        }
+        catch
+        {
+            return RedirectToError(ReturnCode.UserNameNotExists);
+        }
+
+        HutaoUser? user = await appDbContext.Users.SingleOrDefaultAsync(u => u.Id == userId).ConfigureAwait(false);
 
         if (user is null)
         {
