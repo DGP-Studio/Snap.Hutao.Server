@@ -23,7 +23,6 @@ public class GithubAuthorizationController : ControllerBase
     private readonly AppDbContext appDbContext;
     private readonly GithubOptions githubOptions;
     private readonly PassportService passportService;
-    private readonly UserManager<HutaoUser> userManager;
 
     public GithubAuthorizationController(IServiceProvider serviceProvider)
     {
@@ -31,7 +30,6 @@ public class GithubAuthorizationController : ControllerBase
         appDbContext = serviceProvider.GetRequiredService<AppDbContext>();
         githubOptions = serviceProvider.GetRequiredService<AppOptions>().Github;
         passportService = serviceProvider.GetRequiredService<PassportService>();
-        userManager = serviceProvider.GetRequiredService<UserManager<HutaoUser>>();
     }
 
     [Authorize]
@@ -53,7 +51,7 @@ public class GithubAuthorizationController : ControllerBase
         return Redirect($"https://github.com/login/oauth/authorize?client_id={githubOptions.ClientId}&state={state}");
     }
 
-    [HttpGet("Authorize")]
+    [HttpGet("Github/Authorize")]
     public async Task<IActionResult> HandleAuthorizationCallbackAsync([FromQuery(Name = "code")] string code, [FromQuery(Name = "state")] string state)
     {
         if (string.IsNullOrEmpty(code) || string.IsNullOrEmpty(state))
