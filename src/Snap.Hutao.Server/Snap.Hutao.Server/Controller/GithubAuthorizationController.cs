@@ -13,6 +13,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Security.Policy;
+using System.Web;
 
 namespace Snap.Hutao.Server.Controller;
 
@@ -76,7 +77,8 @@ public class GithubAuthorizationController : ControllerBase
         {
             UserId = user.Id,
         };
-        string state = EncryptState(JsonSerializer.Serialize(identity));
+
+        string state = HttpUtility.UrlEncode(EncryptState(JsonSerializer.Serialize(identity)));
         return Redirect($"https://github.com/login/oauth/authorize?client_id={githubOptions.ClientId}&state={state}");
     }
 
@@ -97,7 +99,7 @@ public class GithubAuthorizationController : ControllerBase
         try
         {
             logger.LogInformation("State: {State}", state);
-            userIdentity = JsonSerializer.Deserialize<UserIdentity>(DecryptState(Uri.UnescapeDataString(state)));
+            userIdentity = JsonSerializer.Deserialize<UserIdentity>(DecryptState(HttpUtility.UrlDecode(state)));
             ArgumentNullException.ThrowIfNull(userIdentity);
         }
         catch (Exception)
