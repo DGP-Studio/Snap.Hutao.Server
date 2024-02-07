@@ -197,8 +197,32 @@ public class GithubAuthorizationController : ControllerBase
     public async Task<IActionResult> GetAuthorizationStatusAsync()
     {
         int userId = this.GetUserId();
-        bool isAuthorized = await appDbContext.GithubIdentities.AnyAsync(g => g.UserId == userId).ConfigureAwait(false);
-        return Response<IsAuthorizedResult>.Success("查询成功", new() { IsAuthorized = isAuthorized });
+        GithubIdentity? identity = await appDbContext.GithubIdentities.SingleOrDefaultAsync(g => g.UserId == userId).ConfigureAwait(false);
+        IsAuthorizedResult result = new()
+        {
+            IsAuthorized = identity is not null,
+            RefreshToken = identity?.RefreshToken,
+            ExpiresAt = identity?.ExipresAt ?? 0,
+        };
+        return Response<IsAuthorizedResult>.Success("查询成功", result);
+    }
+
+    [Authorize]
+    [HttpGet("UpdateRefreshToken")]
+    public async Task<IActionResult> UpdateRefreshTokenAsync([FromQuery(Name = "token")] string token, [FromQuery(Name = "expires_at")] long expiresAt)
+    {
+        if (string.IsNullOrEmpty(token))
+        {
+            return Model.Response.Response.Fail(ReturnCode.InvalidQueryString, "No token provided");
+        }
+
+        int userId = this.GetUserId();
+        await appDbContext.GithubIdentities
+            .Where(g => g.UserId == userId)
+            .ExecuteUpdateAsync(update => update.SetProperty(i => i.RefreshToken, token).SetProperty(i => i.ExipresAt, expiresAt))
+            .ConfigureAwait(false);
+
+        return Model.Response.Response.Success("更新成功");
     }
 
     private string EncryptState(string state)
@@ -304,5 +328,9 @@ public class GithubAuthorizationController : ControllerBase
     private sealed class IsAuthorizedResult
     {
         public bool IsAuthorized { get; set; }
+
+        public string? RefreshToken { get; set; }
+
+        public long ExpiresAt { get; set; }
     }
 }
