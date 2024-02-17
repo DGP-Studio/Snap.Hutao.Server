@@ -88,7 +88,7 @@ public sealed class PassportVerificationService
             return false;
         }
 
-        if (verification.VerifyCode != code)
+        if (!string.Equals(verification.VerifyCode, code, StringComparison.OrdinalIgnoreCase))
         {
             return false;
         }

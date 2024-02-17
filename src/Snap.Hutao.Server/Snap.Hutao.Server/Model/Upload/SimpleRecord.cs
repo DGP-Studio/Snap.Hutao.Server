@@ -46,6 +46,11 @@ public sealed class SimpleRecord
         // 上下半不完整的楼层
         foreach (ref SimpleFloor floor in CollectionsMarshal.AsSpan(SpiralAbyss.Floors))
         {
+            if (floor.Index < 9)
+            {
+                continue;
+            }
+
             foreach (ref SimpleLevel level in CollectionsMarshal.AsSpan(floor.Levels))
             {
                 if (level.Battles.Count != 2)
