@@ -40,10 +40,10 @@ public sealed class MailService
                 <p>如果您没有注册通行证，请忽略此邮件，不会有任何事情发生。</p>
                 """
                 : $"""
-                <p>The following is the verification code you need for registering your passport:</p>
+                <p>The following is the verification code you need for the registration of your passport:</p>
                 <span class="mail-code">{code}</span>
                 <p>This code will expire in 15 minutes.</p>
-                <p>If you did not try to register an passport, please ignore this email, nothing will happen.</p>
+                <p>If you are not trying to register an passport, please ignore this email, nothing will happen.</p>
                 """,
             Footer = language == "CHS"
                 ? "该邮件是 DGP Studio 系统自动发送的，请勿回复"
@@ -76,7 +76,7 @@ public sealed class MailService
                 <p>The following is the verification code you need to change your password:</p>
                 <span class="mail-code">{code}</span>
                 <p>This code will expire in 15 minutes.</p>
-                <p>If you did not try to reset your password, please ignore this emai, nothing will happen.</p>
+                <p>If you are not trying to reset your password, please ignore this emai, nothing will happen.</p>
                 """,
             Footer = language == "CHS"
                 ? "该邮件是 DGP Studio 系统自动发送的，请勿回复"
