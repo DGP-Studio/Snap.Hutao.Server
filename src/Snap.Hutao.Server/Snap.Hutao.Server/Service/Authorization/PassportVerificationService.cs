@@ -54,6 +54,7 @@ public sealed class PassportVerificationService
             VerifyCode = code,
             GeneratedTimestamp = now,
             ExpireTimestamp = now + ExpireThresholdSeconds,
+            TriesLeft = 5,
         };
 
         appDbContext.PassportVerifications.AddAndSave(verification);
@@ -90,6 +91,22 @@ public sealed class PassportVerificationService
 
         if (!string.Equals(verification.VerifyCode, code, StringComparison.OrdinalIgnoreCase))
         {
+            if (verification.Triesleft < 2)
+            {
+                // Out of tries
+                appDbContext.PassportVerifications.RemoveAndSave(verification);
+                return false;
+            }
+            PassportVerification updated_verification = new()
+            {
+                NormalizedUserName = verification.NormalizedUserName,
+                VerifyCode = verification.VerifyCode,
+                GeneratedTimestamp = verification.GeneratedTimestamp,
+                ExpireTimestamp = verification.ExpireTimestamp,
+                TriesLeft = verification.TriesLeft - 1,
+            };
+            appDbContext.PassportVerifications.RemoveAndSave(verification);
+            appDbContext.PassportVerifications.AddAndSave(updated_verification);
             return false;
         }
 
