@@ -83,7 +83,7 @@ public class GachaLogController : ControllerBase
 
     [Authorize]
     [ServiceFilter(typeof(ValidateGachaLogPermission))]
-    [HttpPost("LimitedRetrieve")]
+    [HttpGet("LimitedRetrieve")]
     public async Task<IActionResult> LimitedRetrieveAsync([FromQuery(Name = "uid")] string uid, [FromQuery(Name = "configType")] int configType, [FromQuery(Name = "endId")] long endId = long.MaxValue, [FromQuery(Name = "count")] int count = 20)
     {
         int userId = this.GetUserId();
