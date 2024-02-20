@@ -4,6 +4,7 @@
 using Snap.Hutao.Server.Controller.Filter;
 using Snap.Hutao.Server.Model.Entity.GachaLog;
 using Snap.Hutao.Server.Model.GachaLog;
+using Snap.Hutao.Server.Model.Metadata;
 using Snap.Hutao.Server.Model.Response;
 using Snap.Hutao.Server.Service.GachaLog;
 
@@ -77,6 +78,16 @@ public class GachaLogController : ControllerBase
     {
         int userId = this.GetUserId();
         List<SimpleGachaItem> gachaItems = await gachaLogService.GetGachaItemsEarlyThanEndIdsAsync(userId, uidAndEndIds).ConfigureAwait(false);
+        return Response<List<SimpleGachaItem>>.Success(userId.ToString(), gachaItems);
+    }
+
+    [Authorize]
+    [ServiceFilter(typeof(ValidateGachaLogPermission))]
+    [HttpPost("LimitedRetrieve")]
+    public async Task<IActionResult> LimitedRetrieveAsync([FromQuery(Name = "uid")] string uid, [FromQuery(Name = "configType")] int configType, [FromQuery(Name = "endId")] long endId = long.MaxValue, [FromQuery(Name = "count")] int count = 20)
+    {
+        int userId = this.GetUserId();
+        List<SimpleGachaItem> gachaItems = await gachaLogService.GetLimitedGachaItemsEarlyThanEndIdsAsync(userId, uid, (GachaConfigType)configType, endId, count).ConfigureAwait(false);
         return Response<List<SimpleGachaItem>>.Success(userId.ToString(), gachaItems);
     }
 

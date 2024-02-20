@@ -100,6 +100,26 @@ public sealed class GachaLogService
         return gachaItems;
     }
 
+    public async ValueTask<List<SimpleGachaItem>> GetLimitedGachaItemsEarlyThanEndIdsAsync(int userId, string uid, GachaConfigType configType, long exactEndId, int limit)
+    {
+        List<SimpleGachaItem> gachaItems = [];
+
+        List<EntityGachaItem> items = await appDbContext.GachaItems
+            .AsNoTracking()
+            .OrderByDescending(i => i.Id)
+            .Where(i => i.UserId == userId)
+            .Where(i => i.Uid == uid)
+            .Where(i => i.QueryType == configType)
+            .Where(i => i.Id < exactEndId)
+            .Take(limit)
+            .ToListAsync()
+            .ConfigureAwait(false);
+
+        AppendEntitiesToModels(items, gachaItems);
+
+        return gachaItems;
+    }
+
     public ValueTask<GachaLogSaveResult> SaveGachaItemsAsync(int userId, UidAndItems uidAndItems)
     {
         return SaveGachaItemsAsync(userId, uidAndItems.Uid, uidAndItems.Items);
