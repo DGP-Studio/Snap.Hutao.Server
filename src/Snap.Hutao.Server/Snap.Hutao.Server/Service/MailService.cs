@@ -36,12 +36,14 @@ public sealed class MailService
                 ? $"""
                 <p>以下是您注册通行证所需的验证码：</p>
                 <span class="mail-code">{code}</span>
+                <p>该验证码将于15分钟后过期。</p>
                 <p>如果您没有注册通行证，请忽略此邮件，不会有任何事情发生。</p>
                 """
                 : $"""
-                <p>Here is the verification code you need for registering your passport:</p>
+                <p>The following is the verification code you need for the registration of your passport:</p>
                 <span class="mail-code">{code}</span>
-                <p>If you did not register an passport, please ignore this email, nothing will happen.</p>
+                <p>This code will expire in 15 minutes.</p>
+                <p>If you are not trying to register an passport, please ignore this email, nothing will happen.</p>
                 """,
             Footer = language == "CHS"
                 ? "该邮件是 DGP Studio 系统自动发送的，请勿回复"
@@ -67,12 +69,14 @@ public sealed class MailService
                 ? $"""
                 <p>以下是您修改密码所需的验证码：</p>
                 <span class="mail-code">{code}</span>
+                <p>该验证码将于15分钟后过期。</p>
                 <p>如果您没有重置密码，请忽略此邮件，不会有任何事情发生。</p>
                 """
                 : $"""
                 <p>The following is the verification code you need to change your password:</p>
                 <span class="mail-code">{code}</span>
-                <p>If you did not reset your password, please ignore this email, nothing will happen.</p>
+                <p>This code will expire in 15 minutes.</p>
+                <p>If you are not trying to reset your password, please ignore this emai, nothing will happen.</p>
                 """,
             Footer = language == "CHS"
                 ? "该邮件是 DGP Studio 系统自动发送的，请勿回复"
@@ -96,16 +100,18 @@ public sealed class MailService
                 : "You are deleting your Snap Hutao Passport",
             RawContent = language == "CHS"
                 ? $"""
-                <p><b>请注意：注销通行证的操作是不可逆的</b></p>
+                <p><b style="font-size: 20px;">请注意：注销通行证的操作是不可逆的</b></p>
                 <p>以下是您注销通行证所需的验证码：</p>
                 <span class="mail-code">{code}</span>
+                <p>该验证码将于15分钟后过期。</p>
                 <p>如果您没有注销通行证，请忽略此邮件，不会有任何事情发生。</p>
                 """
                 : $"""
-                <p><b>Please note: The operation of delete your passport is not recoverable.</b></p>
+                <p><b style="font-size: 20px;">Please note: The operation of deleting your passport is not recoverable.</b></p>
                 <p>The following is the verification code you need to delete your passport:</p>
                 <span class="mail-code">{code}</span>
-                <p>If you did not delete your passport, please ignore this email, nothing will happen.</p>
+                <p>This code will expire in 15 minutes.</p>
+                <p>If you are not trying to delete your passport, please ignore this email, nothing will happen.</p>
                 """,
             Footer = language == "CHS"
                 ? "该邮件是 DGP Studio 系统自动发送的，请勿回复"
@@ -255,17 +261,19 @@ public sealed class MailService
                     }
 
                     .mail-code {
-                        font-family:'Monaco', monospace;
-                        border:1px solid #DAE1E9;
-                        letter-spacing:2px;
-                        padding:5px 8px;
-                        border-radius:4px;
-                        background-color:#F4F7FA;
-                        color:#2E7BC4;
+                        font-family: 'Monaco', monospace;
+                        border: 1px solid #DAE1E9;
+                        letter-spacing: 4px;
+                        padding: 20px 8px;
+                        border-radius: 4px;
+                        background-color: #F4F7FA;
+                        color: #3a9aed;
                         margin: auto;
                         display: block;
-                        width: 25%;
+                        width: 60%;
                         text-align: center;
+                        font-weight: bold;
+                        font-size: 30px;
                     }
 
                     #mail-footer {
@@ -291,7 +299,7 @@ public sealed class MailService
                 </div>
                 <div id="mail-footer">
                     <span>{{options.Footer}}</span>
-                    <span>&copy; 2023 <a href="https://github.com/DGP-Studio">DGP Studio</a> | <a href="https://github.com/DGP-Studio/Snap.Hutao">Snap Hutao</a> Dev Team</span>
+                    <span>&copy; 2024 <a href="https://github.com/DGP-Studio">DGP Studio</a> | <a href="https://github.com/DGP-Studio/Snap.Hutao">Snap Hutao</a> Dev Team</span>
                 </div>
             </div>
             </body>
