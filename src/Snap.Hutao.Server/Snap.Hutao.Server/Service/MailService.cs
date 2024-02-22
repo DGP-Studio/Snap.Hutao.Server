@@ -46,7 +46,7 @@ public sealed class MailService
                 <p>If you are not trying to register an passport, please ignore this email, nothing will happen.</p>
                 """,
             Footer = language == "CHS"
-                ? "该邮件是 DGP Studio 系统自动发送的，请勿回复"
+                ? "该邮件由 DGP Studio 系统自动生成，请勿回复"
                 : "This email is automatically sent by the DGP Studio system, please do not reply",
         };
 
@@ -79,7 +79,7 @@ public sealed class MailService
                 <p>If you are not trying to reset your password, please ignore this emai, nothing will happen.</p>
                 """,
             Footer = language == "CHS"
-                ? "该邮件是 DGP Studio 系统自动发送的，请勿回复"
+                ? "该邮件由 DGP Studio 系统自动生成，请勿回复"
                 : "This email is automatically sent by the DGP Studio system, please do not reply",
         };
 
@@ -114,7 +114,7 @@ public sealed class MailService
                 <p>If you are not trying to delete your passport, please ignore this email, nothing will happen.</p>
                 """,
             Footer = language == "CHS"
-                ? "该邮件是 DGP Studio 系统自动发送的，请勿回复"
+                ? "该邮件由 DGP Studio 系统自动生成，请勿回复"
                 : "This email is automatically sent by the DGP Studio system, please do not reply",
         };
 
@@ -145,7 +145,7 @@ public sealed class MailService
                 <p>Please keep this email safe, order number: {tradeNumber}</p>
                 """,
             Footer = language == "CHS"
-                ? "该邮件是 DGP Studio 系统自动发送的，请勿回复"
+                ? "该邮件由 DGP Studio 系统自动生成，请勿回复"
                 : "This email is automatically sent by the DGP Studio system, please do not reply",
         };
 
@@ -167,7 +167,7 @@ public sealed class MailService
                 ? $"{emailAddress}，你的开发者许可申请已经通过"
                 : $"{emailAddress}, your developer license application has been approved",
             Footer = language == "CHS"
-                ? "该邮件是 DGP Studio 系统自动发送的，请勿回复"
+                ? "该邮件由 DGP Studio 系统自动生成，请勿回复"
                 : "This email is automatically sent by the DGP Studio system, please do not reply",
         };
 
@@ -198,7 +198,7 @@ public sealed class MailService
                 <a href="https://homa.snapgenshin.com/Accession/ApproveOpenSourceLicense?userName={userName}&code={code}">Approve</a>
                 """,
             Footer = language == "CHS"
-                ? "该邮件是 DGP Studio 系统自动发送的，请勿回复"
+                ? "该邮件由 DGP Studio 系统自动生成，请勿回复"
                 : "This email is automatically sent by the DGP Studio system, please do not reply",
         };
 
