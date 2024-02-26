@@ -1,7 +1,9 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
+using Disqord;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json.Linq;
 using Snap.Hutao.Server.Controller.Filter;
 using Snap.Hutao.Server.Extension;
 using Snap.Hutao.Server.Model.Context;
@@ -196,31 +198,55 @@ public class GithubAuthorizationController : ControllerBase
     {
         int userId = this.GetUserId();
         GithubIdentity? identity = await appDbContext.GithubIdentities.SingleOrDefaultAsync(g => g.UserId == userId).ConfigureAwait(false);
+
+        GithubAccessTokenResponse? accessTokenResponse = default;
+        if (identity is not null)
+        {
+            accessTokenResponse = await GetAccessTokenByRefreshTokenAsync(identity.RefreshToken);
+
+            if (accessTokenResponse is not null)
+            {
+                identity.RefreshToken = accessTokenResponse.RefreshToken;
+                identity.ExipresAt = (DateTimeOffset.Now + TimeSpan.FromSeconds(accessTokenResponse.RefreshTokenExpiresIn)).ToUnixTimeSeconds();
+
+                await appDbContext.GithubIdentities.UpdateAndSaveAsync(identity).ConfigureAwait(false);
+            }
+        }
+
         IsAuthorizedResult result = new()
         {
             IsAuthorized = identity is not null,
-            RefreshToken = identity?.RefreshToken,
-            ExpiresAt = identity?.ExipresAt ?? 0,
+            AccessToken = accessTokenResponse?.AccessToken,
         };
         return Response<IsAuthorizedResult>.Success("查询成功", result);
     }
 
-    [Authorize]
-    [HttpGet("UpdateRefreshToken")]
-    public async Task<IActionResult> UpdateRefreshTokenAsync([FromQuery(Name = "token")] string token, [FromQuery(Name = "expires_at")] long expiresAt)
+    private async ValueTask<GithubAccessTokenResponse?> GetAccessTokenByRefreshTokenAsync(string refreshToken)
     {
-        if (string.IsNullOrEmpty(token))
+        GithubAccessTokenResponse? accessTokenResponse = default;
+        string accessTokenQuery = $"client_id={githubOptions.ClientId}&client_secret={githubOptions.ClientSecret}&grant_type=refresh_token&refresh_token={refreshToken}";
+        using (HttpRequestMessage requestMessage = new(HttpMethod.Post, $"https://github.com/login/oauth/access_token?{accessTokenQuery}"))
         {
-            return Model.Response.Response.Fail(ReturnCode.InvalidQueryString, "No token provided");
+            requestMessage.Headers.Accept.Add(new("application/json"));
+            requestMessage.Headers.Authorization = new("token", refreshToken);
+
+            using (HttpResponseMessage responseMessage = await httpClient.SendAsync(requestMessage))
+            {
+                if (!responseMessage.IsSuccessStatusCode)
+                {
+                    return null;
+                }
+
+                accessTokenResponse = await responseMessage.Content.ReadFromJsonAsync<GithubAccessTokenResponse>();
+
+                if (accessTokenResponse is null)
+                {
+                    return null;
+                }
+            }
         }
 
-        int userId = this.GetUserId();
-        await appDbContext.GithubIdentities
-            .Where(g => g.UserId == userId)
-            .ExecuteUpdateAsync(update => update.SetProperty(i => i.RefreshToken, token).SetProperty(i => i.ExipresAt, expiresAt))
-            .ConfigureAwait(false);
-
-        return Model.Response.Response.Success("更新成功");
+        return accessTokenResponse;
     }
 
     private string EncryptState(string state)
@@ -327,8 +353,6 @@ public class GithubAuthorizationController : ControllerBase
     {
         public bool IsAuthorized { get; set; }
 
-        public string? RefreshToken { get; set; }
-
-        public long ExpiresAt { get; set; }
+        public string? AccessToken { get; set; }
     }
 }

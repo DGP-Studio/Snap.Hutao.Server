@@ -8,4 +8,8 @@ public sealed class KnownDiscordChannelOptions
     public ulong PrivateReport { get; set; }
 
     public ulong PublicStatus { get; set; }
+
+    public ulong Announcement { get; set; }
+
+    public ulong Alpha { get; set; }
 }
