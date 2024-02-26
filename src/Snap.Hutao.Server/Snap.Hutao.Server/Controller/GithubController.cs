@@ -101,7 +101,7 @@ public class GithubController : ControllerBase
     {
         int userId = this.GetUserId();
         int count = await appDbContext.GithubIdentities.Where(g => g.UserId == userId).ExecuteDeleteAsync().ConfigureAwait(false);
-        return Response<UnAuthorizeResult>.Success("²Ù×÷Íê³É", new() { Count = count });
+        return Response<UnAuthorizeResult>.Success("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½", new() { Count = count });
     }
 
     [Authorize]
@@ -110,7 +110,7 @@ public class GithubController : ControllerBase
     {
         int userId = this.GetUserId();
         AuthorizationStatus result = await githubService.GetAuthorizationStatusAsync(userId).ConfigureAwait(false);
-        return Response<AuthorizationStatus>.Success("²éÑ¯³É¹¦", result);
+        return Response<AuthorizationStatus>.Success("ï¿½ï¿½Ñ¯ï¿½É¹ï¿½", result);
     }
 
     [HttpPost("Webhook")]

@@ -194,7 +194,7 @@ public class GithubService
                 Filename = asset.Name,
                 Stream = stream,
                 MarkdownBody = $"""
-                ## Snap Hutao {release.Name} °æ±¾ÒÑ·¢²¼/ Snap Hutao Version {release.Name} is released
+                ## Snap Hutao {release.Name} ï¿½æ±¾ï¿½Ñ·ï¿½ï¿½ï¿½/ Snap Hutao Version {release.Name} is released
 
                 [Release Page]({release.HtmlUrl})   [Direct Download Link]({asset.BrowserDownloadUrl})
 
