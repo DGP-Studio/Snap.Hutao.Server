@@ -1,12 +1,14 @@
 // Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
+using Qmmands;
 using Snap.Hutao.Server.Extension;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity.Passport;
 using Snap.Hutao.Server.Model.Github;
 using Snap.Hutao.Server.Model.Response;
 using Snap.Hutao.Server.Option;
+using Snap.Hutao.Server.Service.Authorization;
 using Snap.Hutao.Server.Service.Discord;
 using System.Security.Cryptography;
 using System.Web;
@@ -17,6 +19,7 @@ namespace Snap.Hutao.Server.Service.Github;
 public class GithubService
 {
     private readonly GithubApiService githubApiService;
+    private readonly PassportService passportService;
     private readonly DiscordService discordService;
     private readonly GithubOptions githubOptions;
     private readonly AppDbContext appDbContext;
@@ -25,6 +28,7 @@ public class GithubService
     public GithubService(IServiceProvider serviceProvider)
     {
         githubApiService = serviceProvider.GetRequiredService<GithubApiService>();
+        passportService = serviceProvider.GetRequiredService<PassportService>();
         discordService = serviceProvider.GetRequiredService<DiscordService>();
         githubOptions = serviceProvider.GetRequiredService<AppOptions>().Github;
         appDbContext = serviceProvider.GetRequiredService<AppDbContext>();
@@ -37,7 +41,7 @@ public class GithubService
         return HttpUtility.UrlEncode(EncryptState(JsonSerializer.Serialize(identity)));
     }
 
-    public async ValueTask<GithubResult<GithubIdentity>> HandleAuthorizationCallbackAsync(string code, string state)
+    public async ValueTask<AuthorizeResult> HandleAuthorizationCallbackAsync(string code, string state)
     {
         UserIdentity? userIdentity;
         try
@@ -47,19 +51,19 @@ public class GithubService
         }
         catch (Exception)
         {
-            return GithubResult<GithubIdentity>.Error(ReturnCode.InvalidGithubAuthState);
+            return new() { Success = false, ReturnCode = ReturnCode.InvalidGithubAuthState };
         }
 
         GithubAccessTokenResponse? accessTokenResponse = await githubApiService.GetAccessTokenByCodeAsync(code).ConfigureAwait(false);
         if (accessTokenResponse is null)
         {
-            return GithubResult<GithubIdentity>.Error(ReturnCode.InternalGithubAuthException);
+            return new() { Success = false, ReturnCode = ReturnCode.InternalGithubAuthException };
         }
 
         GithubUserResponse? userResponse = await githubApiService.GetUserInfoByAccessTokenAsync(accessTokenResponse.AccessToken).ConfigureAwait(false);
         if (userResponse is null)
         {
-            return GithubResult<GithubIdentity>.Error(ReturnCode.InternalGithubAuthException);
+            return new() { Success = false, ReturnCode = ReturnCode.InternalGithubAuthException };
         }
 
         if (await appDbContext.GithubIdentities.SingleOrDefaultAsync(g => g.Id == userResponse.Id).ConfigureAwait(false) is { } identity)
@@ -67,7 +71,7 @@ public class GithubService
             if (identity.UserId != userIdentity.UserId)
             {
                 // Already authorized to another user
-                return GithubResult<GithubIdentity>.Error(ReturnCode.GithubAlreadyAuthorized);
+                return new() { Success = false, ReturnCode = ReturnCode.GithubAlreadyAuthorized };
             }
         }
         else
@@ -85,7 +89,7 @@ public class GithubService
             await appDbContext.GithubIdentities.AddAndSaveAsync(identity).ConfigureAwait(false);
         }
 
-        return GithubResult<GithubIdentity>.Success(identity);
+        return new() { Success = true, Token = passportService.CreateTokenByUserId(identity.UserId);
     }
 
     public async ValueTask<AuthorizationStatus> GetAuthorizationStatusAsync(int userId)

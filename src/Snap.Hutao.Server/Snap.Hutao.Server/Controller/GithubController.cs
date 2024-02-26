@@ -1,11 +1,8 @@
 // Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Snap.Hutao.Server.Controller.Filter;
-using Snap.Hutao.Server.Extension;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity.Passport;
 using Snap.Hutao.Server.Model.Github;
@@ -14,8 +11,6 @@ using Snap.Hutao.Server.Option;
 using Snap.Hutao.Server.Service.Authorization;
 using Snap.Hutao.Server.Service.Github;
 using System.IdentityModel.Tokens.Jwt;
-using System.Net.Http;
-using System.Web;
 
 namespace Snap.Hutao.Server.Controller;
 
@@ -90,12 +85,11 @@ public class GithubController : ControllerBase
             return RedirectToError(ReturnCode.InvalidQueryString);
         }
 
-        GithubResult<GithubIdentity> result = await githubService.HandleAuthorizationCallbackAsync(code, state).ConfigureAwait(false);
-        if (result.IsSuccess)
+        AuthorizeResult result = await githubService.HandleAuthorizationCallbackAsync(code, state).ConfigureAwait(false);
+        if (result.Success)
         {
             // Authorized
-            string token = passportService.CreateTokenByUserId(result.Data.UserId);
-            return Redirect($"https://passport.snapgenshin.cn/api/users/login?token={token}");
+            return Redirect($"https://passport.snapgenshin.cn/api/users/login?token={result.Token}");
         }
         else
         {
