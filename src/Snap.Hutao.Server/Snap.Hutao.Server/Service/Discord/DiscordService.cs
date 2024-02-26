@@ -6,10 +6,10 @@ using Disqord.Rest;
 using Snap.Hutao.Server.Discord;
 using Snap.Hutao.Server.Job;
 using Snap.Hutao.Server.Model.GachaLog;
-using Snap.Hutao.Server.Model.Github;
 using Snap.Hutao.Server.Model.Legacy;
 using Snap.Hutao.Server.Option;
 using Snap.Hutao.Server.Service.Afdian;
+using Snap.Hutao.Server.Service.Github;
 
 namespace Snap.Hutao.Server.Service.Discord;
 
@@ -91,12 +91,12 @@ public sealed class DiscordService
         await hutaoServerBot.SendMessageAsync(discordOptions.KnownChannels.PublicStatus, new LocalMessage().WithEmbeds(embed));
     }
 
-    public async ValueTask ReportGithubWebhookAsync(GithubMessage githubMessage)
+    public async ValueTask ReportGithubWebhookAsync(GithubWebhookResult githubMessage)
     {
-        ulong channelId = githubMessage.Type switch
+        ulong channelId = githubMessage.Event switch
         {
-            GithubMessageType.WorkflowRun => discordOptions.KnownChannels.Alpha,
-            GithubMessageType.Release => discordOptions.KnownChannels.Announcement,
+            GithubWebhookEvent.WorkflowRun => discordOptions.KnownChannels.Alpha,
+            GithubWebhookEvent.Release => discordOptions.KnownChannels.Announcement,
             _ => throw new NotSupportedException(),
         };
 

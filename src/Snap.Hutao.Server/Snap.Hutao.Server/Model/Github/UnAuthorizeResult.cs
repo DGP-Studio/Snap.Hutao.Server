@@ -3,8 +3,7 @@
 
 namespace Snap.Hutao.Server.Model.Github;
 
-public sealed class GithubResponse
+public sealed class UnAuthorizeResult
 {
-    [JsonPropertyName("message")]
-    public string Message { get; set; } = default!;
+    public int Count { get; set; }
 }

@@ -1,11 +1,11 @@
 // Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
-namespace Snap.Hutao.Server.Model.Github;
+namespace Snap.Hutao.Server.Service.Github;
 
-public sealed class GithubMessage
+public sealed class GithubWebhookResult
 {
-    public GithubMessageType Type { get; set; }
+    public GithubWebhookEvent Event { get; set; }
 
     public string MarkdownBody { get; set; } = default!;
 
@@ -15,7 +15,7 @@ public sealed class GithubMessage
 }
 
 [SuppressMessage("", "SA1201")]
-public enum GithubMessageType
+public enum GithubWebhookEvent
 {
     WorkflowRun,
     Release,

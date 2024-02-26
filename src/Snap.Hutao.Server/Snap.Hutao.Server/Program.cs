@@ -20,6 +20,7 @@ using Snap.Hutao.Server.Service.Authorization;
 using Snap.Hutao.Server.Service.Discord;
 using Snap.Hutao.Server.Service.GachaLog;
 using Snap.Hutao.Server.Service.GachaLog.Statistics;
+using Snap.Hutao.Server.Service.Github;
 using Snap.Hutao.Server.Service.Legacy;
 using Snap.Hutao.Server.Service.Legacy.PizzaHelper;
 using Snap.Hutao.Server.Service.Licensing;
@@ -88,6 +89,7 @@ public static class Program
             .AddScoped<AccessionService>()
             .AddScoped<AnnouncementService>()
             .AddScoped<GachaLogService>()
+            .AddScoped<GithubService>()
             .AddScoped<PassportService>()
             .AddScoped<PassportVerificationService>()
             .AddScoped<PizzaHelperRecordService>()
@@ -113,6 +115,7 @@ public static class Program
             .AddTransient<CountRequests>()
             .AddTransient<GachaLogStatisticsRefreshJob>()
             .AddTransient<GachaLogStatisticsService>()
+            .AddTransient<GithubApiService>()
             .AddTransient<LegacyStatisticsRefreshJob>()
             .AddTransient<StatisticsService>()
             .AddTransient<ReCaptchaService>()

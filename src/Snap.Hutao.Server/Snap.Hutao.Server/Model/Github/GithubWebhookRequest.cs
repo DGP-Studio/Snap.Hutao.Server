@@ -3,7 +3,7 @@
 
 namespace Snap.Hutao.Server.Model.Github;
 
-public sealed class GithubRequest
+public sealed class GithubWebhookRequest
 {
     [JsonPropertyName("action")]
     public string Action { get; set; } = default!;
