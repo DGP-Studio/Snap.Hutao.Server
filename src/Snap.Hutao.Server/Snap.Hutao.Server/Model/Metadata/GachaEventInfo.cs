@@ -1,8 +1,6 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
-using Snap.Hutao.Server.Service.GachaLog;
-
 namespace Snap.Hutao.Server.Model.Metadata;
 
 [Table("gacha_events")]
@@ -26,6 +24,36 @@ public sealed class GachaEventInfo
     public uint UpOrangeItem1 { get; set; }
 
     public uint UpOrangeItem2 { get; set; }
+
+    public uint UpOrangeItem3 { get; set; }
+
+    public uint UpOrangeItem4 { get; set; }
+
+    public uint UpOrangeItem5 { get; set; }
+
+    public uint UpOrangeItem6 { get; set; }
+
+    public uint UpOrangeItem7 { get; set; }
+
+    public uint UpOrangeItem8 { get; set; }
+
+    public uint UpOrangeItem9 { get; set; }
+
+    public uint UpOrangeItem10 { get; set; }
+
+    public uint UpOrangeItem11 { get; set; }
+
+    public uint UpOrangeItem12 { get; set; }
+
+    public uint UpOrangeItem13 { get; set; }
+
+    public uint UpOrangeItem14 { get; set; }
+
+    public uint UpOrangeItem15 { get; set; }
+
+    public uint UpOrangeItem16 { get; set; }
+
+    public uint UpOrangeItem17 { get; set; }
 
     public uint UpPurpleItem1 { get; set; }
 

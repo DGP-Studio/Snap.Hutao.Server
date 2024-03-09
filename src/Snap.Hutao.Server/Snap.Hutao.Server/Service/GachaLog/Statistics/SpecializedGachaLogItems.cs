@@ -13,8 +13,8 @@ internal static class SpecializedGachaLogItems
     // 10000035 七七
     // 10000041 莫娜
     // 10000042 刻晴
-    // 10000069 提纳里 3.1 2022/9/28 6
-    // 10000079 迪西雅 3.6 2023/4/12 6
+    // 10000069 提纳里 3.1 2022/9/28 06:00:00 加入常驻
+    // 10000079 迪西雅 3.6 2023/4/12 06:00:00 加入常驻
     // 11501 风鹰剑
     // 11502 天空之刃
     // 12501 天空之傲
@@ -32,7 +32,7 @@ internal static class SpecializedGachaLogItems
 
     public static bool IsStandardWishItem(EntityGachaItem item)
     {
-        if (item.QueryType is GachaConfigType.AvatarEventWish)
+        if (item.QueryType is GachaConfigType.ActivityAvatar)
         {
             if (DefiniteStandardAvatars.Contains(item.ItemId))
             {
@@ -51,7 +51,7 @@ internal static class SpecializedGachaLogItems
 
             return false;
         }
-        else if (item.QueryType is GachaConfigType.WeaponEventWish)
+        else if (item.QueryType is GachaConfigType.ActivityWeapon)
         {
             if (DefiniteStandardWeapons.Contains(item.ItemId))
             {

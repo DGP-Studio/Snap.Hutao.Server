@@ -9,10 +9,11 @@ public sealed class EndIds : Dictionary<string, long>
 {
     public static readonly FrozenSet<GachaConfigType> QueryTypes = FrozenSet.ToFrozenSet(
     [
-        GachaConfigType.NoviceWish,
-        GachaConfigType.StandardWish,
-        GachaConfigType.AvatarEventWish,
-        GachaConfigType.WeaponEventWish,
+        GachaConfigType.NewBie,
+        GachaConfigType.Standard,
+        GachaConfigType.ActivityAvatar,
+        GachaConfigType.ActivityWeapon,
+        GachaConfigType.ActivityCity,
     ]);
 
     public void Add(GachaConfigType type, long id)

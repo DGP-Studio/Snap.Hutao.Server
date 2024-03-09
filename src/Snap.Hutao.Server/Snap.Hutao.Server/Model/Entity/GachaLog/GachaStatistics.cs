@@ -9,6 +9,7 @@ public class GachaStatistics
     public const string AvaterEventGachaDistribution = "AvaterEventGachaDistribution";
     public const string WeaponEventGachaDistribution = "WeaponEventGachaDistribution";
     public const string StandardGachaDistribution = "StandardGachaDistribution";
+    public const string ChronicledGachaDistribution = "ChronicledGachaDistribution";
     public const string GachaEventStatistics = "GachaEventStatistics";
 
     [Key]

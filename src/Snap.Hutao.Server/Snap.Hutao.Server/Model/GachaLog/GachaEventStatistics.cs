@@ -13,6 +13,8 @@ public sealed class GachaEventStatistics
 
     public List<ItemCount> WeaponEvent { get; set; } = default!;
 
+    public List<ItemCount> Chronicled { get; set; } = default!;
+
     public HashSet<string> InvalidUids { get; set; } = default!;
 
     public long PullsEnumerated { get; set; }

@@ -57,6 +57,13 @@ public sealed class GachaLogStatisticsService
             memoryCache.Set(Working, true);
             Map<int, int> idQualityMap = await GetIdQualityMapAsync();
             GachaEventBundle bundle = await GetCurrentGachaEventAsync();
+
+            // If the bundle is not complete, don't run the statistics
+            if (bundle is not { AvatarEvent1: { }, AvatarEvent2: { }, WeaponEvent: { }, Chronicled: { } })
+            {
+                return;
+            }
+
             GachaLogStatisticsTracker tracker = new(idQualityMap, bundle);
 
             await Task.Run(() => RunCore(tracker)).ConfigureAwait(false);
@@ -79,16 +86,20 @@ public sealed class GachaLogStatisticsService
     {
         DateTime now = DateTime.Now;
 
-        GachaEventInfo avatarEvent1 = await metadataDbContext.GachaEvents
-            .FirstAsync(g => g.From < now && g.To > now && g.Type == GachaConfigType.AvatarEventWish)
+        GachaEventInfo? avatarEvent1 = await metadataDbContext.GachaEvents
+            .FirstOrDefaultAsync(g => g.From < now && g.To > now && g.Type == GachaConfigType.ActivityAvatar)
             .ConfigureAwait(false);
 
-        GachaEventInfo avatarEvent2 = await metadataDbContext.GachaEvents
-            .FirstAsync(g => g.From < now && g.To > now && g.Type == GachaConfigType.AvatarEventWish2)
+        GachaEventInfo? avatarEvent2 = await metadataDbContext.GachaEvents
+            .FirstOrDefaultAsync(g => g.From < now && g.To > now && g.Type == GachaConfigType.SpeicalActivityAvatar)
             .ConfigureAwait(false);
 
-        GachaEventInfo weaponEvent = await metadataDbContext.GachaEvents
-            .FirstAsync(g => g.From < now && g.To > now && g.Type == GachaConfigType.WeaponEventWish)
+        GachaEventInfo? weaponEvent = await metadataDbContext.GachaEvents
+            .FirstOrDefaultAsync(g => g.From < now && g.To > now && g.Type == GachaConfigType.ActivityWeapon)
+            .ConfigureAwait(false);
+
+        GachaEventInfo? chronicled = await metadataDbContext.GachaEvents
+            .FirstOrDefaultAsync(g => g.From < now && g.To > now && g.Type == GachaConfigType.ActivityCity)
             .ConfigureAwait(false);
 
         GachaEventBundle bundle = new()
@@ -96,6 +107,7 @@ public sealed class GachaLogStatisticsService
             AvatarEvent1 = avatarEvent1,
             AvatarEvent2 = avatarEvent2,
             WeaponEvent = weaponEvent,
+            Chronicled = chronicled,
         };
 
         return bundle;

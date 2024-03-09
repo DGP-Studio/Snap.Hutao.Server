@@ -47,6 +47,14 @@ public class GachaLogController : ControllerBase
 
     [Authorize]
     [ServiceFilter(typeof(ValidateGachaLogPermission))]
+    [HttpGet("Statistics/Distribution/Chronicled")]
+    public IActionResult ChronicledDistribution()
+    {
+        return GetGachaLogStatistics<GachaDistribution>(GachaStatistics.ChronicledGachaDistribution);
+    }
+
+    [Authorize]
+    [ServiceFilter(typeof(ValidateGachaLogPermission))]
     [HttpGet("Statistics/Distribution/Standard")]
     public IActionResult StandardDistribution()
     {

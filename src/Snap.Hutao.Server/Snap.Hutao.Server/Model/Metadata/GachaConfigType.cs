@@ -5,9 +5,10 @@ namespace Snap.Hutao.Server.Model.Metadata;
 
 public enum GachaConfigType
 {
-    NoviceWish = 100,
-    StandardWish = 200,
-    AvatarEventWish = 301,
-    WeaponEventWish = 302,
-    AvatarEventWish2 = 400,
+    NewBie = 100,
+    Standard = 200,
+    ActivityAvatar = 301,
+    ActivityWeapon = 302,
+    SpeicalActivityAvatar = 400,
+    ActivityCity = 500,
 }

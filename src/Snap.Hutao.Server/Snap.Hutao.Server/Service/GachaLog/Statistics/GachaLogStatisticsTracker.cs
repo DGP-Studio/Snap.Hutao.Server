@@ -17,9 +17,11 @@ public sealed class GachaLogStatisticsTracker
     private readonly GachaEventInfo currentAvatarEvent1;
     private readonly GachaEventInfo currentAvatarEvent2;
     private readonly GachaEventInfo currentWeaponEvent;
+    private readonly GachaEventInfo currentChronicled;
     private readonly FrozenSet<int> currentAvatarEvent1Star5Ids;
     private readonly FrozenSet<int> currentAvatarEvent2Star5Ids;
     private readonly FrozenSet<int> currentWeaponEventStar5Ids;
+    private readonly FrozenSet<int> currentChronicledStar5Ids;
 
     private readonly HashSet<string> invalidGachaUids = [];
 
@@ -27,27 +29,32 @@ public sealed class GachaLogStatisticsTracker
     private readonly Map<int, long> currentAvatarEvent1Counter = [];
     private readonly Map<int, long> currentAvatarEvent2Counter = [];
     private readonly Map<int, long> currentWeaponEventCounter = [];
+    private readonly Map<int, long> currentChronicledCounter = [];
 
     // pulls -> count
     private readonly Map<int, long> avatarEventStar5Distribution = [];
     private readonly Map<int, long> weaponEventStar5Distribution = [];
     private readonly Map<int, long> standardStar5Distribution = [];
+    private readonly Map<int, long> chronicledStar5Distribution = [];
 
     private long totalMixedPullsCounter;
     private long totalAvatarEventValidPullsCounter;
     private long totalWeaponEventValidPullsCounter;
+    private long totalChronicledValidPullsCounter;
     private long totalStandardValidPullsCounter;
 
     internal GachaLogStatisticsTracker(Map<int, int> idQualityMap, GachaEventBundle bundle)
     {
         this.idQualityMap = idQualityMap;
-        currentAvatarEvent1 = bundle.AvatarEvent1;
-        currentAvatarEvent2 = bundle.AvatarEvent2;
-        currentWeaponEvent = bundle.WeaponEvent;
+        currentAvatarEvent1 = bundle.AvatarEvent1!;
+        currentAvatarEvent2 = bundle.AvatarEvent2!;
+        currentWeaponEvent = bundle.WeaponEvent!;
+        currentChronicled = bundle.Chronicled!;
 
         currentAvatarEvent1Star5Ids = currentAvatarEvent1.GetUpOrangeItems().ToFrozenSet();
         currentAvatarEvent2Star5Ids = currentAvatarEvent2.GetUpOrangeItems().ToFrozenSet();
         currentWeaponEventStar5Ids = currentWeaponEvent.GetUpOrangeItems().ToFrozenSet();
+        currentChronicledStar5Ids = currentChronicled.GetUpOrangeItems().ToFrozenSet();
     }
 
     /// <summary>
@@ -64,10 +71,12 @@ public sealed class GachaLogStatisticsTracker
         // Ignore items before first star5 item
         bool avatarEventFirstStar5Found = false;
         bool weaponEventFirstStar5Found = false;
+        bool chronicledStar5Found = false;
         bool standardFirstStar5Found = false;
 
         int currentAvatarEventCountToLastStar5 = 0;
         int currentWeaponEventCountToLastStar5 = 0;
+        int currentChronicledCountToLastStar5 = 0;
         int currentStandardCountToLastStar5 = 0;
 
         foreach (ref readonly EntityGachaItem item in CollectionsMarshal.AsSpan(gachaItems))
@@ -76,7 +85,7 @@ public sealed class GachaLogStatisticsTracker
 
             switch (item.QueryType)
             {
-                case GachaConfigType.AvatarEventWish:
+                case GachaConfigType.ActivityAvatar:
                     TrackForSpecficQueryTypeWish(
                         item,
                         ref avatarEventFirstStar5Found,
@@ -85,7 +94,7 @@ public sealed class GachaLogStatisticsTracker
                         avatarEventStar5Distribution,
                         90);
                     break;
-                case GachaConfigType.WeaponEventWish:
+                case GachaConfigType.ActivityWeapon:
                     TrackForSpecficQueryTypeWish(
                         item,
                         ref weaponEventFirstStar5Found,
@@ -94,7 +103,16 @@ public sealed class GachaLogStatisticsTracker
                         weaponEventStar5Distribution,
                         80);
                     break;
-                case GachaConfigType.StandardWish:
+                case GachaConfigType.ActivityCity:
+                    TrackForSpecficQueryTypeWish(
+                        item,
+                        ref chronicledStar5Found,
+                        ref currentChronicledCountToLastStar5,
+                        ref totalChronicledValidPullsCounter,
+                        chronicledStar5Distribution,
+                        90);
+                    break;
+                case GachaConfigType.Standard:
                     TrackForSpecficQueryTypeWish(
                         item,
                         ref standardFirstStar5Found,
@@ -121,6 +139,7 @@ public sealed class GachaLogStatisticsTracker
             };
         }
 
+        // Avatar
         GachaDistribution avatarEventDistribution = new()
         {
             TotalValidPulls = totalAvatarEventValidPullsCounter,
@@ -129,6 +148,7 @@ public sealed class GachaLogStatisticsTracker
 
         SaveStatistics(appDbContext, memoryCache, GachaStatistics.AvaterEventGachaDistribution, avatarEventDistribution);
 
+        // Weapon
         GachaDistribution weaponEventDistribution = new()
         {
             TotalValidPulls = totalWeaponEventValidPullsCounter,
@@ -137,6 +157,16 @@ public sealed class GachaLogStatisticsTracker
 
         SaveStatistics(appDbContext, memoryCache, GachaStatistics.WeaponEventGachaDistribution, weaponEventDistribution);
 
+        // Chronicled
+        GachaDistribution chronicledDistribution = new()
+        {
+            TotalValidPulls = totalChronicledValidPullsCounter,
+            Distribution = chronicledStar5Distribution.Select(kvp => new PullCount() { Pull = kvp.Key, Count = kvp.Value }).ToList(),
+        };
+
+        SaveStatistics(appDbContext, memoryCache, GachaStatistics.ChronicledGachaDistribution, chronicledDistribution);
+
+        // Standard
         GachaDistribution standardDistribution = new()
         {
             TotalValidPulls = totalStandardValidPullsCounter,
@@ -178,22 +208,22 @@ public sealed class GachaLogStatisticsTracker
     private static bool ImpossiblePresence(FrozenSet<int> upStar5Items, EntityGachaItem item, int quality)
     {
         // TODO: Handle quality 4
-        if (quality is 5)
+        if (quality is not 5)
         {
-            if (upStar5Items.Contains(item.ItemId))
-            {
-                return false;
-            }
-
-            if (SpecializedGachaLogItems.IsStandardWishItem(item))
-            {
-                return false;
-            }
-
-            return true;
+            return false;
         }
 
-        return false;
+        if (upStar5Items.Contains(item.ItemId))
+        {
+            return false;
+        }
+
+        if (SpecializedGachaLogItems.IsStandardWishItem(item))
+        {
+            return false;
+        }
+
+        return true;
     }
 
     private void TrackForSpecficQueryTypeWish(EntityGachaItem item, ref bool star5Found, ref int lastStar5Counter, ref long totalPullsCounter, Map<int, long> distribution, int pullMaxThreshold)
