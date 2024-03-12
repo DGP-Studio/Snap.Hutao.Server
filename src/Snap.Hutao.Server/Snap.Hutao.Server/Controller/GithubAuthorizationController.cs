@@ -10,9 +10,7 @@ using Snap.Hutao.Server.Model.Response;
 using Snap.Hutao.Server.Option;
 using Snap.Hutao.Server.Service.Authorization;
 using System.IdentityModel.Tokens.Jwt;
-using System.Net.Http.Headers;
 using System.Security.Cryptography;
-using System.Security.Policy;
 using System.Web;
 
 namespace Snap.Hutao.Server.Controller;
