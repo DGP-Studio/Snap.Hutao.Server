@@ -181,6 +181,7 @@ public sealed class GachaLogStatisticsTracker
             AvatarEvent = currentAvatarEvent1Counter.Select(kvp => new ItemCount() { Item = kvp.Key, Count = kvp.Value }).ToList(),
             AvatarEvent2 = currentAvatarEvent2Counter.Select(kvp => new ItemCount() { Item = kvp.Key, Count = kvp.Value }).ToList(),
             WeaponEvent = currentWeaponEventCounter.Select(kvp => new ItemCount() { Item = kvp.Key, Count = kvp.Value }).ToList(),
+            Chronicled = currentChronicledCounter.Select(kvp => new ItemCount() { Item = kvp.Key, Count = kvp.Value }).ToList(),
             PullsEnumerated = totalMixedPullsCounter,
         };
 
@@ -295,6 +296,15 @@ public sealed class GachaLogStatisticsTracker
             currentWeaponEventCounter.IncreaseOne(item.ItemId);
 
             if (ImpossiblePresence(currentWeaponEventStar5Ids, item, quality))
+            {
+                invalidGachaUids.Add(Uid);
+            }
+        }
+        else if (currentChronicled.ItemInThisEvent(item))
+        {
+            currentChronicledCounter.IncreaseOne(item.ItemId);
+
+            if (ImpossiblePresence(currentChronicledStar5Ids, item, quality))
             {
                 invalidGachaUids.Add(Uid);
             }
