@@ -10,6 +10,4 @@ public sealed class GithubWebhookResult
     public string MarkdownBody { get; set; } = default!;
 
     public string Filename { get; set; } = default!;
-
-    public Stream Stream { get; set; } = default!;
 }

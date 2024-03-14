@@ -100,11 +100,8 @@ public sealed class DiscordService
             _ => throw new NotSupportedException(),
         };
 
-        githubMessage.Stream.Position = 0;
-
         LocalMessage message = new LocalMessage()
-            .WithContent(githubMessage.MarkdownBody)
-            .WithAttachments(new LocalAttachment(githubMessage.Stream, githubMessage.Filename));
+            .WithContent(githubMessage.MarkdownBody);
 
         await hutaoServerBot.SendMessageAsync(channelId, message);
     }

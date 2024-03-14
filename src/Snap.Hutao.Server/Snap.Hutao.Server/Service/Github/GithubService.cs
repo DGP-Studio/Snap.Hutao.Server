@@ -22,7 +22,6 @@ public class GithubService
     private readonly DiscordService discordService;
     private readonly GithubOptions githubOptions;
     private readonly AppDbContext appDbContext;
-    private readonly HttpClient httpClient;
 
     public GithubService(IServiceProvider serviceProvider)
     {
@@ -31,7 +30,6 @@ public class GithubService
         discordService = serviceProvider.GetRequiredService<DiscordService>();
         githubOptions = serviceProvider.GetRequiredService<AppOptions>().Github;
         appDbContext = serviceProvider.GetRequiredService<AppDbContext>();
-        httpClient = serviceProvider.GetRequiredService<HttpClient>();
     }
 
     public string CreateStateForUser(HutaoUser user)
@@ -122,36 +120,22 @@ public class GithubService
             return;
         }
 
-        using (HttpRequestMessage requestMessage = new(HttpMethod.Get, artifact.ArchiveDownloadUrl))
+        GithubWebhookResult githubMessage = new()
         {
-            requestMessage.Headers.UserAgent.ParseAdd("Snap Hutao Server/1.0");
-            requestMessage.Headers.Authorization = new("Bearer", githubOptions.Token);
+            Filename = artifact.Name,
+            MarkdownBody = $"""
+                ## Snap Hutao Alpha {artifact.Name[17..]}
 
-            using (HttpResponseMessage responseMessage = await httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseContentRead).ConfigureAwait(false))
-            {
-                responseMessage.EnsureSuccessStatusCode();
+                [Details](https://github.com/DGP-Studio/Snap.Hutao/actions/runs/{workflowRun.Id})  [Browser Download Here](https://github.com/DGP-Studio/Snap.Hutao/actions/runs/{workflowRun.Id}/artifacts/{artifact.Id})
 
-                Stream stream = await responseMessage.Content.ReadAsStreamAsync().ConfigureAwait(false);
+                `[{workflowRun.HeadCommit.Id[..7]}](https://github.com/DGP-Studio/Snap.Hutao/commit/{workflowRun.HeadCommit.Id})` {workflowRun.HeadCommit.Message}
 
-                GithubWebhookResult githubMessage = new()
-                {
-                    Filename = artifact.Name,
-                    Stream = stream,
-                    MarkdownBody = $"""
-                    ## Snap Hutao Alpha {artifact.Name[17..]}
+                by [{workflowRun.HeadCommit.Author.Name}](https://github.com/{workflowRun.HeadCommit.Author.Name})
+                """,
+            Event = GithubWebhookEvent.WorkflowRun,
+        };
 
-                    [Details](https://github.com/DGP-Studio/Snap.Hutao/actions/runs/{workflowRun.Id})  [Browser Download Here](https://github.com/DGP-Studio/Snap.Hutao/actions/runs/{workflowRun.Id}/artifacts/{artifact.Id})
-
-                    `[{workflowRun.HeadCommit.Id[..7]}](https://github.com/DGP-Studio/Snap.Hutao/commit/{workflowRun.HeadCommit.Id})` {workflowRun.HeadCommit.Message}
-
-                    by [{workflowRun.HeadCommit.Author.Name}](https://github.com/{workflowRun.HeadCommit.Author.Name})
-                    """,
-                    Event = GithubWebhookEvent.WorkflowRun,
-                };
-
-                await discordService.ReportGithubWebhookAsync(githubMessage);
-            }
-        }
+        await discordService.ReportGithubWebhookAsync(githubMessage);
     }
 
     public async ValueTask ProcessReleaseEventAsync(Release release)
@@ -162,30 +146,20 @@ public class GithubService
             return;
         }
 
-        using (HttpResponseMessage responseMessage = await httpClient.GetAsync(asset.BrowserDownloadUrl, HttpCompletionOption.ResponseContentRead).ConfigureAwait(false))
+        GithubWebhookResult githubMessage = new()
         {
-            responseMessage.EnsureSuccessStatusCode();
-
-            Stream stream = await responseMessage.Content.ReadAsStreamAsync().ConfigureAwait(false);
-
-            GithubWebhookResult githubMessage = new()
-            {
-                Filename = asset.Name,
-                Stream = stream,
-                MarkdownBody = $"""
+            Filename = asset.Name,
+            MarkdownBody = $"""
                 ## Snap Hutao {release.Name} 已发布 / Snap Hutao Version {release.Name} is released
 
                 [Release Page]({release.HtmlUrl})  [Direct Download Link]({asset.BrowserDownloadUrl})
 
                 {release.Body}
                 """,
-                Event = GithubWebhookEvent.Release,
-            };
+            Event = GithubWebhookEvent.Release,
+        };
 
-            await discordService.ReportGithubWebhookAsync(githubMessage);
-
-            stream.Dispose();
-        }
+        await discordService.ReportGithubWebhookAsync(githubMessage);
     }
 
     private string EncryptState(string state)
