@@ -114,25 +114,8 @@ public class GithubService
 
     public async ValueTask ProcessWorkflowRunEventAsync(WorkflowRun workflowRun)
     {
-        Artifact? artifact = default;
-        using (HttpRequestMessage requestMessage = new(HttpMethod.Get, workflowRun.ArtifactsUrl))
-        {
-            requestMessage.Headers.Add("Accept", "application/vnd.github.v3+json");
-            requestMessage.Headers.Authorization = new("Bearer", githubOptions.Token);
-
-            using (HttpResponseMessage responseMessage = await httpClient.SendAsync(requestMessage).ConfigureAwait(false))
-            {
-                if (responseMessage.IsSuccessStatusCode)
-                {
-                    Artifacts? artifacts = await responseMessage.Content.ReadFromJsonAsync<Artifacts>();
-
-                    if (artifacts is not null)
-                    {
-                        artifact = artifacts.ArtifactList.FirstOrDefault();
-                    }
-                }
-            }
-        }
+        Artifacts? artifacts = await githubApiService.GetArtifactsAsync(workflowRun.ArtifactsUrl).ConfigureAwait(false);
+        Artifact? artifact = artifacts?.ArtifactList.FirstOrDefault();
 
         if (artifact is null)
         {
@@ -141,9 +124,10 @@ public class GithubService
 
         using (HttpRequestMessage requestMessage = new(HttpMethod.Get, artifact.ArchiveDownloadUrl))
         {
+            requestMessage.Headers.UserAgent.ParseAdd("Snap Hutao Server/1.0");
             requestMessage.Headers.Authorization = new("Bearer", githubOptions.Token);
 
-            using (HttpResponseMessage responseMessage = await httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false))
+            using (HttpResponseMessage responseMessage = await httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseContentRead).ConfigureAwait(false))
             {
                 responseMessage.EnsureSuccessStatusCode();
 
@@ -156,9 +140,7 @@ public class GithubService
                     MarkdownBody = $"""
                     ## Snap Hutao Alpha {artifact.Name[17..]}
 
-                    [Details](https://github.com/DGP-Studio/Snap.Hutao/actions/runs/{workflowRun.Id})   [Browser Download Here](https://github.com/DGP-Studio/Snap.Hutao/actions/runs/{workflowRun.Id}/artifacts/{artifact.Id})
-
-
+                    [Details](https://github.com/DGP-Studio/Snap.Hutao/actions/runs/{workflowRun.Id})  [Browser Download Here](https://github.com/DGP-Studio/Snap.Hutao/actions/runs/{workflowRun.Id}/artifacts/{artifact.Id})
 
                     `[{workflowRun.HeadCommit.Id[..7]}](https://github.com/DGP-Studio/Snap.Hutao/commit/{workflowRun.HeadCommit.Id})` {workflowRun.HeadCommit.Message}
 
@@ -168,8 +150,6 @@ public class GithubService
                 };
 
                 await discordService.ReportGithubWebhookAsync(githubMessage);
-
-                stream.Dispose();
             }
         }
     }
@@ -182,7 +162,7 @@ public class GithubService
             return;
         }
 
-        using (HttpResponseMessage responseMessage = await httpClient.GetAsync(asset.BrowserDownloadUrl, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false))
+        using (HttpResponseMessage responseMessage = await httpClient.GetAsync(asset.BrowserDownloadUrl, HttpCompletionOption.ResponseContentRead).ConfigureAwait(false))
         {
             responseMessage.EnsureSuccessStatusCode();
 
@@ -195,9 +175,7 @@ public class GithubService
                 MarkdownBody = $"""
                 ## Snap Hutao {release.Name} 已发布 / Snap Hutao Version {release.Name} is released
 
-                [Release Page]({release.HtmlUrl})   [Direct Download Link]({asset.BrowserDownloadUrl})
-
-
+                [Release Page]({release.HtmlUrl})  [Direct Download Link]({asset.BrowserDownloadUrl})
 
                 {release.Body}
                 """,

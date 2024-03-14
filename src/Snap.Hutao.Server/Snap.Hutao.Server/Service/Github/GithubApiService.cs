@@ -18,6 +18,26 @@ public class GithubApiService
         httpClient = serviceProvider.GetRequiredService<HttpClient>();
     }
 
+    public async ValueTask<Artifacts?> GetArtifactsAsync(string artifactsUrl)
+    {
+        using (HttpRequestMessage requestMessage = new(HttpMethod.Get, artifactsUrl))
+        {
+            requestMessage.Headers.Add("Accept", "application/vnd.github.v3+json");
+            requestMessage.Headers.UserAgent.ParseAdd("Snap Hutao Server/1.0");
+            requestMessage.Headers.Authorization = new("Bearer", githubOptions.Token);
+
+            using (HttpResponseMessage responseMessage = await httpClient.SendAsync(requestMessage).ConfigureAwait(false))
+            {
+                if (!responseMessage.IsSuccessStatusCode)
+                {
+                    return default;
+                }
+
+                return await responseMessage.Content.ReadFromJsonAsync<Artifacts>();
+            }
+        }
+    }
+
     public async ValueTask<GithubUserResponse?> GetUserInfoByAccessTokenAsync(string accessToken)
     {
         using (HttpRequestMessage requestMessage = new(HttpMethod.Get, "https://api.github.com/user"))
