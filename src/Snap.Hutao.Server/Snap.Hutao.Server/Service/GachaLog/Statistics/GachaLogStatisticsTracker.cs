@@ -14,14 +14,14 @@ namespace Snap.Hutao.Server.Service.GachaLog.Statistics;
 public sealed class GachaLogStatisticsTracker
 {
     private readonly Map<int, int> idQualityMap;
-    private readonly GachaEventInfo currentAvatarEvent1;
-    private readonly GachaEventInfo currentAvatarEvent2;
-    private readonly GachaEventInfo currentWeaponEvent;
-    private readonly GachaEventInfo currentChronicled;
-    private readonly FrozenSet<int> currentAvatarEvent1Star5Ids;
-    private readonly FrozenSet<int> currentAvatarEvent2Star5Ids;
-    private readonly FrozenSet<int> currentWeaponEventStar5Ids;
-    private readonly FrozenSet<int> currentChronicledStar5Ids;
+    private readonly GachaEventInfo? currentAvatarEvent1;
+    private readonly GachaEventInfo? currentAvatarEvent2;
+    private readonly GachaEventInfo? currentWeaponEvent;
+    private readonly GachaEventInfo? currentChronicled;
+    private readonly FrozenSet<int>? currentAvatarEvent1Star5Ids;
+    private readonly FrozenSet<int>? currentAvatarEvent2Star5Ids;
+    private readonly FrozenSet<int>? currentWeaponEventStar5Ids;
+    private readonly FrozenSet<int>? currentChronicledStar5Ids;
 
     private readonly HashSet<string> invalidGachaUids = [];
 
@@ -46,15 +46,15 @@ public sealed class GachaLogStatisticsTracker
     internal GachaLogStatisticsTracker(Map<int, int> idQualityMap, GachaEventBundle bundle)
     {
         this.idQualityMap = idQualityMap;
-        currentAvatarEvent1 = bundle.AvatarEvent1!;
-        currentAvatarEvent2 = bundle.AvatarEvent2!;
-        currentWeaponEvent = bundle.WeaponEvent!;
-        currentChronicled = bundle.Chronicled!;
+        currentAvatarEvent1 = bundle.AvatarEvent1;
+        currentAvatarEvent2 = bundle.AvatarEvent2;
+        currentWeaponEvent = bundle.WeaponEvent;
+        currentChronicled = bundle.Chronicled;
 
-        currentAvatarEvent1Star5Ids = currentAvatarEvent1.GetUpOrangeItems().ToFrozenSet();
-        currentAvatarEvent2Star5Ids = currentAvatarEvent2.GetUpOrangeItems().ToFrozenSet();
-        currentWeaponEventStar5Ids = currentWeaponEvent.GetUpOrangeItems().ToFrozenSet();
-        currentChronicledStar5Ids = currentChronicled.GetUpOrangeItems().ToFrozenSet();
+        currentAvatarEvent1Star5Ids = currentAvatarEvent1?.GetUpOrangeItems().ToFrozenSet();
+        currentAvatarEvent2Star5Ids = currentAvatarEvent2?.GetUpOrangeItems().ToFrozenSet();
+        currentWeaponEventStar5Ids = currentWeaponEvent?.GetUpOrangeItems().ToFrozenSet();
+        currentChronicledStar5Ids = currentChronicled?.GetUpOrangeItems().ToFrozenSet();
     }
 
     /// <summary>
@@ -273,38 +273,38 @@ public sealed class GachaLogStatisticsTracker
 
     private void TryIncreaseCurrentWishItemCounter(EntityGachaItem item, int quality)
     {
-        if (currentAvatarEvent1.ItemInThisEvent(item))
+        if (currentAvatarEvent1 is not null && currentAvatarEvent1.ItemInThisEvent(item))
         {
             currentAvatarEvent1Counter.IncreaseOne(item.ItemId);
 
-            if (ImpossiblePresence(currentAvatarEvent1Star5Ids, item, quality))
+            if (ImpossiblePresence(currentAvatarEvent1Star5Ids!, item, quality))
             {
                 invalidGachaUids.Add(Uid);
             }
         }
-        else if (currentAvatarEvent2.ItemInThisEvent(item))
+        else if (currentAvatarEvent2 is not null && currentAvatarEvent2.ItemInThisEvent(item))
         {
             currentAvatarEvent2Counter.IncreaseOne(item.ItemId);
 
-            if (ImpossiblePresence(currentAvatarEvent2Star5Ids, item, quality))
+            if (ImpossiblePresence(currentAvatarEvent2Star5Ids!, item, quality))
             {
                 invalidGachaUids.Add(Uid);
             }
         }
-        else if (currentWeaponEvent.ItemInThisEvent(item))
+        else if (currentWeaponEvent is not null && currentWeaponEvent.ItemInThisEvent(item))
         {
             currentWeaponEventCounter.IncreaseOne(item.ItemId);
 
-            if (ImpossiblePresence(currentWeaponEventStar5Ids, item, quality))
+            if (ImpossiblePresence(currentWeaponEventStar5Ids!, item, quality))
             {
                 invalidGachaUids.Add(Uid);
             }
         }
-        else if (currentChronicled.ItemInThisEvent(item))
+        else if (currentChronicled is not null && currentChronicled.ItemInThisEvent(item))
         {
             currentChronicledCounter.IncreaseOne(item.ItemId);
 
-            if (ImpossiblePresence(currentChronicledStar5Ids, item, quality))
+            if (ImpossiblePresence(currentChronicledStar5Ids!, item, quality))
             {
                 invalidGachaUids.Add(Uid);
             }
