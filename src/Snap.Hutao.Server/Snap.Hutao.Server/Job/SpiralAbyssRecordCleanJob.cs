@@ -3,7 +3,6 @@
 
 using Quartz;
 using Snap.Hutao.Server.Model.Context;
-using Snap.Hutao.Server.Service;
 using Snap.Hutao.Server.Service.Discord;
 using Snap.Hutao.Server.Service.Ranking;
 

@@ -2,7 +2,6 @@
 // Licensed under the MIT license.
 
 using Microsoft.AspNetCore.Authorization.Policy;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Snap.Hutao.Server.Controller;
 using Snap.Hutao.Server.Model.Response;
 

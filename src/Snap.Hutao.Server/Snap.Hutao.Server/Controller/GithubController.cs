@@ -1,4 +1,4 @@
-// Copyright (c) DGP Studio. All rights reserved.
+﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
 using Microsoft.Extensions.Options;
@@ -101,7 +101,7 @@ public class GithubController : ControllerBase
     {
         int userId = this.GetUserId();
         int count = await appDbContext.GithubIdentities.Where(g => g.UserId == userId).ExecuteDeleteAsync().ConfigureAwait(false);
-        return Response<UnAuthorizeResult>.Success("�������", new() { Count = count });
+        return Response<UnAuthorizeResult>.Success("操作完成", new() { Count = count });
     }
 
     [Authorize]
@@ -110,7 +110,7 @@ public class GithubController : ControllerBase
     {
         int userId = this.GetUserId();
         AuthorizationStatus result = await githubService.GetAuthorizationStatusAsync(userId).ConfigureAwait(false);
-        return Response<AuthorizationStatus>.Success("��ѯ�ɹ�", result);
+        return Response<AuthorizationStatus>.Success("查询成功", result);
     }
 
     [HttpPost("Webhook")]

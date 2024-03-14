@@ -1,7 +1,6 @@
-// Copyright (c) DGP Studio. All rights reserved.
+﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
-using Qmmands;
 using Snap.Hutao.Server.Extension;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity.Passport;
@@ -194,7 +193,7 @@ public class GithubService
                 Filename = asset.Name,
                 Stream = stream,
                 MarkdownBody = $"""
-                ## Snap Hutao {release.Name} �汾�ѷ���/ Snap Hutao Version {release.Name} is released
+                ## Snap Hutao {release.Name} 已发布 / Snap Hutao Version {release.Name} is released
 
                 [Release Page]({release.HtmlUrl})   [Direct Download Link]({asset.BrowserDownloadUrl})
 
