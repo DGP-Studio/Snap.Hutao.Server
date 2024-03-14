@@ -89,7 +89,7 @@ public class GithubService
             await appDbContext.GithubIdentities.AddAndSaveAsync(identity).ConfigureAwait(false);
         }
 
-        return new() { Success = true, Token = passportService.CreateTokenByUserId(identity.UserId);
+        return new() { Success = true, Token = passportService.CreateTokenByUserId(identity.UserId) };
     }
 
     public async ValueTask<AuthorizationStatus> GetAuthorizationStatusAsync(int userId)
