@@ -9,6 +9,7 @@ using Snap.Hutao.Server.Model.GachaLog;
 using Snap.Hutao.Server.Model.Legacy;
 using Snap.Hutao.Server.Option;
 using Snap.Hutao.Server.Service.Afdian;
+using Snap.Hutao.Server.Service.Github;
 
 namespace Snap.Hutao.Server.Service.Discord;
 
@@ -88,5 +89,23 @@ public sealed class DiscordService
         embed.AddField("Calc Time per Record", overview.TimeAverage, true);
 
         await hutaoServerBot.SendMessageAsync(discordOptions.KnownChannels.PublicStatus, new LocalMessage().WithEmbeds(embed));
+    }
+
+    public async ValueTask ReportGithubWebhookAsync(GithubWebhookResult githubMessage)
+    {
+        ulong channelId = githubMessage.Event switch
+        {
+            GithubWebhookEvent.WorkflowRun => discordOptions.KnownChannels.Alpha,
+            GithubWebhookEvent.Release => discordOptions.KnownChannels.Announcement,
+            _ => throw new NotSupportedException(),
+        };
+
+        githubMessage.Stream.Position = 0;
+
+        LocalMessage message = new LocalMessage()
+            .WithContent(githubMessage.MarkdownBody)
+            .WithAttachments(new LocalAttachment(githubMessage.Stream, githubMessage.Filename));
+
+        await hutaoServerBot.SendMessageAsync(channelId, message);
     }
 }

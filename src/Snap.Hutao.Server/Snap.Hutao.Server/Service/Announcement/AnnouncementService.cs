@@ -4,7 +4,6 @@
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity.Announcement;
 using Snap.Hutao.Server.Model.Upload;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Snap.Hutao.Server.Service.Announcement;
 

@@ -2,10 +2,7 @@
 // Licensed under the MIT license.
 
 using Snap.Hutao.Server.Model.Afdian;
-using Snap.Hutao.Server.Option;
-using Snap.Hutao.Server.Service;
 using Snap.Hutao.Server.Service.Afdian;
-using Snap.Hutao.Server.Service.GachaLog;
 
 namespace Snap.Hutao.Server.Controller;
 

@@ -10,4 +10,6 @@ public sealed class GithubOptions
     public string ClientSecret { get; set; } = default!;
 
     public byte[] StateEncryptKey { get; set; } = default!;
+
+    public string Token { get; set; } = default!;
 }
