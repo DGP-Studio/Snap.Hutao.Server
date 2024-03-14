@@ -126,11 +126,13 @@ public class GithubService
             MarkdownBody = $"""
                 ## Snap Hutao Alpha {artifact.Name[17..]}
 
-                [Details](https://github.com/DGP-Studio/Snap.Hutao/actions/runs/{workflowRun.Id})  [Browser Download Here](https://github.com/DGP-Studio/Snap.Hutao/actions/runs/{workflowRun.Id}/artifacts/{artifact.Id})
+                [Details](https://github.com/DGP-Studio/Snap.Hutao/actions/runs/{workflowRun.Id})
+                [Browser Download Here](https://github.com/DGP-Studio/Snap.Hutao/actions/runs/{workflowRun.Id}/artifacts/{artifact.Id})
 
-                `[{workflowRun.HeadCommit.Id[..7]}](https://github.com/DGP-Studio/Snap.Hutao/commit/{workflowRun.HeadCommit.Id})` {workflowRun.HeadCommit.Message}
-
-                by [{workflowRun.HeadCommit.Author.Name}](https://github.com/{workflowRun.HeadCommit.Author.Name})
+                Author: [{workflowRun.HeadCommit.Author.Name}](https://github.com/{workflowRun.HeadCommit.Author.Name})
+                Commit: [`{workflowRun.HeadCommit.Id[..7]}`](https://github.com/DGP-Studio/Snap.Hutao/commit/{workflowRun.HeadCommit.Id})
+                
+                {workflowRun.HeadCommit.Message}
                 """,
             Event = GithubWebhookEvent.WorkflowRun,
         };
@@ -152,7 +154,8 @@ public class GithubService
             MarkdownBody = $"""
                 ## Snap Hutao {release.Name} 已发布 / Snap Hutao Version {release.Name} is released
 
-                [Release Page]({release.HtmlUrl})  [Direct Download Link]({asset.BrowserDownloadUrl})
+                [Release Page]({release.HtmlUrl})
+                [Direct Download Link]({asset.BrowserDownloadUrl})
 
                 {release.Body}
                 """,
