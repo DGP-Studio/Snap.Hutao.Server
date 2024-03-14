@@ -35,7 +35,7 @@ public class GithubService
         httpClient = serviceProvider.GetRequiredService<HttpClient>();
     }
 
-    public string GenerateOAuthState(HutaoUser user)
+    public string CreateStateForUser(HutaoUser user)
     {
         UserIdentity identity = new() { UserId = user.Id };
         return HttpUtility.UrlEncode(EncryptState(JsonSerializer.Serialize(identity)));

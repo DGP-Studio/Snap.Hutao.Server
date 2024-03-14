@@ -23,7 +23,6 @@ public class GithubController : ControllerBase
     private readonly AppDbContext appDbContext;
     private readonly GithubOptions githubOptions;
     private readonly GithubService githubService;
-    private readonly PassportService passportService;
     private readonly IOptionsMonitor<JwtBearerOptions> jwtBearerOptions;
     private readonly JwtSecurityTokenHandler jwtSecurityTokenHandler = new();
 
@@ -32,7 +31,6 @@ public class GithubController : ControllerBase
         appDbContext = serviceProvider.GetRequiredService<AppDbContext>();
         githubOptions = serviceProvider.GetRequiredService<AppOptions>().Github;
         githubService = serviceProvider.GetRequiredService<GithubService>();
-        passportService = serviceProvider.GetRequiredService<PassportService>();
         jwtBearerOptions = serviceProvider.GetRequiredService<IOptionsMonitor<JwtBearerOptions>>();
     }
 
@@ -68,7 +66,7 @@ public class GithubController : ControllerBase
             return RedirectToError(ReturnCode.UserNameNotExists);
         }
 
-        string state = githubService.GenerateOAuthState(user);
+        string state = githubService.CreateStateForUser(user);
         return Redirect($"https://github.com/login/oauth/authorize?client_id={githubOptions.ClientId}&state={state}");
     }
 

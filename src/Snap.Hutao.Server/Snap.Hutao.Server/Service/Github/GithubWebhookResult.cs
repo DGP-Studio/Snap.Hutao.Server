@@ -13,10 +13,3 @@ public sealed class GithubWebhookResult
 
     public Stream Stream { get; set; } = default!;
 }
-
-[SuppressMessage("", "SA1201")]
-public enum GithubWebhookEvent
-{
-    WorkflowRun,
-    Release,
-}

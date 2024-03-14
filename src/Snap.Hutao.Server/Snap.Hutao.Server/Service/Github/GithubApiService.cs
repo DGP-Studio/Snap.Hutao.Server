@@ -20,7 +20,6 @@ public class GithubApiService
 
     public async ValueTask<GithubUserResponse?> GetUserInfoByAccessTokenAsync(string accessToken)
     {
-        GithubUserResponse? userResponse;
         using (HttpRequestMessage requestMessage = new(HttpMethod.Get, "https://api.github.com/user"))
         {
             requestMessage.Headers.Accept.Add(new("application/vnd.github+json"));
@@ -31,19 +30,12 @@ public class GithubApiService
             {
                 if (!responseMessage.IsSuccessStatusCode)
                 {
-                    return null;
+                    return default;
                 }
 
-                userResponse = await responseMessage.Content.ReadFromJsonAsync<GithubUserResponse>();
-
-                if (userResponse is null)
-                {
-                    return null;
-                }
+                return await responseMessage.Content.ReadFromJsonAsync<GithubUserResponse>();
             }
         }
-
-        return userResponse;
     }
 
     public async ValueTask<GithubAccessTokenResponse?> GetAccessTokenByRefreshTokenAsync(string refreshToken)
@@ -60,7 +52,6 @@ public class GithubApiService
 
     private async ValueTask<GithubAccessTokenResponse?> GetAccessTokenCoreAsync(string query, string token)
     {
-        GithubAccessTokenResponse? accessTokenResponse;
         using (HttpRequestMessage requestMessage = new(HttpMethod.Post, $"https://github.com/login/oauth/access_token?{query}"))
         {
             requestMessage.Headers.Accept.Add(new("application/json"));
@@ -70,18 +61,11 @@ public class GithubApiService
             {
                 if (!responseMessage.IsSuccessStatusCode)
                 {
-                    return null;
+                    return default;
                 }
 
-                accessTokenResponse = await responseMessage.Content.ReadFromJsonAsync<GithubAccessTokenResponse>();
-
-                if (accessTokenResponse is null)
-                {
-                    return null;
-                }
+                return await responseMessage.Content.ReadFromJsonAsync<GithubAccessTokenResponse>();
             }
         }
-
-        return accessTokenResponse;
     }
 }
