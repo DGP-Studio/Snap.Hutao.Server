@@ -34,7 +34,6 @@ public sealed class GachaLogStatisticsService
     private readonly MetadataDbContext metadataDbContext;
     private readonly DiscordService discordService;
     private readonly IMemoryCache memoryCache;
-    private readonly HttpClient httpClient;
 
     public GachaLogStatisticsService(IServiceProvider serviceProvider)
     {
@@ -42,7 +41,6 @@ public sealed class GachaLogStatisticsService
         metadataDbContext = serviceProvider.GetRequiredService<MetadataDbContext>();
         discordService = serviceProvider.GetRequiredService<DiscordService>();
         memoryCache = serviceProvider.GetRequiredService<IMemoryCache>();
-        httpClient = serviceProvider.GetRequiredService<HttpClient>();
     }
 
     public async Task RunAsync()
@@ -59,7 +57,7 @@ public sealed class GachaLogStatisticsService
             GachaEventBundle bundle = await GetCurrentGachaEventAsync();
 
             // If the bundle is not complete, don't run the statistics
-            if (bundle is not { AvatarEvent1: { }, AvatarEvent2: { }, WeaponEvent: { }, Chronicled: { } })
+            if (bundle is not { AvatarEvent1: { }, AvatarEvent2: { }, WeaponEvent: { } })
             {
                 return;
             }
