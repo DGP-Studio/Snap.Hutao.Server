@@ -6,6 +6,7 @@ namespace Snap.Hutao.Server.Service.Legacy;
 public static class SpiralAbyssScheduleId
 {
     private static readonly TimeSpan Utc8 = new(8, 0, 0);
+    private static readonly DateTimeOffset AcrobaticsBattleIntroducedTime = new(2024, 7, 1, 4, 0, 0, Utc8);
 
     public static int GetForNow()
     {
@@ -32,6 +33,12 @@ public static class SpiralAbyssScheduleId
         if (day is 1 && hour < 4)
         {
             periodNum--;
+        }
+
+        if (dateTimeOffset >= AcrobaticsBattleIntroducedTime)
+        {
+            // 当超过 96 期时，每一个月一期
+            periodNum = (4 * 12 * 2) + ((periodNum - (4 * 12 * 2)) / 2);
         }
 
         return periodNum;
