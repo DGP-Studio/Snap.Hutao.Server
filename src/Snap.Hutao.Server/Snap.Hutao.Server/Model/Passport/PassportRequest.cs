@@ -7,11 +7,15 @@ public sealed class PassportRequest
 {
     public string UserName { get; set; } = default!;
 
+    public string NewUserName { get; set; } = default!;
+
     public string Password { get; set; } = default!;
 
     public string VerifyCode { get; set; } = default!;
 
     public bool IsResetPassword { get; set; }
+
+    public bool IsResetUsername { get; set; }
 
     public bool IsCancelRegistration { get; set; }
 }

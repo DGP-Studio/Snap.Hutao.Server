@@ -14,6 +14,7 @@ public static class ServerKeys
     public const string ServerPassportLoginRequired = "ServerPassportLoginRequired";
     public const string ServerPassportLoginSucceed = "ServerPassportLoginSucceed";
     public const string ServerPassportResetPasswordSucceed = "ServerPassportResetPasswordSucceed";
+    public const string ServerPassportResetUserNameSucceed = "ServerPassportResetUserNameSucceed";
     public const string ServerPassportRegisterSucceed = "ServerPassportRegisterSucceed";
     public const string ServerPassportServiceEmailHasNotRegistered = "ServerPassportServiceEmailHasNotRegistered";
     public const string ServerPassportServiceEmailHasRegistered = "ServerPassportServiceEmailHasRegistered";

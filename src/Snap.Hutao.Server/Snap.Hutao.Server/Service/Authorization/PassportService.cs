@@ -63,7 +63,7 @@ public sealed class PassportService
 
     public async Task<PassportResult> ResetPasswordAsync(Passport passport)
     {
-        if (await userManager.FindByNameAsync(passport.UserName).ConfigureAwait(false) is HutaoUser user)
+        if (await userManager.FindByNameAsync(passport.UserName).ConfigureAwait(false) is { } user)
         {
             await userManager.RemovePasswordAsync(user).ConfigureAwait(false);
             await userManager.AddPasswordAsync(user, passport.Password).ConfigureAwait(false);
@@ -76,9 +76,27 @@ public sealed class PassportService
         }
     }
 
+    public async Task<PassportResult> ResetUsernameAsync(Passport passport)
+    {
+        if (await userManager.FindByNameAsync(passport.NewUserName).ConfigureAwait(false) is not null)
+        {
+            return new(false, "邮箱已被注册", ServerKeys.ServerPassportServiceEmailHasRegistered);
+        }
+
+        if (await userManager.FindByNameAsync(passport.UserName).ConfigureAwait(false) is { } user)
+        {
+            await userManager.SetUserNameAsync(user, passport.NewUserName).ConfigureAwait(false);
+            return new(true, "邮箱修改成功", ServerKeys.ServerPassportResetUserNameSucceed, CreateToken(user));
+        }
+        else
+        {
+            return new(false, "该邮箱尚未注册", ServerKeys.ServerPassportServiceEmailHasNotRegistered);
+        }
+    }
+
     public async Task<PassportResult> LoginAsync(Passport passport)
     {
-        if (await userManager.FindByNameAsync(passport.UserName).ConfigureAwait(false) is HutaoUser user)
+        if (await userManager.FindByNameAsync(passport.UserName).ConfigureAwait(false) is { } user)
         {
             if (await userManager.CheckPasswordAsync(user, passport.Password).ConfigureAwait(false))
             {
@@ -91,7 +109,7 @@ public sealed class PassportService
 
     public async Task<PassportResult> CancelAsync(Passport passport)
     {
-        if (await userManager.FindByNameAsync(passport.UserName).ConfigureAwait(false) is HutaoUser user)
+        if (await userManager.FindByNameAsync(passport.UserName).ConfigureAwait(false) is { } user)
         {
             if (await userManager.CheckPasswordAsync(user, passport.Password).ConfigureAwait(false))
             {
@@ -108,10 +126,7 @@ public sealed class PassportService
         JwtSecurityTokenHandler handler = new();
         SecurityTokenDescriptor descriptor = new()
         {
-            Subject = new(new Claim[]
-            {
-                new(PassportClaimTypes.UserId, userId.ToString()),
-            }),
+            Subject = new([new(PassportClaimTypes.UserId, userId.ToString())]),
             Expires = DateTime.UtcNow.AddHours(3),
             Issuer = "homa.snapgenshin.com",
             SigningCredentials = new(jwtSigningKey, SecurityAlgorithms.HmacSha256Signature),

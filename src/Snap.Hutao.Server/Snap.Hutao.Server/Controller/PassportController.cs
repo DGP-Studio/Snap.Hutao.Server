@@ -150,6 +150,29 @@ public class PassportController : ControllerBase
             : Model.Response.Response.Fail(ReturnCode.RegisterFail, result.Message, result.LocalizationKey!);
     }
 
+    [HttpPost("ResetUsername")]
+    public async Task<IActionResult> ResetUsernameAsync([FromBody] PassportRequest request)
+    {
+        string normalizedUserName = passportService.DecryptNormalizedUserNameAndVerifyCode(request, out string userName, out string code);
+
+        if (!passportVerificationService.TryValidateVerifyCode(normalizedUserName, code))
+        {
+            return Model.Response.Response.Fail(ReturnCode.RegisterFail, "验证失败", ServerKeys.ServerPassportVerifyFailed);
+        }
+
+        Passport passport = new()
+        {
+            UserName = userName,
+            NewUserName = passportService.Decrypt(request.NewUserName),
+        };
+
+        PassportResult result = await passportService.ResetPasswordAsync(passport).ConfigureAwait(false);
+
+        return result.Success
+            ? Response<string>.Success(result.Message, result.LocalizationKey!, result.Token)
+            : Model.Response.Response.Fail(ReturnCode.RegisterFail, result.Message, result.LocalizationKey!);
+    }
+
     [HttpPost("Login")]
     public async Task<IActionResult> LoginAsync([FromBody] PassportRequest request)
     {
