@@ -49,6 +49,13 @@ public class PassportController : ControllerBase
             return Model.Response.Response.Success("请求验证码成功", ServerKeys.ServerPassportVerifyRequestSuccess);
         }
 
+        // 重置用户名
+        if (request.IsResetUsername)
+        {
+            await mailService.SendResetUsernameVerifyCodeAsync(userName, code).ConfigureAwait(false);
+            return Model.Response.Response.Success("请求验证码成功", ServerKeys.ServerPassportVerifyRequestSuccess);
+        }
+
         // 注销账号
         if (request.IsCancelRegistration)
         {

@@ -86,6 +86,39 @@ public sealed class MailService
         return SendMailAsync(options);
     }
 
+    public Task SendResetUsernameVerifyCodeAsync(string emailAddress, string code, string language = "CHS")
+    {
+        logger.LogInformation("Send ResetPassword Mail to [{Email}] with [{Code}]", emailAddress, code);
+        MailOptions options = new()
+        {
+            Subject = language == "CHS"
+                ? "Snap Hutao 通行证安全"
+                : "Snap Hutao Passport Security",
+            Address = emailAddress,
+            Title = language == "CHS"
+                ? "您正在修改 Snap Hutao 通行证邮箱"
+                : "You are changing your Snap Hutao passport email",
+            RawContent = language == "CHS"
+                ? $"""
+                <p>以下是您修改邮箱所需的验证码：</p>
+                <span class="mail-code">{code}</span>
+                <p>该验证码将于15分钟后过期。</p>
+                <p>如果您没有修改邮箱，请忽略此邮件，不会有任何事情发生。</p>
+                """
+                : $"""
+                <p>The following is the verification code you need to change your email:</p>
+                <span class="mail-code">{code}</span>
+                <p>This code will expire in 15 minutes.</p>
+                <p>If you are not trying to change your email, please ignore this emai, nothing will happen.</p>
+                """,
+            Footer = language == "CHS"
+                ? "该邮件由 DGP Studio 系统自动生成，请勿回复"
+                : "This email is automatically sent by the DGP Studio system, please do not reply",
+        };
+
+        return SendMailAsync(options);
+    }
+
     public Task SendCancelRegistrationVerifyCodeAsync(string emailAddress, string code, string language = "CHS")
     {
         logger.LogInformation("Send CancelRegistration Mail to [{Email}] with [{Code}]", emailAddress, code);
