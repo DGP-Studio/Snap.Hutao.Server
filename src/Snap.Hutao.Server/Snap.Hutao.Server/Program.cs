@@ -82,7 +82,7 @@ public static class Program
             {
                 config.ScheduleJob<GachaLogStatisticsRefreshJob>(t => t.StartNow().WithCronSchedule("0 30 */1 * * ?"));
                 config.ScheduleJob<LegacyStatisticsRefreshJob>(t => t.StartNow().WithCronSchedule("0 5 */1 * * ?"));
-                config.ScheduleJob<SpiralAbyssRecordCleanJob>(t => t.StartNow().WithCronSchedule("0 0 4 1,16 * ?"));
+                config.ScheduleJob<SpiralAbyssRecordCleanJob>(t => t.StartNow().WithCronSchedule("0 0 4 16 * ?"));
             })
             .AddQuartzServer(options => options.WaitForJobsToComplete = true)
             .AddResponseCompression()

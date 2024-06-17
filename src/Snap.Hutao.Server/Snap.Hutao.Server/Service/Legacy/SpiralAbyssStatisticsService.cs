@@ -21,12 +21,18 @@ public sealed class SpiralAbyssStatisticsService
     public T? GetStatistics<T>(string name)
         where T : class
     {
-        if (memoryCache.TryGetValue(name, out object? data))
+        return GetStatistics<T>(name, SpiralAbyssScheduleId.GetForNow());
+    }
+
+    public T? GetStatistics<T>(string name, int scheduleId)
+        where T : class
+    {
+        string key = $"{name}:{scheduleId}";
+        if (memoryCache.TryGetValue(key, out object? data))
         {
             return (T)data!;
         }
 
-        int scheduleId = SpiralAbyssScheduleId.GetForNow();
         LegacyStatistics? statistics = appDbContext.Statistics
             .Where(s => s.ScheduleId == scheduleId)
             .SingleOrDefault(s => s.Name == name);
@@ -36,17 +42,17 @@ public sealed class SpiralAbyssStatisticsService
             return null;
         }
 
-        T? tdata = JsonSerializer.Deserialize<T>(statistics.Data);
-        memoryCache.Set(name, tdata);
+        T? typedData = JsonSerializer.Deserialize<T>(statistics.Data);
+        memoryCache.Set(key, typedData);
 
-        return tdata;
+        return typedData;
     }
 
     public void SaveStatistics<T>(int scheduleId, string name, T data)
     {
         LegacyStatistics? statistics = appDbContext.Statistics
-                .Where(s => s.ScheduleId == scheduleId)
-                .SingleOrDefault(s => s.Name == name);
+            .Where(s => s.ScheduleId == scheduleId)
+            .SingleOrDefault(s => s.Name == name);
 
         if (statistics == null)
         {

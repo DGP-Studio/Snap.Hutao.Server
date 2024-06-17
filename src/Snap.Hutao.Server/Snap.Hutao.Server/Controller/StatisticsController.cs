@@ -23,50 +23,56 @@ public class StatisticsController : ControllerBase
     }
 
     [HttpGet("Overview")]
-    public IActionResult Overview()
+    public IActionResult Overview([FromQuery(Name = "Last")] bool last = false)
     {
-        return GetStatistics<Overview>(LegacyStatistics.Overview);
+        return GetStatistics<Overview>(LegacyStatistics.Overview, last);
     }
 
     [HttpGet("Avatar/AttendanceRate")]
-    public IActionResult AttendanceRate()
+    public IActionResult AttendanceRate([FromQuery(Name = "Last")] bool last = false)
     {
-        return GetStatistics<List<AvatarAppearanceRank>>(LegacyStatistics.AvatarAppearanceRank);
+        return GetStatistics<List<AvatarAppearanceRank>>(LegacyStatistics.AvatarAppearanceRank, last);
     }
 
     [HttpGet("Avatar/UtilizationRate")]
-    public IActionResult UtilizationRate()
+    public IActionResult UtilizationRate([FromQuery(Name = "Last")] bool last = false)
     {
-        return GetStatistics<List<AvatarUsageRank>>(LegacyStatistics.AvatarUsageRank);
+        return GetStatistics<List<AvatarUsageRank>>(LegacyStatistics.AvatarUsageRank, last);
     }
 
     [HttpGet("Avatar/HoldingRate")]
-    public IActionResult HoldingRate()
+    public IActionResult HoldingRate([FromQuery(Name = "Last")] bool last = false)
     {
-        return GetStatistics<List<AvatarConstellationInfo>>(LegacyStatistics.AvatarConstellationInfo);
+        return GetStatistics<List<AvatarConstellationInfo>>(LegacyStatistics.AvatarConstellationInfo, last);
     }
 
     [HttpGet("Avatar/AvatarCollocation")]
-    public IActionResult AvatarCollocation()
+    public IActionResult AvatarCollocation([FromQuery(Name = "Last")] bool last = false)
     {
-        return GetStatistics<List<AvatarCollocation>>(LegacyStatistics.AvatarCollocation);
+        return GetStatistics<List<AvatarCollocation>>(LegacyStatistics.AvatarCollocation, last);
     }
 
     [HttpGet("Weapon/WeaponCollocation")]
-    public IActionResult WeaponCollocation()
+    public IActionResult WeaponCollocation([FromQuery(Name = "Last")] bool last = false)
     {
-        return GetStatistics<List<WeaponCollocation>>(LegacyStatistics.WeaponCollocation);
+        return GetStatistics<List<WeaponCollocation>>(LegacyStatistics.WeaponCollocation, last);
     }
 
     [HttpGet("Team/Combination")]
-    public IActionResult Combination()
+    public IActionResult Combination([FromQuery(Name = "Last")] bool last = false)
     {
-        return GetStatistics<List<TeamAppearance>>(LegacyStatistics.TeamAppearance);
+        return GetStatistics<List<TeamAppearance>>(LegacyStatistics.TeamAppearance, last);
     }
 
-    private IActionResult GetStatistics<T>(string name)
+    private IActionResult GetStatistics<T>(string name, bool last)
         where T : class
     {
-        return Response<T>.Success("获取深渊统计数据成功", spiralAbyssStatisticsService.GetStatistics<T>(name)!);
+        int scheduleId = SpiralAbyssScheduleId.GetForNow();
+        if (last)
+        {
+            scheduleId--;
+        }
+
+        return Response<T>.Success("获取深渊统计数据成功", spiralAbyssStatisticsService.GetStatistics<T>(name, scheduleId)!);
     }
 }
