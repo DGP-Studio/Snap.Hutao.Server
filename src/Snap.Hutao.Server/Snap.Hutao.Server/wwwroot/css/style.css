@@ -1,92 +1,117 @@
 #swagger-ui {
-  background-color: #22272e !important;
-  color: #adbac7 !important;
-  min-height: 100vh;
+    background-color: #22272e !important;
+    color: #adbac7 !important;
+    min-height: 100vh;
 }
-#swagger-ui > section > div.topbar {
-  background-color: #22272e;
-  border-bottom: 1px solid #444c56;
-}
-#swagger-ui > section > div.topbar > div > div > form > label > span {
-  color: #adbac7;
-}
-#swagger-ui select,
-#swagger-ui input {
-  color: #adbac7;
-  border-color: #444c56;
-  background: transparent !important;
-}
-#swagger-ui select:focus,
-#swagger-ui input:focus {
-  border-color: #539bf5;
-}
-#swagger-ui select[disabled],
-#swagger-ui input[disabled] {
-  color: #768390;
-}
-#swagger-ui small.version-stamp {
-  background-color: #539bf5;
-}
-#swagger-ui .title,
-#swagger-ui h1,
-#swagger-ui h2,
-#swagger-ui h3,
-#swagger-ui h4,
-#swagger-ui h5,
-#swagger-ui h6,
-#swagger-ui .lodding::after {
-  color: #adbac7;
-}
-#swagger-ui div,
-#swagger-ui p,
-#swagger-ui th,
-#swagger-ui td,
-#swagger-ui button {
-  color: #adbac7;
-}
-#swagger-ui section.models h4:hover,
-#swagger-ui .opblock-tag:hover {
-  background-color: #30353d;
-}
-#swagger-ui a.nostyle {
-  color: #adbac7;
-}
-#swagger-ui .model-title {
-  color: #adbac7;
-}
-#swagger-ui .description {
-  color: #768390;
-}
-#swagger-ui .property-row {
-  color: #adbac7;
-}
-#swagger-ui .opblock-tag {
-  border-bottom: 1px solid #444c56 !important;
-}
-#swagger-ui section.models {
-  border: 1px solid #444c56 !important;
-}
-#swagger-ui .model-toggle:after {
-  background: transparent;
-}
-#swagger-ui .opblock-section-header {
-  background-color: #22272e !important;
-}
-#swagger-ui .btn {
-  color: #adbac7;
-}
-#swagger-ui pre.microlight,
-#swagger-ui textarea {
-  background-color: #2d333b !important;
-  border: 1px solid #444c56;
-  color: #adbac7;
-}
-#swagger-ui svg {
-  fill: #adbac7;
-}
-#swagger-ui * :focus {
-  outline: 2px solid #539bf5 !important;
-  border-radius: 0.2rem;
-}
+
+    #swagger-ui > section > div.topbar {
+        background-color: #22272e;
+        border-bottom: 1px solid #444c56;
+    }
+
+        #swagger-ui > section > div.topbar > div > div > form > label > span {
+            color: #adbac7;
+        }
+
+    #swagger-ui select,
+    #swagger-ui input {
+        color: #adbac7;
+        border-color: #444c56;
+        background: transparent !important;
+    }
+
+        #swagger-ui select:focus,
+        #swagger-ui input:focus {
+            border-color: #539bf5;
+        }
+
+        #swagger-ui select[disabled],
+        #swagger-ui input[disabled] {
+            color: #768390;
+        }
+
+    #swagger-ui small.version-stamp {
+        background-color: #539bf5;
+    }
+
+    #swagger-ui .title,
+    #swagger-ui h1,
+    #swagger-ui h2,
+    #swagger-ui h3,
+    #swagger-ui h4,
+    #swagger-ui h5,
+    #swagger-ui h6,
+    #swagger-ui .lodding::after {
+        color: #adbac7;
+    }
+
+    #swagger-ui div,
+    #swagger-ui p,
+    #swagger-ui th,
+    #swagger-ui td,
+    #swagger-ui button {
+        color: #adbac7;
+    }
+
+    #swagger-ui section.models h4:hover,
+    #swagger-ui .opblock-tag:hover {
+        background-color: #30353d;
+    }
+
+    #swagger-ui a.nostyle {
+        color: #adbac7;
+    }
+
+    #swagger-ui .model-title {
+        color: #adbac7;
+    }
+
+    #swagger-ui .description {
+        color: #768390;
+    }
+
+    #swagger-ui .property-row {
+        color: #adbac7;
+    }
+
+    #swagger-ui .opblock-tag {
+        border-bottom: 1px solid #444c56 !important;
+    }
+
+    #swagger-ui section.models {
+        border: 1px solid #444c56 !important;
+    }
+
+    #swagger-ui .model-toggle:after {
+        background: transparent;
+    }
+
+    #swagger-ui .opblock-section-header {
+        background-color: #22272e !important;
+    }
+
+    #swagger-ui .opblock-summary-path-description-wrapper {
+        width: 100%;
+    }
+
+    #swagger-ui .btn {
+        color: #adbac7;
+    }
+
+    #swagger-ui pre.microlight,
+    #swagger-ui textarea {
+        background-color: #2d333b !important;
+        border: 1px solid #444c56;
+        color: #adbac7;
+    }
+
+    #swagger-ui svg {
+        fill: #adbac7;
+    }
+
+    #swagger-ui * :focus {
+        outline: 2px solid #539bf5 !important;
+        border-radius: 0.2rem;
+    }
 
 /*# sourceMappingURL=style.css.map */
