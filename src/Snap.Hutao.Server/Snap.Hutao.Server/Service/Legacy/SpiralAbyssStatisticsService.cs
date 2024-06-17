@@ -43,7 +43,7 @@ public sealed class SpiralAbyssStatisticsService
         }
 
         T? typedData = JsonSerializer.Deserialize<T>(statistics.Data);
-        memoryCache.Set(key, typedData);
+        memoryCache.Set(key, typedData, TimeSpan.FromDays(1));
 
         return typedData;
     }
@@ -60,7 +60,7 @@ public sealed class SpiralAbyssStatisticsService
             appDbContext.Statistics.Add(statistics);
         }
 
-        memoryCache.Set(name, data);
+        memoryCache.Set($"{name}:{scheduleId}", data, TimeSpan.FromDays(1));
         statistics.Data = JsonSerializer.Serialize(data);
 
         appDbContext.SaveChanges();
