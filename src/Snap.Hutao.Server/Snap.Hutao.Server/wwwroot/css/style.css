@@ -90,10 +90,6 @@
         background-color: #22272e !important;
     }
 
-    #swagger-ui .opblock-summary-path-description-wrapper {
-        width: 100%;
-    }
-
     #swagger-ui .btn {
         color: #adbac7;
     }
@@ -113,5 +109,9 @@
         outline: 2px solid #539bf5 !important;
         border-radius: 0.2rem;
     }
+
+.opblock-summary-path-description-wrapper {
+    width: 100%;
+}
 
 /*# sourceMappingURL=style.css.map */
