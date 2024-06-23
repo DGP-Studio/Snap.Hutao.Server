@@ -1,6 +1,8 @@
 // Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
+using MailKit.Net.Smtp;
+using MimeKit;
 using Snap.Hutao.Server.Option;
 
 namespace Snap.Hutao.Server.Service;
@@ -340,7 +342,12 @@ public sealed class MailService
             """;
     }
 
-    private async Task SendMailAsync(MailOptions options)
+    private Task SendMailAsync(MailOptions options)
+    {
+        return SendMimeMailAsync(options);
+    }
+
+    private async Task SendHttpMailAsync(MailOptions options)
     {
         using (HttpClient httpClient = httpClientFactory.CreateClient())
         {
@@ -354,6 +361,34 @@ public sealed class MailService
 
             httpClient.DefaultRequestHeaders.Authorization = new("SECRET", mailerSecret);
             await httpClient.PostAsJsonAsync("https://mailer.snapgenshin.cn/api/sendEmail", data).ConfigureAwait(false);
+        }
+    }
+
+    private async Task SendMimeMailAsync(MailOptions options)
+    {
+        MimeMessage mimeMessage = new()
+        {
+            Subject = options.Subject,
+            From =
+            {
+                new MailboxAddress("DGP Studio", smtpOptions.UserName),
+            },
+            To =
+            {
+                new MailboxAddress(options.Address, options.Address),
+            },
+            Body = new TextPart("html")
+            {
+                Text = ComposeMailBody(options),
+            },
+        };
+
+        using (SmtpClient client = new())
+        {
+            await client.ConnectAsync(smtpOptions.Server).ConfigureAwait(false);
+            await client.AuthenticateAsync(smtpOptions.UserName, smtpOptions.Password).ConfigureAwait(false);
+            await client.SendAsync(mimeMessage).ConfigureAwait(false);
+            await client.DisconnectAsync(true).ConfigureAwait(false);
         }
     }
 
