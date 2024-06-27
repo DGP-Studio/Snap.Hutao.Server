@@ -111,7 +111,7 @@ public class PassportController : ControllerBase
     {
         string normalizedUserName = passportService.DecryptNormalizedUserNameAndVerifyCode(request, out string userName, out string code);
 
-        if (passportVerificationService.TryValidateVerifyCode(normalizedUserName, code))
+        if (!passportVerificationService.TryValidateVerifyCode(normalizedUserName, code))
         {
             return Model.Response.Response.Fail(ReturnCode.RegisterFail, "验证失败", ServerKeys.ServerPassportVerifyFailed);
         }
