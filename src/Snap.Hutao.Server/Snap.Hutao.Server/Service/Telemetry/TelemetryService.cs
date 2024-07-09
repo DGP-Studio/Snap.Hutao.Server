@@ -74,7 +74,13 @@ public sealed class TelemetryService
             .ToListAsync()
             .ConfigureAwait(false);
 
-        List<HutaoLog> logs = items.SelectList(item => appDbContext.HutaoLogs.AsNoTracking().Single(x => x.PrimaryId == item.LogId));
+        List<HutaoLog> logs = items.SelectList(item =>
+        {
+            HutaoLog log = appDbContext.HutaoLogs.AsNoTracking().Single(x => x.PrimaryId == item.LogId);
+            log.Time = item.Time;
+            return log;
+        });
+
         return logs;
     }
 }
