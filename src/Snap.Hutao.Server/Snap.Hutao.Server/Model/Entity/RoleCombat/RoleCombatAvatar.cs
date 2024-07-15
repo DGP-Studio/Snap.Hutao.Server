@@ -18,25 +18,3 @@ public sealed class RoleCombatAvatar
 
     public uint AvatarId { get; set; }
 }
-
-[Table("role_combat_statistics")]
-public class RoleCombatStatistics
-{
-    public const string RoleCombatStatistics = "RoleCombatStatistics";
-
-    [Key]
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public long PrimaryId { get; set; }
-
-    public string Name { get; set; } = default!;
-
-    public string Data { get; set; } = default!;
-
-    public static GachaStatistics CreateWithName(string name)
-    {
-        return new()
-        {
-            Name = name,
-        };
-    }
-}

@@ -205,7 +205,7 @@ public sealed class RecordService
         (bool haveUploaded, bool recordExists) = await HaveUploadedForCurrentScheduleAsync(record.Uid).ConfigureAwait(false);
         RecordUploadResult result = await GetNonErrorRecordUploadResultAsync(record, haveUploaded).ConfigureAwait(false);
 
-        using (IDbContextTransaction transaction = await appDbContext.Database.BeginTransactionAsync())
+        using (IDbContextTransaction transaction = await appDbContext.Database.BeginTransactionAsync().ConfigureAwait(false))
         {
             if (recordExists)
             {
