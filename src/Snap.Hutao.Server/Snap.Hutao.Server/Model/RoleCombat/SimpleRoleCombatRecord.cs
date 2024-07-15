@@ -14,7 +14,7 @@ public sealed class SimpleRoleCombatRecord
 
     public List<uint> BackupAvatars { get; set; } = default!;
 
-    public uint MedalCount { get; set; }
+    public int ScheduleId { get; set; }
     #endregion
 
     public bool Validate()

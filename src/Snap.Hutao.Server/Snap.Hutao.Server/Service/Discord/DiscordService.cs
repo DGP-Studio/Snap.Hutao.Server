@@ -92,7 +92,7 @@ public sealed class DiscordService
         await hutaoServerBot.SendMessageAsync(discordOptions.KnownChannels.PublicStatus, new LocalMessage().WithEmbeds(embed));
     }
 
-    public async ValueTask ReportRoleCombatStatisticsAsync(RoleCombatStatistics statistics)
+    public async ValueTask ReportRoleCombatStatisticsAsync(RoleCombatStatisticsItem statistics)
     {
         LocalEmbed embed = Embed.CreateStandardEmbed("Role Combat Statistics", Embed.GachaLogIcon);
 
