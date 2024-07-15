@@ -11,6 +11,7 @@ using Snap.Hutao.Server.Model.Entity.Passport;
 using Snap.Hutao.Server.Model.Entity.RoleCombat;
 using Snap.Hutao.Server.Model.Entity.SpiralAbyss;
 using Snap.Hutao.Server.Model.Entity.Telemetry;
+using Snap.Hutao.Server.Model.RoleCombat;
 
 namespace Snap.Hutao.Server.Model.Context;
 
@@ -77,6 +78,8 @@ public sealed class AppDbContext : IdentityDbContext<HutaoUser, IdentityRole<int
     public DbSet<RoleCombatRecord> RoleCombatRecords { get; set; } = default!;
 
     public DbSet<RoleCombatAvatar> RoleCombatAvatars { get; set; } = default!;
+
+    public DbSet<RoleCombatStatistics> RoleCombatStatistics { get; set; } = default!;
     #endregion
 
     /// <inheritdoc/>
