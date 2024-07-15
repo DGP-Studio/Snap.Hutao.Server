@@ -7,6 +7,7 @@ using Snap.Hutao.Server.Discord;
 using Snap.Hutao.Server.Job;
 using Snap.Hutao.Server.Model.GachaLog;
 using Snap.Hutao.Server.Model.Legacy;
+using Snap.Hutao.Server.Model.RoleCombat;
 using Snap.Hutao.Server.Option;
 using Snap.Hutao.Server.Service.Afdian;
 using Snap.Hutao.Server.Service.Github;
@@ -87,6 +88,17 @@ public sealed class DiscordService
         embed.AddField("SpiralAbyss Star Average", overview.SpiralAbyssStarTotal / (double)overview.SpiralAbyssTotal, true);
         embed.AddField("SpiralAbyss Battle Average", overview.SpiralAbyssBattleTotal / (double)overview.SpiralAbyssTotal, true);
         embed.AddField("Calc Time per Record", overview.TimeAverage, true);
+
+        await hutaoServerBot.SendMessageAsync(discordOptions.KnownChannels.PublicStatus, new LocalMessage().WithEmbeds(embed));
+    }
+
+    public async ValueTask ReportRoleCombatStatisticsAsync(RoleCombatStatistics statistics)
+    {
+        LocalEmbed embed = Embed.CreateStandardEmbed("Role Combat Statistics", Embed.GachaLogIcon);
+
+        embed.WithDescription("Statistics run completed");
+
+        embed.AddField("Record Total", statistics.RecordTotal, true);
 
         await hutaoServerBot.SendMessageAsync(discordOptions.KnownChannels.PublicStatus, new LocalMessage().WithEmbeds(embed));
     }
