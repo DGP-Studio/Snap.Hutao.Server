@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Snap.Hutao.Server.Model.Context;
 
@@ -10,9 +11,11 @@ using Snap.Hutao.Server.Model.Context;
 namespace Snap.Hutao.Server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240204015114_SupportAsiaLength10Uid")]
+    partial class SupportAsiaLength10Uid
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -327,33 +330,6 @@ namespace Snap.Hutao.Server.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("license_application_records");
-                });
-
-            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.Passport.GithubIdentity", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("ExipresAt")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("NodeId")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("RefreshToken")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("GithubIdentities");
                 });
 
             modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.Passport.HutaoUser", b =>
@@ -802,17 +778,6 @@ namespace Snap.Hutao.Server.Migrations
                 });
 
             modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.LicenseApplicationRecord", b =>
-                {
-                    b.HasOne("Snap.Hutao.Server.Model.Entity.Passport.HutaoUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.Passport.GithubIdentity", b =>
                 {
                     b.HasOne("Snap.Hutao.Server.Model.Entity.Passport.HutaoUser", "User")
                         .WithMany()

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Snap.Hutao.Server.Model.Context;
 
@@ -10,13 +11,15 @@ using Snap.Hutao.Server.Model.Context;
 namespace Snap.Hutao.Server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231202151335_Net8BatchUpdate")]
+    partial class Net8BatchUpdate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.1")
+                .HasAnnotation("ProductVersion", "8.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<int>", b =>
@@ -241,8 +244,8 @@ namespace Snap.Hutao.Server.Migrations
             modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.GachaLog.EntityGachaItem", b =>
                 {
                     b.Property<string>("Uid")
-                        .HasMaxLength(10)
-                        .HasColumnType("varchar(10)");
+                        .HasMaxLength(9)
+                        .HasColumnType("varchar(9)");
 
                     b.Property<long>("Id")
                         .HasColumnType("bigint");
@@ -294,8 +297,8 @@ namespace Snap.Hutao.Server.Migrations
             modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.GachaLog.InvalidGachaUid", b =>
                 {
                     b.Property<string>("Uid")
-                        .HasMaxLength(10)
-                        .HasColumnType("varchar(10)");
+                        .HasMaxLength(9)
+                        .HasColumnType("varchar(9)");
 
                     b.HasKey("Uid");
 
@@ -327,33 +330,6 @@ namespace Snap.Hutao.Server.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("license_application_records");
-                });
-
-            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.Passport.GithubIdentity", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("ExipresAt")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("NodeId")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("RefreshToken")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("GithubIdentities");
                 });
 
             modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.Passport.HutaoUser", b =>
@@ -438,9 +414,6 @@ namespace Snap.Hutao.Server.Migrations
                     b.Property<long>("ExpireTimestamp")
                         .HasColumnType("bigint");
 
-                    b.Property<long>("GeneratedTimestamp")
-                        .HasColumnType("bigint");
-
                     b.Property<string>("VerifyCode")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -475,8 +448,8 @@ namespace Snap.Hutao.Server.Migrations
             modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.SpiralAbyss.Banned", b =>
                 {
                     b.Property<string>("Uid")
-                        .HasMaxLength(10)
-                        .HasColumnType("varchar(10)");
+                        .HasMaxLength(9)
+                        .HasColumnType("varchar(9)");
 
                     b.HasKey("Uid");
 
@@ -527,8 +500,8 @@ namespace Snap.Hutao.Server.Migrations
 
                     b.Property<string>("Uid")
                         .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("varchar(10)");
+                        .HasMaxLength(9)
+                        .HasColumnType("varchar(9)");
 
                     b.Property<int>("Value")
                         .HasColumnType("int");
@@ -577,8 +550,8 @@ namespace Snap.Hutao.Server.Migrations
 
                     b.Property<string>("Uid")
                         .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("varchar(10)");
+                        .HasMaxLength(9)
+                        .HasColumnType("varchar(9)");
 
                     b.Property<long>("UploadTime")
                         .HasColumnType("bigint");
@@ -630,8 +603,8 @@ namespace Snap.Hutao.Server.Migrations
 
                     b.Property<string>("Uid")
                         .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("varchar(10)");
+                        .HasMaxLength(9)
+                        .HasColumnType("varchar(9)");
 
                     b.Property<int>("Value")
                         .HasColumnType("int");
@@ -802,17 +775,6 @@ namespace Snap.Hutao.Server.Migrations
                 });
 
             modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.LicenseApplicationRecord", b =>
-                {
-                    b.HasOne("Snap.Hutao.Server.Model.Entity.Passport.HutaoUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.Passport.GithubIdentity", b =>
                 {
                     b.HasOne("Snap.Hutao.Server.Model.Entity.Passport.HutaoUser", "User")
                         .WithMany()
