@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Snap.Hutao.Server.Model.Context;
@@ -11,22 +12,26 @@ using Snap.Hutao.Server.Model.Context;
 namespace Snap.Hutao.Server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20240204085735_GithubAuthorizationSupport")]
-    partial class GithubAuthorizationSupport
+    [Migration("20240805025504_ReBuildModels")]
+    partial class ReBuildModels
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.1")
+                .HasAnnotation("ProductVersion", "8.0.7")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
+
+            MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<int>", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -55,6 +60,8 @@ namespace Snap.Hutao.Server.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
                     b.Property<string>("ClaimType")
                         .HasColumnType("longtext");
 
@@ -76,6 +83,8 @@ namespace Snap.Hutao.Server.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ClaimType")
                         .HasColumnType("longtext");
@@ -154,6 +163,8 @@ namespace Snap.Hutao.Server.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int unsigned");
 
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<uint>("Id"));
+
                     b.Property<long>("ArchiveId")
                         .HasColumnType("bigint");
 
@@ -178,6 +189,8 @@ namespace Snap.Hutao.Server.Migrations
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -208,6 +221,8 @@ namespace Snap.Hutao.Server.Migrations
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<string>("Locale")
                         .HasColumnType("varchar(255)");
@@ -281,6 +296,8 @@ namespace Snap.Hutao.Server.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("PrimaryId"));
+
                     b.Property<string>("Data")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -311,6 +328,8 @@ namespace Snap.Hutao.Server.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("PrimaryId"));
+
                     b.Property<string>("ApprovalCode")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -338,6 +357,8 @@ namespace Snap.Hutao.Server.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("Id"));
+
                     b.Property<long>("ExipresAt")
                         .HasColumnType("bigint");
 
@@ -364,6 +385,8 @@ namespace Snap.Hutao.Server.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
@@ -459,6 +482,8 @@ namespace Snap.Hutao.Server.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("PrimaryId"));
+
                     b.Property<long>("Count")
                         .HasColumnType("bigint");
 
@@ -492,6 +517,8 @@ namespace Snap.Hutao.Server.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("PrimaryId"));
+
                     b.Property<int>("ActivedConstellationNumber")
                         .HasColumnType("int");
 
@@ -521,6 +548,8 @@ namespace Snap.Hutao.Server.Migrations
                     b.Property<long>("PrimaryId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("PrimaryId"));
 
                     b.Property<int>("AvatarId")
                         .HasColumnType("int");
@@ -552,6 +581,8 @@ namespace Snap.Hutao.Server.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("PrimaryId"));
+
                     b.Property<int>("Index")
                         .HasColumnType("int");
 
@@ -578,6 +609,8 @@ namespace Snap.Hutao.Server.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("PrimaryId"));
+
                     b.Property<string>("Uid")
                         .IsRequired()
                         .HasMaxLength(10)
@@ -602,6 +635,8 @@ namespace Snap.Hutao.Server.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("PrimaryId"));
+
                     b.Property<long>("RecordId")
                         .HasColumnType("bigint");
 
@@ -624,6 +659,8 @@ namespace Snap.Hutao.Server.Migrations
                     b.Property<long>("PrimaryId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("PrimaryId"));
 
                     b.Property<int>("AvatarId")
                         .HasColumnType("int");
@@ -655,6 +692,8 @@ namespace Snap.Hutao.Server.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("PrimaryId"));
+
                     b.Property<string>("Data")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -676,6 +715,8 @@ namespace Snap.Hutao.Server.Migrations
                     b.Property<long>("PrimaryId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("PrimaryId"));
 
                     b.Property<int>("Count")
                         .HasColumnType("int");
@@ -701,6 +742,8 @@ namespace Snap.Hutao.Server.Migrations
                     b.Property<long>("PrimaryId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("PrimaryId"));
 
                     b.Property<string>("DeviceId")
                         .IsRequired()
