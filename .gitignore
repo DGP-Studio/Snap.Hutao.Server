@@ -364,4 +364,5 @@ FodyWeavers.xsd
 
 # Sensive Configurations
 src/Snap.Hutao.Server/Snap.Hutao.Server/appsettings.json
+src/Snap.Hutao.Server/Snap.Hutao.Server/application-commands
 src/Snap.Hutao.Server/.idea
