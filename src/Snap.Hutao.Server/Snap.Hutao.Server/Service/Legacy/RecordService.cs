@@ -25,6 +25,7 @@ public sealed class RecordService
     private readonly IRankService rankService;
     private readonly ExpireService expireService;
     private readonly PizzaHelperRecordService pizzaHelperRecordService;
+    private readonly ILogger<RecordService> logger;
 
     public RecordService(IServiceProvider serviceProvider)
     {
@@ -33,6 +34,7 @@ public sealed class RecordService
         rankService = serviceProvider.GetRequiredService<IRankService>();
         expireService = serviceProvider.GetRequiredService<ExpireService>();
         pizzaHelperRecordService = serviceProvider.GetRequiredService<PizzaHelperRecordService>();
+        logger = serviceProvider.GetRequiredService<ILogger<RecordService>>();
     }
 
     public async ValueTask<RecordUploadResult> ProcessUploadAsync(SimpleRecord record)
@@ -77,9 +79,10 @@ public sealed class RecordService
         {
             await pizzaHelperRecordService.TryPostRecordAsync(record).ConfigureAwait(false);
         }
-        catch
+        catch (Exception ex)
         {
             // Any exception will be ignored.
+            logger.LogInformation("Exception ignored when upload to PizzaHelper: \n{Ex}", ex);
         }
 
         if (!UploadingUids.TryRemove(record.Uid, out _))
