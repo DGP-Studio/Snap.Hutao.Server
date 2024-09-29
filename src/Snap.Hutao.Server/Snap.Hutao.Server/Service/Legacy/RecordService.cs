@@ -200,13 +200,24 @@ public sealed class RecordService
     private async Task<RecordUploadResult> SaveRecordAsync(SimpleRecord record)
     {
         (bool haveUploaded, bool recordExists) = await HaveUploadedForCurrentScheduleAsync(record.Uid).ConfigureAwait(false);
-        RecordUploadResult result = await GetNonErrorRecordUploadResult(record, haveUploaded).ConfigureAwait(false);
+        RecordUploadResult result = await GetNonErrorRecordUploadResultAsync(record, haveUploaded).ConfigureAwait(false);
 
         using (IDbContextTransaction transaction = await appDbContext.Database.BeginTransactionAsync())
         {
             if (recordExists)
             {
-                await appDbContext.Records.AsNoTracking().Where(r => r.Uid == record.Uid).ExecuteDeleteAsync().ConfigureAwait(false);
+                long existRecordId = appDbContext.Records.Where(r => r.Uid == record.Uid).Select(r => r.PrimaryId).Single();
+                await appDbContext.Avatars.Where(a => a.RecordId == existRecordId).ExecuteDeleteAsync().ConfigureAwait(false);
+                long existSpiralAbyssId = await appDbContext.SpiralAbysses.Where(s => s.RecordId == existRecordId).Select(s => s.PrimaryId).SingleOrDefaultAsync().ConfigureAwait(false);
+                if (existSpiralAbyssId is not 0)
+                {
+                    await appDbContext.SpiralAbyssFloors.Where(f => f.SpiralAbyssId == existSpiralAbyssId).ExecuteDeleteAsync().ConfigureAwait(false);
+                    await appDbContext.DamageRanks.Where(r => r.SpiralAbyssId == existSpiralAbyssId).ExecuteDeleteAsync().ConfigureAwait(false);
+                    await appDbContext.TakeDamageRanks.Where(r => r.SpiralAbyssId == existSpiralAbyssId).ExecuteDeleteAsync().ConfigureAwait(false);
+                    await appDbContext.SpiralAbysses.Where(s => s.PrimaryId == existSpiralAbyssId).ExecuteDeleteAsync().ConfigureAwait(false);
+                }
+
+                await appDbContext.Records.Where(r => r.Uid == record.Uid).ExecuteDeleteAsync().ConfigureAwait(false);
             }
 
             // EntityRecord
@@ -265,7 +276,7 @@ public sealed class RecordService
         return (true, true);
     }
 
-    private async ValueTask<RecordUploadResult> GetNonErrorRecordUploadResult(SimpleRecord record, bool haveUploadedForCurrentSchedule)
+    private async ValueTask<RecordUploadResult> GetNonErrorRecordUploadResultAsync(SimpleRecord record, bool haveUploadedForCurrentSchedule)
     {
         if (haveUploadedForCurrentSchedule)
         {

@@ -4,6 +4,7 @@
 using Quartz;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Service.Discord;
+using Snap.Hutao.Server.Service.GachaLog.Statistics;
 using Snap.Hutao.Server.Service.Ranking;
 
 namespace Snap.Hutao.Server.Job;
@@ -12,12 +13,14 @@ public class SpiralAbyssRecordCleanJob : IJob
 {
     private static readonly TimeSpan LongestDaysAllowed = new(30, 0, 0, 0);
 
+    private readonly DiscordService discordService;
     private readonly AppDbContext appDbContext;
     private readonly IRankService rankService;
-    private readonly DiscordService discordService;
+    private readonly IMemoryCache memoryCache;
 
     public SpiralAbyssRecordCleanJob(IServiceProvider serviceProvider)
     {
+        memoryCache = serviceProvider.GetRequiredService<IMemoryCache>();
         appDbContext = serviceProvider.GetRequiredService<AppDbContext>();
         rankService = serviceProvider.GetRequiredService<IRankService>();
         discordService = serviceProvider.GetRequiredService<DiscordService>();
@@ -26,23 +29,32 @@ public class SpiralAbyssRecordCleanJob : IJob
     /// <inheritdoc/>
     public async Task Execute(IJobExecutionContext context)
     {
-        DateTimeOffset lastAllowed = DateTimeOffset.Now - LongestDaysAllowed;
-        long lastAllowedTimestamp = lastAllowed.ToUnixTimeSeconds();
+        try
+        {
+            memoryCache.Set(GachaLogStatisticsService.Working, true);
 
-        // 批量删除 长期未提交的记录
-        int deletedRecordsCount = await appDbContext.Records
-            .Where(r => r.UploadTime < lastAllowedTimestamp)
-            .ExecuteDeleteAsync()
-            .ConfigureAwait(false);
+            DateTimeOffset lastAllowed = DateTimeOffset.Now - LongestDaysAllowed;
+            long lastAllowedTimestamp = lastAllowed.ToUnixTimeSeconds();
 
-        // 批量删除 深渊记录
-        int deletedSpiralCount = await appDbContext.SpiralAbysses
-            .ExecuteDeleteAsync()
-            .ConfigureAwait(false);
+            List<long> recordIds = await appDbContext.Records.Where(r => r.UploadTime < lastAllowedTimestamp).Select(r => r.PrimaryId).ToListAsync().ConfigureAwait(false);
+            await appDbContext.Avatars.Where(a => recordIds.Contains(a.RecordId)).ExecuteDeleteAsync().ConfigureAwait(false);
 
-        long removedKeys = await rankService.ClearRanksAsync().ConfigureAwait(false);
+            List<long> spiralAbyssIds = await appDbContext.SpiralAbysses.Select(s => s.PrimaryId).ToListAsync().ConfigureAwait(false);
+            await appDbContext.DamageRanks.Where(d => spiralAbyssIds.Contains(d.SpiralAbyssId)).ExecuteDeleteAsync().ConfigureAwait(false);
+            await appDbContext.TakeDamageRanks.Where(t => spiralAbyssIds.Contains(t.SpiralAbyssId)).ExecuteDeleteAsync().ConfigureAwait(false);
+            await appDbContext.SpiralAbyssFloors.Where(s => spiralAbyssIds.Contains(s.SpiralAbyssId)).ExecuteDeleteAsync().ConfigureAwait(false);
 
-        SpiralAbyssRecordCleanResult result = new(deletedRecordsCount, deletedSpiralCount, removedKeys);
-        await discordService.ReportSpiralAbyssCleanResultAsync(result).ConfigureAwait(false);
+            int deletedSpiralAbyssesCount = await appDbContext.SpiralAbysses.ExecuteDeleteAsync().ConfigureAwait(false);
+            int deletedRecordsCount = await appDbContext.Records.Where(r => r.UploadTime < lastAllowedTimestamp).ExecuteDeleteAsync().ConfigureAwait(false);
+
+            long removedKeys = await rankService.ClearRanksAsync().ConfigureAwait(false);
+
+            SpiralAbyssRecordCleanResult result = new(deletedRecordsCount, deletedSpiralAbyssesCount, removedKeys);
+            await discordService.ReportSpiralAbyssCleanResultAsync(result).ConfigureAwait(false);
+        }
+        finally
+        {
+            memoryCache.Remove(GachaLogStatisticsService.Working);
+        }
     }
 }

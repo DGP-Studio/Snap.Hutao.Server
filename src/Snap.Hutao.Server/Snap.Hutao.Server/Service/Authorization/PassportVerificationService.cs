@@ -21,6 +21,7 @@ public sealed class PassportVerificationService
         this.appDbContext = appDbContext;
     }
 
+    // This method will remove verification code if new one can regenerate.
     public bool TryGetNonExpiredVerifyCode(string normalizedUserName, out string? code)
     {
         PassportVerification? verification = appDbContext.PassportVerifications
