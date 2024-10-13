@@ -6,11 +6,25 @@ using Disqord.Bot.Commands.Application;
 using Qmmands;
 using Snap.Hutao.Server.Service.GachaLog;
 using Snap.Hutao.Server.Service.GachaLog.Statistics;
+using Snap.Hutao.Server.Service.Legacy;
 
 namespace Snap.Hutao.Server.Discord;
 
 public sealed class HutaoServerCommands : DiscordApplicationModuleBase
 {
+    [OwnerOnly]
+    [SlashCommand("run-statistics-spiralabyss")]
+    [Description("运行深渊记录统计")]
+    public async ValueTask<Qmmands.IResult> RunSpiralAbyssStatisticsAsync()
+    {
+        await Context.Services.GetRequiredService<StatisticsService>().RunAsync().ConfigureAwait(false);
+        LocalEmbed embed = Embed.CreateStandardEmbed("深渊记录统计", Embed.GachaLogIcon);
+        embed.WithDescription("深渊记录统计完成");
+        LocalInteractionMessageResponse response = new LocalInteractionMessageResponse()
+            .WithEmbeds(embed);
+        return Response(response);
+    }
+
     [OwnerOnly]
     [SlashCommand("run-statistics-gachalog")]
     [Description("运行祈愿记录统计")]

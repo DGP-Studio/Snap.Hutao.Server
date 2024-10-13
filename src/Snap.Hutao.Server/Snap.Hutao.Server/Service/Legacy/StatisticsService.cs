@@ -33,6 +33,7 @@ public sealed class StatisticsService
         context.SpiralAbyssFloors.AsNoTracking().Where(f => f.SpiralAbyssId == spiralAbyssId));
 
     private readonly SpiralAbyssStatisticsService spiralAbyssStatisticsService;
+    private readonly ILogger<StatisticsService> logger;
     private readonly DiscordService discordService;
     private readonly AppDbContext appDbContext;
     private readonly IMemoryCache memoryCache;
@@ -40,6 +41,7 @@ public sealed class StatisticsService
     public StatisticsService(IServiceProvider serviceProvider)
     {
         spiralAbyssStatisticsService = serviceProvider.GetRequiredService<SpiralAbyssStatisticsService>();
+        logger = serviceProvider.GetRequiredService<ILogger<StatisticsService>>();
         discordService = serviceProvider.GetRequiredService<DiscordService>();
         appDbContext = serviceProvider.GetRequiredService<AppDbContext>();
         memoryCache = serviceProvider.GetRequiredService<IMemoryCache>();
@@ -71,8 +73,11 @@ public sealed class StatisticsService
 
     private void RunCore(StatisticsTracker tracker)
     {
+        int count = 0;
         while (true)
         {
+            logger.LogInformation("StatisticsService: Processing {Count} records", count += Partion);
+
             List<EntityRecord> partialRecords = PartionQuery(appDbContext, tracker.LastId).ToList();
             foreach (ref EntityRecord record in CollectionsMarshal.AsSpan(partialRecords))
             {
