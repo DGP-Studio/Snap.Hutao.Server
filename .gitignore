@@ -366,3 +366,6 @@ FodyWeavers.xsd
 src/Snap.Hutao.Server/Snap.Hutao.Server/application-commands
 src/Snap.Hutao.Server/Snap.Hutao.Server/appsettings.json
 src/Snap.Hutao.Server/.idea
+
+src/Snap.Hutao.Server/.env
+src/Snap.Hutao.Server/redis
