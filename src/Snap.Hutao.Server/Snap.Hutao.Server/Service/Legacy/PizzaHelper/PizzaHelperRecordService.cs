@@ -18,7 +18,7 @@ internal sealed class PizzaHelperRecordService
     public PizzaHelperRecordService(HttpClient httpClient, AppOptions appOptions, ILogger<PizzaHelperRecordService> logger)
     {
         this.httpClient = httpClient;
-        httpClient.Timeout = TimeSpan.FromSeconds(10);
+        httpClient.Timeout = TimeSpan.FromSeconds(30);
 
         options = appOptions.GenshinPizzaHelper;
         this.logger = logger;

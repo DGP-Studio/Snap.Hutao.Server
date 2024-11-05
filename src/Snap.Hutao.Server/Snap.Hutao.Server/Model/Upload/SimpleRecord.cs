@@ -86,6 +86,8 @@ public sealed class SimpleRecord
         HashSet<int> uidOwns = [];
         int traveller = 1;
         int passMainQuest = 3;
+        int totalReliquaryCount = 0;
+
         foreach (ref readonly SimpleAvatar avatar in CollectionsMarshal.AsSpan(Avatars))
         {
             uidOwns.Add(avatar.AvatarId);
@@ -94,6 +96,8 @@ public sealed class SimpleRecord
             {
                 return false;
             }
+
+            totalReliquaryCount += avatar.ReliquarySetIds.Count;
 
             if (avatar.ReliquarySetIds.Any(id => id <= 0 || id.StringLength() != 7))
             {
@@ -115,6 +119,12 @@ public sealed class SimpleRecord
             {
                 --passMainQuest;
             }
+        }
+
+        // 没传圣遗物
+        if (totalReliquaryCount <= 0)
+        {
+            return false;
         }
 
         // 深渊记录中存在角色列表中不存在的角色
