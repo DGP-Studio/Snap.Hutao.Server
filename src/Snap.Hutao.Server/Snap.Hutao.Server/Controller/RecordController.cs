@@ -1,14 +1,12 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
-using Org.BouncyCastle.Crypto.Signers;
 using Snap.Hutao.Server.Controller.Filter;
 using Snap.Hutao.Server.Model.Legacy;
 using Snap.Hutao.Server.Model.Response;
 using Snap.Hutao.Server.Model.Upload;
 using Snap.Hutao.Server.Service.Legacy;
 using Snap.Hutao.Server.Service.Ranking;
-using System.Collections.Concurrent;
 
 namespace Snap.Hutao.Server.Controller;
 

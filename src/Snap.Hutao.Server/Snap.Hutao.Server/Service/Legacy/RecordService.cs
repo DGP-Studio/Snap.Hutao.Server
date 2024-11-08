@@ -253,7 +253,7 @@ public sealed class RecordService
                 await appDbContext.TakeDamageRanks.AddAndSaveAsync(entityTakeDamageRank).ConfigureAwait(false);
             }
 
-            transaction.Commit();
+            await transaction.CommitAsync().ConfigureAwait(false);
         }
 
         // Redis rank sync
