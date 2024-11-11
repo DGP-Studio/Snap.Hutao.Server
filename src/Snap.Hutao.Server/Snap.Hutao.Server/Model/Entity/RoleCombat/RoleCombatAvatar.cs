@@ -10,7 +10,6 @@ public sealed class RoleCombatAvatar
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public long PrimaryId { get; set; }
 
-    [StringLength(10, MinimumLength = 9)]
     public long RecordId { get; set; }
 
     [ForeignKey(nameof(RecordId))]

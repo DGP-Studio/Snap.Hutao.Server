@@ -12,7 +12,7 @@ using Snap.Hutao.Server.Model.Context;
 namespace Snap.Hutao.Server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241111015125_AddRoleCombatModels")]
+    [Migration("20241111021636_AddRoleCombatModels")]
     partial class AddRoleCombatModels
     {
         /// <inheritdoc />
@@ -512,7 +512,6 @@ namespace Snap.Hutao.Server.Migrations
                         .HasColumnType("int unsigned");
 
                     b.Property<long>("RecordId")
-                        .HasMaxLength(10)
                         .HasColumnType("bigint");
 
                     b.HasKey("PrimaryId");

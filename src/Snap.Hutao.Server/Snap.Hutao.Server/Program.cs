@@ -26,6 +26,7 @@ using Snap.Hutao.Server.Service.Legacy.PizzaHelper;
 using Snap.Hutao.Server.Service.Licensing;
 using Snap.Hutao.Server.Service.Ranking;
 using Snap.Hutao.Server.Service.ReCaptcha;
+using Snap.Hutao.Server.Service.RoleCombat;
 using Snap.Hutao.Server.Service.Telemetry;
 using Swashbuckle.AspNetCore.SwaggerUI;
 
@@ -123,6 +124,7 @@ public static class Program
             .AddTransient<StatisticsService>()
             .AddTransient<ReCaptchaService>()
             .AddTransient<RoleCombatRecordCleanJob>()
+            .AddTransient<RoleCombatService>()
             .AddTransient<RoleCombatStatisticsRefreshJob>()
             .AddTransient<SpiralAbyssRecordCleanJob>()
             .AddTransient<ValidateGachaLogPermission>()

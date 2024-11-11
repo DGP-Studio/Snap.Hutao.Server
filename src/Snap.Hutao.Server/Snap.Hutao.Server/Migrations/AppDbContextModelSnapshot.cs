@@ -509,7 +509,6 @@ namespace Snap.Hutao.Server.Migrations
                         .HasColumnType("int unsigned");
 
                     b.Property<long>("RecordId")
-                        .HasMaxLength(10)
                         .HasColumnType("bigint");
 
                     b.HasKey("PrimaryId");
