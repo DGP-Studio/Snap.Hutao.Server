@@ -7,6 +7,7 @@ using Qmmands;
 using Snap.Hutao.Server.Service.GachaLog;
 using Snap.Hutao.Server.Service.GachaLog.Statistics;
 using Snap.Hutao.Server.Service.Legacy;
+using Snap.Hutao.Server.Service.RoleCombat;
 
 namespace Snap.Hutao.Server.Discord;
 
@@ -33,6 +34,19 @@ public sealed class HutaoServerCommands : DiscordApplicationModuleBase
         await Context.Services.GetRequiredService<GachaLogStatisticsService>().RunAsync().ConfigureAwait(false);
         LocalEmbed embed = Embed.CreateStandardEmbed("祈愿记录统计", Embed.GachaLogIcon);
         embed.WithDescription("祈愿记录统计完成");
+        LocalInteractionMessageResponse response = new LocalInteractionMessageResponse()
+            .WithEmbeds(embed);
+        return Response(response);
+    }
+
+    [OwnerOnly]
+    [SlashCommand("run-statistics-rolecombat")]
+    [Description("运行祈愿记录统计")]
+    public async ValueTask<Qmmands.IResult> RunRoleCombatStatisticsAsync()
+    {
+        await Context.Services.GetRequiredService<RoleCombatService>().RunAsync().ConfigureAwait(false);
+        LocalEmbed embed = Embed.CreateStandardEmbed("幻想真境剧诗统计", Embed.GachaLogIcon);
+        embed.WithDescription("幻想真境剧诗完成");
         LocalInteractionMessageResponse response = new LocalInteractionMessageResponse()
             .WithEmbeds(embed);
         return Response(response);

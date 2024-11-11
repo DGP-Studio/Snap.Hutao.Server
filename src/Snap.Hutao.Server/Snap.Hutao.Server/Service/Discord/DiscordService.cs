@@ -53,6 +53,17 @@ public sealed class DiscordService
         await hutaoServerBot.SendMessageAsync(discordOptions.KnownChannels.PublicStatus, new LocalMessage().WithEmbeds(embed));
     }
 
+    internal async Task ReportRoleCombatCleanResultAsync(RoleCombatRecordCleanResult result)
+    {
+        LocalEmbed embed = Embed.CreateStandardEmbed("Role Combat Record Cleanup", Embed.SpiralAbyssIcon);
+
+        embed.WithDescription($"In this cleanup, we cleanned:");
+
+        embed.AddField("Records", result.DeletedNumberOfRecords);
+
+        await hutaoServerBot.SendMessageAsync(discordOptions.KnownChannels.PublicStatus, new LocalMessage().WithEmbeds(embed));
+    }
+
     public async ValueTask ReportGachaEventStatisticsAsync(GachaEventStatistics statistics)
     {
         LocalEmbed embed = Embed.CreateStandardEmbed("Gacha Event Statistics", Embed.GachaLogIcon);

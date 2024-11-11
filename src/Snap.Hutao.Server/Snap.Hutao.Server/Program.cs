@@ -83,6 +83,8 @@ public static class Program
                 config.ScheduleJob<GachaLogStatisticsRefreshJob>(t => t.StartNow().WithCronSchedule("0 30 */1 * * ?"));
                 config.ScheduleJob<LegacyStatisticsRefreshJob>(t => t.StartNow().WithCronSchedule("0 5 */1 * * ?"));
                 config.ScheduleJob<SpiralAbyssRecordCleanJob>(t => t.StartNow().WithCronSchedule("0 0 4 16 * ?"));
+                config.ScheduleJob<RoleCombatStatisticsRefreshJob>(t => t.StartNow().WithCronSchedule("0 10 */1 * * ?"));
+                config.ScheduleJob<RoleCombatRecordCleanJob>(t => t.StartNow().WithCronSchedule("0 0 4 1 * ?"));
             })
             .AddQuartzServer(options => options.WaitForJobsToComplete = true)
             .AddResponseCompression()
@@ -120,6 +122,8 @@ public static class Program
             .AddTransient<LegacyStatisticsRefreshJob>()
             .AddTransient<StatisticsService>()
             .AddTransient<ReCaptchaService>()
+            .AddTransient<RoleCombatRecordCleanJob>()
+            .AddTransient<RoleCombatStatisticsRefreshJob>()
             .AddTransient<SpiralAbyssRecordCleanJob>()
             .AddTransient<ValidateGachaLogPermission>()
             .AddTransient<ValidateMaintainPermission>();

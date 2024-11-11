@@ -3,14 +3,15 @@
 
 using Quartz;
 using Snap.Hutao.Server.Service.GachaLog.Statistics;
+using Snap.Hutao.Server.Service.RoleCombat;
 
 namespace Snap.Hutao.Server.Job;
 
-public sealed class GachaLogStatisticsRefreshJob : IJob
+public sealed class RoleCombatStatisticsRefreshJob : IJob
 {
-    private readonly GachaLogStatisticsService statisticsService;
+    private readonly RoleCombatService statisticsService;
 
-    public GachaLogStatisticsRefreshJob(GachaLogStatisticsService statisticsService)
+    public RoleCombatStatisticsRefreshJob(RoleCombatService statisticsService)
     {
         this.statisticsService = statisticsService;
     }
