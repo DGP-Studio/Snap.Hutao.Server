@@ -29,7 +29,7 @@ public sealed class SimpleRoleCombatRecord
             return false;
         }
 
-        if (BackupAvatars is not { Count: >= 12 })
+        if (BackupAvatars is not { Count: >= 8 })
         {
             return false;
         }

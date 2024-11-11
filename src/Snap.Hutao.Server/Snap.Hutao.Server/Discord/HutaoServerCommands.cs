@@ -41,7 +41,7 @@ public sealed class HutaoServerCommands : DiscordApplicationModuleBase
 
     [OwnerOnly]
     [SlashCommand("run-statistics-rolecombat")]
-    [Description("运行祈愿记录统计")]
+    [Description("运行剧演记录统计")]
     public async ValueTask<Qmmands.IResult> RunRoleCombatStatisticsAsync()
     {
         await Context.Services.GetRequiredService<RoleCombatService>().RunAsync().ConfigureAwait(false);
