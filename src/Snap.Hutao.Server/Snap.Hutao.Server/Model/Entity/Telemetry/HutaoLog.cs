@@ -17,4 +17,7 @@ public class HutaoLog
     public bool Resolved { get; set; }
 
     public string Version { get; set; } = default!;
+
+    [NotMapped]
+    public long Time { get; set; }
 }

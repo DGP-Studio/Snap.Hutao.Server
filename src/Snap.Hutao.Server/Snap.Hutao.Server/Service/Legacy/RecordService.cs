@@ -205,7 +205,7 @@ public sealed class RecordService
         (bool haveUploaded, bool recordExists) = await HaveUploadedForCurrentScheduleAsync(record.Uid).ConfigureAwait(false);
         RecordUploadResult result = await GetNonErrorRecordUploadResultAsync(record, haveUploaded).ConfigureAwait(false);
 
-        using (IDbContextTransaction transaction = await appDbContext.Database.BeginTransactionAsync())
+        using (IDbContextTransaction transaction = await appDbContext.Database.BeginTransactionAsync().ConfigureAwait(false))
         {
             if (recordExists)
             {
@@ -253,7 +253,7 @@ public sealed class RecordService
                 await appDbContext.TakeDamageRanks.AddAndSaveAsync(entityTakeDamageRank).ConfigureAwait(false);
             }
 
-            transaction.Commit();
+            await transaction.CommitAsync().ConfigureAwait(false);
         }
 
         // Redis rank sync

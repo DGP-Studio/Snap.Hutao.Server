@@ -16,3 +16,13 @@ public readonly struct SpiralAbyssRecordCleanResult
         RemovedNumberOfRedisKeys = redis;
     }
 }
+
+public readonly struct RoleCombatRecordCleanResult
+{
+    public readonly int DeletedNumberOfRecords;
+
+    public RoleCombatRecordCleanResult(int records)
+    {
+        DeletedNumberOfRecords = records;
+    }
+}
