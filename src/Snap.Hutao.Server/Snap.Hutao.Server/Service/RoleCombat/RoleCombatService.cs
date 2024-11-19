@@ -47,7 +47,9 @@ public sealed class RoleCombatService
             int total = await Task.Run(() => RunCore(resultMap)).ConfigureAwait(false);
             RoleCombatStatisticsItem item = new()
             {
+                ScheduleId = RoleCombatScheduleId.GetForNow(),
                 RecordTotal = total,
+                Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                 BackupAvatarRates = resultMap.Select(kvp => new Model.Legacy.ItemRate<uint, double>(kvp.Key, kvp.Value / (double)total)).ToList(),
             };
 

@@ -88,13 +88,9 @@ public class RoleCombatController
     }
 
     [HttpGet("Statistics")]
-    public IActionResult GetStatistics([FromQuery(Name = "Last")] bool last = false)
+    public IActionResult GetStatistics()
     {
         int scheduleId = RoleCombatScheduleId.GetForNow();
-        if (last)
-        {
-            scheduleId--;
-        }
 
         string key = $"RoleCombatStatistics:{scheduleId}";
         if (memoryCache.TryGetValue(key, out RoleCombatStatisticsItem? data))
