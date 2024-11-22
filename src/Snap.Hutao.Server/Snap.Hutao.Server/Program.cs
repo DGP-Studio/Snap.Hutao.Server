@@ -18,6 +18,7 @@ using Snap.Hutao.Server.Service.Afdian;
 using Snap.Hutao.Server.Service.Announcement;
 using Snap.Hutao.Server.Service.Authorization;
 using Snap.Hutao.Server.Service.Discord;
+using Snap.Hutao.Server.Service.Distribution;
 using Snap.Hutao.Server.Service.GachaLog;
 using Snap.Hutao.Server.Service.GachaLog.Statistics;
 using Snap.Hutao.Server.Service.Github;
@@ -91,6 +92,7 @@ public static class Program
             .AddResponseCompression()
             .AddScoped<AccessionService>()
             .AddScoped<AnnouncementService>()
+            .AddScoped<DistributionService>()
             .AddScoped<GachaLogService>()
             .AddScoped<GithubService>()
             .AddScoped<PassportService>()
