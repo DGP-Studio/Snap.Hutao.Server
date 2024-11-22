@@ -22,7 +22,7 @@ public class DistributionController : ControllerBase
 
     [Authorize]
     [ServiceFilter(typeof(ValidateGachaLogPermission))]
-    [HttpGet("GetAccMirror")]
+    [HttpGet("GetAcceleratedMirror")]
     public async Task<IActionResult> GetAcceleratedMirror([FromQuery(Name = "Filename")] string filename)
     {
         HutaoPackageMirror? mirror = await distributionService.GetAcceleratedMirrorAsync(filename);

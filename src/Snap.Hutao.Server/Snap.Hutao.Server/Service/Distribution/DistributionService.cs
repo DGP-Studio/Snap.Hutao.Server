@@ -11,18 +11,20 @@ public sealed class DistributionService
 {
     private readonly ILogger<DistributionService> logger;
     private readonly HttpClient httpClient;
+    private readonly string cdnEndpoint;
     private readonly string cdnToken;
 
     public DistributionService(IServiceProvider serviceProvider)
     {
         logger = serviceProvider.GetRequiredService<ILogger<DistributionService>>();
         httpClient = serviceProvider.GetRequiredService<HttpClient>();
-        cdnToken = serviceProvider.GetRequiredService<AppOptions>().CDNToken;
+        cdnEndpoint = serviceProvider.GetRequiredService<AppOptions>().CdnEndpoint;
+        cdnToken = serviceProvider.GetRequiredService<AppOptions>().CdnToken;
     }
 
     public async ValueTask<HutaoPackageMirror?> GetAcceleratedMirrorAsync(string filename)
     {
-        using (HttpRequestMessage req = new(HttpMethod.Get, $"https://api.qhy04.com/hutaocdn/get?filename={filename}"))
+        using (HttpRequestMessage req = new(HttpMethod.Get, string.Format(cdnEndpoint, filename)))
         {
             req.Headers.UserAgent.ParseAdd("Snap Hutao Server/1.0");
             req.Headers.Authorization = new("Bearer", cdnToken);

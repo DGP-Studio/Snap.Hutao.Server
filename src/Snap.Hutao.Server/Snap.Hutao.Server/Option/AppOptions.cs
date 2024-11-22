@@ -15,7 +15,9 @@ public sealed class AppOptions
 
     public string RSAPrivateKey { get; set; } = default!;
 
-    public string CDNToken { get; set; } = default!;
+    public string CdnEndpoint { get; set; } = default!;
+
+    public string CdnToken { get; set; } = default!;
 
     public AfdianOptions Afdian { get; set; } = default!;
 
