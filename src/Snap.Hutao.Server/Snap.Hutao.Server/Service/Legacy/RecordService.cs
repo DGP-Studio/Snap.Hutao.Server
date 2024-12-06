@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 
 using Microsoft.EntityFrameworkCore.Storage;
+using Snap.Hutao.Server.Core;
 using Snap.Hutao.Server.Extension;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity.SpiralAbyss;
@@ -18,7 +19,7 @@ public sealed class RecordService
 {
     private const int GachaLogExtendDays = 3;
 
-    private static readonly ConcurrentDictionary<string, UploadToken> UploadingUids = new();
+    private static readonly AsyncKeyedLock<string> UploadingUids = new();
 
     private readonly IMemoryCache memoryCache;
     private readonly AppDbContext appDbContext;
@@ -64,33 +65,26 @@ public sealed class RecordService
             return RecordUploadResult.InvalidData;
         }
 
-        if (UploadingUids.TryGetValue(record.Uid, out _))
+        if (UploadingUids.IsLocked(record.Uid))
         {
             return RecordUploadResult.ConcurrencyNotSupported;
         }
 
-        if (!UploadingUids.TryAdd(record.Uid, default))
+        using (await UploadingUids.LockAsync(record.Uid).ConfigureAwait(false))
         {
-            return RecordUploadResult.ConcurrencyStateErrorAdd;
-        }
+            RecordUploadResult result = await SaveRecordAsync(record).ConfigureAwait(false);
+            try
+            {
+                await pizzaHelperRecordService.TryPostRecordAsync(record).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                // Any exception will be ignored.
+                logger.LogInformation("Exception ignored when upload to PizzaHelper: \n{Ex}", ex);
+            }
 
-        RecordUploadResult result = await SaveRecordAsync(record).ConfigureAwait(false);
-        try
-        {
-            await pizzaHelperRecordService.TryPostRecordAsync(record).ConfigureAwait(false);
+            return result;
         }
-        catch (Exception ex)
-        {
-            // Any exception will be ignored.
-            logger.LogInformation("Exception ignored when upload to PizzaHelper: \n{Ex}", ex);
-        }
-
-        if (!UploadingUids.TryRemove(record.Uid, out _))
-        {
-            return RecordUploadResult.ConcurrencyStateErrorRemove;
-        }
-
-        return result;
     }
 
     public async ValueTask<bool> HaveUidUploadedAsync(string uid)
@@ -108,8 +102,8 @@ public sealed class RecordService
     {
         return new()
         {
-            Uid = simpleRecord.Uid,
-            Uploader = simpleRecord.Identity,
+            Uid = simpleRecord.Uid!,
+            Uploader = simpleRecord.Identity!,
             UploadTime = DateTimeOffset.Now.ToUnixTimeSeconds(),
         };
     }
@@ -202,7 +196,7 @@ public sealed class RecordService
 
     private async Task<RecordUploadResult> SaveRecordAsync(SimpleRecord record)
     {
-        (bool haveUploaded, bool recordExists) = await HaveUploadedForCurrentScheduleAsync(record.Uid).ConfigureAwait(false);
+        (bool haveUploaded, bool recordExists) = await HaveUploadedForCurrentScheduleAsync(record.Uid!).ConfigureAwait(false);
         RecordUploadResult result = await GetNonErrorRecordUploadResultAsync(record, haveUploaded).ConfigureAwait(false);
 
         using (IDbContextTransaction transaction = await appDbContext.Database.BeginTransactionAsync().ConfigureAwait(false))
@@ -229,27 +223,27 @@ public sealed class RecordService
             long recordId = entityRecord.PrimaryId;
 
             // EntityAvatars
-            List<EntityAvatar> entityAvatars = record.Avatars.SelectList(a => SimpleAvatarToEntity(a, recordId));
+            List<EntityAvatar> entityAvatars = record.Avatars!.SelectList(a => SimpleAvatarToEntity(a, recordId));
             await appDbContext.Avatars.AddRangeAndSaveAsync(entityAvatars).ConfigureAwait(false);
 
             // EntitySpiralAbyss
-            EntitySpiralAbyss entitySpiralAbyss = SimpleSpiralAbyssToEntity(record.SpiralAbyss, entityRecord.PrimaryId);
+            EntitySpiralAbyss entitySpiralAbyss = SimpleSpiralAbyssToEntity(record.SpiralAbyss!, entityRecord.PrimaryId);
             await appDbContext.SpiralAbysses.AddAndSaveAsync(entitySpiralAbyss).ConfigureAwait(false);
             long spiralAbyssId = entitySpiralAbyss.PrimaryId;
 
             // EntityFloors
-            List<EntityFloor> entityFloors = record.SpiralAbyss.Floors.Where(f => f.Index >= 9).Select(f => SimpleFloorToEntity(f, spiralAbyssId)).ToList();
+            List<EntityFloor> entityFloors = record.SpiralAbyss!.Floors.Where(f => f.Index >= 9).Select(f => SimpleFloorToEntity(f, spiralAbyssId)).ToList();
             await appDbContext.SpiralAbyssFloors.AddRangeAndSaveAsync(entityFloors).ConfigureAwait(false);
 
             // EntityDamageRank
             // People must deal damage anyway.
-            EntityDamageRank entityDamageRank = SimpleRankToEntityDamageRank(record.SpiralAbyss.Damage, spiralAbyssId, record.Uid);
+            EntityDamageRank entityDamageRank = SimpleRankToEntityDamageRank(record.SpiralAbyss.Damage, spiralAbyssId, record.Uid!);
             await appDbContext.DamageRanks.AddAndSaveAsync(entityDamageRank).ConfigureAwait(false);
 
             // EntityTakeDamageRank
             if (record.SpiralAbyss.TakeDamage != null)
             {
-                EntityTakeDamageRank entityTakeDamageRank = SimpleRankToEntityTakeDamageRank(record.SpiralAbyss.TakeDamage, spiralAbyssId, record.Uid);
+                EntityTakeDamageRank entityTakeDamageRank = SimpleRankToEntityTakeDamageRank(record.SpiralAbyss.TakeDamage, spiralAbyssId, record.Uid!);
                 await appDbContext.TakeDamageRanks.AddAndSaveAsync(entityTakeDamageRank).ConfigureAwait(false);
             }
 
@@ -257,7 +251,7 @@ public sealed class RecordService
         }
 
         // Redis rank sync
-        await rankService.SaveRankAsync(record.Uid, record.SpiralAbyss.Damage, record.SpiralAbyss.TakeDamage).ConfigureAwait(false);
+        await rankService.SaveRankAsync(record.Uid!, record.SpiralAbyss.Damage, record.SpiralAbyss.TakeDamage).ConfigureAwait(false);
 
         return result;
     }
@@ -302,8 +296,6 @@ public sealed class RecordService
             return RecordUploadResult.OkWithGachaLogNoSuchUser;
         }
 
-        return RecordUploadResult.OkWithGachaLogExtented;
+        return RecordUploadResult.OkWithGachaLogExtended;
     }
-
-    private struct UploadToken;
 }

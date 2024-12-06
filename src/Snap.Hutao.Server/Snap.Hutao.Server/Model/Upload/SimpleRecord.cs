@@ -8,16 +8,17 @@ namespace Snap.Hutao.Server.Model.Upload;
 
 public sealed class SimpleRecord
 {
-    public string Uid { get; set; } = default!;
+    public string? Uid { get; set; }
 
-    public string Identity { get; set; } = default!;
+    public string? Identity { get; set; }
 
-    public SimpleSpiralAbyss SpiralAbyss { get; set; } = default!;
+    public SimpleSpiralAbyss? SpiralAbyss { get; set; }
 
-    public List<SimpleAvatar> Avatars { get; set; } = default!;
+    public List<SimpleAvatar>? Avatars { get; set; }
 
     public string? ReservedUserName { get; set; }
 
+    [MemberNotNullWhen(true, nameof(Identity), nameof(Uid), nameof(SpiralAbyss), nameof(Avatars))]
     public bool Validate()
     {
         if (Identity == null)
@@ -31,12 +32,12 @@ public sealed class SimpleRecord
         }
 
         // 较老的客户端上传的不兼容数据
-        if (SpiralAbyss.TotalWinTimes == 0 || SpiralAbyss.TotalBattleTimes == 0)
+        if (SpiralAbyss!.TotalWinTimes == 0 || SpiralAbyss.TotalBattleTimes == 0)
         {
             return false;
         }
 
-        if (Avatars == null || Avatars.Count <= 8)
+        if (Avatars is not { Count: > 8 })
         {
             return false;
         }

@@ -8,7 +8,7 @@ public enum RecordUploadResult
     OkWithNotFirstAttempt,
     OkWithNotSnapHutaoClient,
     OkWithNoUserNamePresented,
-    OkWithGachaLogExtented,
+    OkWithGachaLogExtended,
     OkWithGachaLogNoSuchUser,
     None,
     ComputingStatistics,
@@ -16,6 +16,6 @@ public enum RecordUploadResult
     NotCurrentSchedule,
     InvalidData,
     ConcurrencyNotSupported,
-    ConcurrencyStateErrorAdd,
-    ConcurrencyStateErrorRemove,
+    // ConcurrencyStateErrorAdd,
+    // ConcurrencyStateErrorRemove,
 }

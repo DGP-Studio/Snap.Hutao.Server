@@ -32,7 +32,7 @@ public class RecordController : ControllerBase
 
         if (returningRank && result < RecordUploadResult.None)
         {
-            Rank rank = await rankService.RetriveRankAsync(record.Uid).ConfigureAwait(false);
+            Rank rank = await rankService.RetriveRankAsync(record.Uid!).ConfigureAwait(false);
             return Response<Rank>.Success("获取排行数据成功", rank);
         }
         else
@@ -42,7 +42,7 @@ public class RecordController : ControllerBase
                 RecordUploadResult.OkWithNotFirstAttempt => Model.Response.Response.Success("数据提交成功，但不是本期首次提交，无法获赠祈愿记录上传服务时长", ServerKeys.ServerRecordUploadSuccessButNotFirstTimeAtCurrentSchedule),
                 RecordUploadResult.OkWithNotSnapHutaoClient => Model.Response.Response.Success("数据提交成功，但不是由胡桃客户端发起，无法获赠祈愿记录上传服务时长"),
                 RecordUploadResult.OkWithNoUserNamePresented => Model.Response.Response.Success("数据提交成功，但未绑定胡桃账号，无法获赠祈愿记录上传服务时长", ServerKeys.ServerRecordUploadSuccessButNoPassport),
-                RecordUploadResult.OkWithGachaLogExtented => Model.Response.Response.Success("数据提交成功，获赠 3 天祈愿记录上传服务时长", ServerKeys.ServerRecordUploadSuccessAndGachaLogServiceTimeExtended),
+                RecordUploadResult.OkWithGachaLogExtended => Model.Response.Response.Success("数据提交成功，获赠祈愿记录上传服务时长", ServerKeys.ServerRecordUploadSuccessAndGachaLogServiceTimeExtended),
                 RecordUploadResult.OkWithGachaLogNoSuchUser => Model.Response.Response.Success("数据提交成功，但不存在该胡桃账号", ServerKeys.ServerRecordUploadSuccessButNoSuchUser),
 
                 RecordUploadResult.ComputingStatistics => Model.Response.Response.Fail(ReturnCode.ComputingStatistics, "正在计算统计数据", ServerKeys.ServerRecordComputingStatistics),
@@ -50,7 +50,6 @@ public class RecordController : ControllerBase
                 RecordUploadResult.NotCurrentSchedule => Model.Response.Response.Fail(ReturnCode.NotCurrentSchedule, "非当前深渊数据", ServerKeys.ServerRecordNotCurrentSchedule),
                 RecordUploadResult.InvalidData => Model.Response.Response.Fail(ReturnCode.InvalidUploadData, "无效的提交数据", ServerKeys.ServerRecordInvalidData),
                 RecordUploadResult.ConcurrencyNotSupported => Model.Response.Response.Fail(ReturnCode.PreviousRequestNotCompleted, "该UID的请求尚在处理", ServerKeys.ServerRecordPreviousRequestNotCompleted),
-                RecordUploadResult.ConcurrencyStateErrorAdd or RecordUploadResult.ConcurrencyStateErrorRemove => Model.Response.Response.Fail(ReturnCode.InternalStateException, "提交状态异常", ServerKeys.ServerRecordInternalException),
                 _ => Model.Response.Response.Success("数据提交成功"),
             };
         }
