@@ -6,7 +6,6 @@ using Snap.Hutao.Server.Model.Entity.Passport;
 using Snap.Hutao.Server.Model.Passport;
 using Snap.Hutao.Server.Option;
 using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using System.Security.Cryptography;
 
 namespace Snap.Hutao.Server.Service.Authorization;

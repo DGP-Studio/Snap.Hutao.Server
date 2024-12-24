@@ -29,9 +29,9 @@ public sealed class ValidateCdnPermission : IAsyncActionFilter
             return;
         }
 
-        if (!await CanUseCdnAsync(userId, version <= new Version(1, 12, 8, 0) ? user => user.GachaLogExpireAt : user => user.CdnExpireAt).ConfigureAwait(false))
+        if (!await CanUseCdnAsync(userId, version <= new Version(1, 13, 0, 0) ? user => user.GachaLogExpireAt : user => user.CdnExpireAt).ConfigureAwait(false))
         {
-            context.Result = Response.Fail(ReturnCode.GachaLogServiceNotAllowed, "未开通胡桃云 CDN 或已到期"/*, ServerKeys.ServerGachaLogServiceInsufficientTime*/);
+            context.Result = Response.Fail(ReturnCode.GachaLogServiceNotAllowed, "未开通胡桃云 CDN 或已到期", ServerKeys.ServerCdnServiceInsufficientTime);
             return;
         }
 
@@ -40,7 +40,7 @@ public sealed class ValidateCdnPermission : IAsyncActionFilter
     }
 
     // Use selector for compatibility.
-    private async Task<bool> CanUseCdnAsync(int userId, Func<HutaoUser, long> selector)
+    private async Task<bool> CanUseCdnAsync(int userId, Func<HutaoUser, long> expireTarget)
     {
         HutaoUser? user = await appDbContext.Users
             .AsNoTracking()
@@ -52,6 +52,6 @@ public sealed class ValidateCdnPermission : IAsyncActionFilter
             return false;
         }
 
-        return user.IsLicensedDeveloper || selector(user) > DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        return user.IsLicensedDeveloper || expireTarget(user) > DateTimeOffset.UtcNow.ToUnixTimeSeconds();
     }
 }

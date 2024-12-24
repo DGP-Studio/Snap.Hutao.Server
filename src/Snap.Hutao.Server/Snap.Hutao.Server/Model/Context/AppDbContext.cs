@@ -11,7 +11,6 @@ using Snap.Hutao.Server.Model.Entity.Passport;
 using Snap.Hutao.Server.Model.Entity.RoleCombat;
 using Snap.Hutao.Server.Model.Entity.SpiralAbyss;
 using Snap.Hutao.Server.Model.Entity.Telemetry;
-using Snap.Hutao.Server.Model.RoleCombat;
 
 namespace Snap.Hutao.Server.Model.Context;
 

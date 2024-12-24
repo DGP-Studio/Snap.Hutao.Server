@@ -6,9 +6,7 @@ using Snap.Hutao.Server.Job;
 using Snap.Hutao.Server.Model.Response;
 using Snap.Hutao.Server.Model.Upload;
 using Snap.Hutao.Server.Service.Announcement;
-using Snap.Hutao.Server.Service.Distribution;
 using Snap.Hutao.Server.Service.Expire;
-using Snap.Hutao.Server.Service.GachaLog;
 
 namespace Snap.Hutao.Server.Controller;
 
@@ -27,7 +25,7 @@ public class ServiceController : ControllerBase
 
     public ServiceController(IServiceProvider serviceProvider)
     {
-        this.gachaLogExpireService = serviceProvider.GetRequiredService<GachaLogExpireService>();
+        gachaLogExpireService = serviceProvider.GetRequiredService<GachaLogExpireService>();
         cdnExpireService = serviceProvider.GetRequiredService<CdnExpireService>();
         announcementService = serviceProvider.GetRequiredService<AnnouncementService>();
         this.serviceProvider = serviceProvider;
@@ -44,14 +42,14 @@ public class ServiceController : ControllerBase
     [HttpGet("GachaLog/Compensation")]
     public async Task<IActionResult> GachaLogCompensationAsync([FromQuery] int days)
     {
-        DateTimeOffset target = await this.gachaLogExpireService.ExtendTermForAllUsersAsync(days).ConfigureAwait(false);
+        DateTimeOffset target = await gachaLogExpireService.ExtendTermForAllUsersAsync(days).ConfigureAwait(false);
         return Model.Response.Response.Success($"操作成功，增加了 {days} 天时长，到期时间: {target}");
     }
 
     [HttpGet("GachaLog/Designation")]
     public async Task<IActionResult> GachaLogDesignationAsync([FromQuery] string userName, [FromQuery] int days)
     {
-        TermExtendResult result = await this.gachaLogExpireService.ExtendTermForUserNameAsync(userName, days).ConfigureAwait(false);
+        TermExtendResult result = await gachaLogExpireService.ExtendTermForUserNameAsync(userName, days).ConfigureAwait(false);
         return result.Kind switch
         {
             TermExtendResultKind.Ok => Model.Response.Response.Success($"操作成功，增加了 {days} 天时长，到期时间: {result.ExpiredAt}"),
@@ -63,14 +61,14 @@ public class ServiceController : ControllerBase
     [HttpGet("Distribution/Compensation")]
     public async Task<IActionResult> DistributionCompensationAsync([FromQuery] int days)
     {
-        DateTimeOffset target = await this.cdnExpireService.ExtendTermForAllUsersAsync(days).ConfigureAwait(false);
+        DateTimeOffset target = await cdnExpireService.ExtendTermForAllUsersAsync(days).ConfigureAwait(false);
         return Model.Response.Response.Success($"操作成功，增加了 {days} 天时长，到期时间: {target}");
     }
 
     [HttpGet("Distribution/Designation")]
     public async Task<IActionResult> DistributionDesignationAsync([FromQuery] string userName, [FromQuery] int days)
     {
-        TermExtendResult result = await this.cdnExpireService.ExtendTermForUserNameAsync(userName, days).ConfigureAwait(false);
+        TermExtendResult result = await cdnExpireService.ExtendTermForUserNameAsync(userName, days).ConfigureAwait(false);
         return result.Kind switch
         {
             TermExtendResultKind.Ok => Model.Response.Response.Success($"操作成功，增加了 {days} 天时长，到期时间: {result.ExpiredAt}"),

@@ -5,7 +5,6 @@ using Snap.Hutao.Server.Model.Afdian;
 using Snap.Hutao.Server.Option;
 using Snap.Hutao.Server.Service.Discord;
 using Snap.Hutao.Server.Service.Expire;
-using Snap.Hutao.Server.Service.GachaLog;
 
 namespace Snap.Hutao.Server.Service.Afdian;
 
@@ -24,7 +23,7 @@ public sealed class AfdianWebhookService
         discordService = serviceProvider.GetRequiredService<DiscordService>();
         memoryCache = serviceProvider.GetRequiredService<IMemoryCache>();
         afdianOptions = serviceProvider.GetRequiredService<AppOptions>().Afdian;
-        this.gachaLogExpireService = serviceProvider.GetRequiredService<GachaLogExpireService>();
+        gachaLogExpireService = serviceProvider.GetRequiredService<GachaLogExpireService>();
         mailService = serviceProvider.GetRequiredService<MailService>();
         httpClient = serviceProvider.GetRequiredService<HttpClient>();
     }
@@ -70,7 +69,7 @@ public sealed class AfdianWebhookService
                 return info;
             }
 
-            TermExtendResult result = await this.gachaLogExpireService.ExtendGachaLogTermForAfdianOrderAsync(info).ConfigureAwait(false);
+            TermExtendResult result = await gachaLogExpireService.ExtendGachaLogTermForAfdianOrderAsync(info).ConfigureAwait(false);
             if (result.Kind is TermExtendResultKind.Ok)
             {
                 await mailService.SendPurchaseGachaLogStorageServiceAsync(info.UserName, result.ExpiredAt.ToString("yyy/MM/dd HH:mm:ss"), info.OrderNumber).ConfigureAwait(false);

@@ -5,7 +5,6 @@ using Disqord;
 using Disqord.Bot.Commands.Application;
 using Qmmands;
 using Snap.Hutao.Server.Service.Expire;
-using Snap.Hutao.Server.Service.GachaLog;
 using Snap.Hutao.Server.Service.GachaLog.Statistics;
 using Snap.Hutao.Server.Service.Legacy;
 using Snap.Hutao.Server.Service.RoleCombat;
