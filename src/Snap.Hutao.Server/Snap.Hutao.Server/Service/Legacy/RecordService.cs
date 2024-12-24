@@ -7,10 +7,9 @@ using Snap.Hutao.Server.Extension;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity.SpiralAbyss;
 using Snap.Hutao.Server.Model.Upload;
-using Snap.Hutao.Server.Service.GachaLog;
+using Snap.Hutao.Server.Service.Expire;
 using Snap.Hutao.Server.Service.Legacy.PizzaHelper;
 using Snap.Hutao.Server.Service.Ranking;
-using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 
 namespace Snap.Hutao.Server.Service.Legacy;
@@ -24,7 +23,7 @@ public sealed class RecordService
     private readonly IMemoryCache memoryCache;
     private readonly AppDbContext appDbContext;
     private readonly IRankService rankService;
-    private readonly ExpireService expireService;
+    private readonly GachaLogExpireService gachaLogExpireService;
     private readonly PizzaHelperRecordService pizzaHelperRecordService;
     private readonly ILogger<RecordService> logger;
 
@@ -33,7 +32,7 @@ public sealed class RecordService
         memoryCache = serviceProvider.GetRequiredService<IMemoryCache>();
         appDbContext = serviceProvider.GetRequiredService<AppDbContext>();
         rankService = serviceProvider.GetRequiredService<IRankService>();
-        expireService = serviceProvider.GetRequiredService<ExpireService>();
+        gachaLogExpireService = serviceProvider.GetRequiredService<GachaLogExpireService>();
         pizzaHelperRecordService = serviceProvider.GetRequiredService<PizzaHelperRecordService>();
         logger = serviceProvider.GetRequiredService<ILogger<RecordService>>();
     }
@@ -290,8 +289,8 @@ public sealed class RecordService
             return RecordUploadResult.OkWithNoUserNamePresented;
         }
 
-        GachaLogTermExtendResult result = await expireService.ExtendGachaLogTermForUserNameAsync(record.ReservedUserName, GachaLogExtendDays).ConfigureAwait(false);
-        if (result.Kind is not GachaLogTermExtendResultKind.Ok)
+        TermExtendResult result = await gachaLogExpireService.ExtendTermForUserNameAsync(record.ReservedUserName, GachaLogExtendDays).ConfigureAwait(false);
+        if (result.Kind is not TermExtendResultKind.Ok)
         {
             return RecordUploadResult.OkWithGachaLogNoSuchUser;
         }

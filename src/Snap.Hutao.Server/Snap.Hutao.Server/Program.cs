@@ -19,6 +19,7 @@ using Snap.Hutao.Server.Service.Announcement;
 using Snap.Hutao.Server.Service.Authorization;
 using Snap.Hutao.Server.Service.Discord;
 using Snap.Hutao.Server.Service.Distribution;
+using Snap.Hutao.Server.Service.Expire;
 using Snap.Hutao.Server.Service.GachaLog;
 using Snap.Hutao.Server.Service.GachaLog.Statistics;
 using Snap.Hutao.Server.Service.Github;
@@ -106,7 +107,8 @@ public static class Program
             .AddSingleton<IAuthorizationMiddlewareResultHandler, ResponseAuthorizationMiddlewareResultHandler>()
             .AddSingleton<IRankService, RankService>()
             .AddSingleton<MailService>()
-            .AddSingleton<ExpireService>()
+            .AddSingleton<GachaLogExpireService>()
+            .AddSingleton<CdnExpireService>()
             .AddSingleton(appOptions)
             .AddSwaggerGen(options =>
             {
@@ -129,6 +131,7 @@ public static class Program
             .AddTransient<RoleCombatService>()
             .AddTransient<RoleCombatStatisticsRefreshJob>()
             .AddTransient<SpiralAbyssRecordCleanJob>()
+            .AddTransient<ValidateCdnPermission>()
             .AddTransient<ValidateGachaLogPermission>()
             .AddTransient<ValidateMaintainPermission>();
 

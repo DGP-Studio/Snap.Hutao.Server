@@ -4,19 +4,19 @@
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity.Passport;
 
-namespace Snap.Hutao.Server.Service.GachaLog;
+namespace Snap.Hutao.Server.Service.Expire;
 
 // Singleton
-public sealed class ExpireService
+public sealed class GachaLogExpireService : IExpireService
 {
     private readonly IServiceProvider serviceProvider;
 
-    public ExpireService(IServiceProvider serviceProvider)
+    public GachaLogExpireService(IServiceProvider serviceProvider)
     {
         this.serviceProvider = serviceProvider;
     }
 
-    public async ValueTask<GachaLogTermExtendResult> ExtendGachaLogTermForUserNameAsync(string userName, int days)
+    public async ValueTask<TermExtendResult> ExtendTermForUserNameAsync(string userName, int days)
     {
         using (IServiceScope scope = serviceProvider.CreateScope())
         {
@@ -26,7 +26,7 @@ public sealed class ExpireService
 
             if (user == null)
             {
-                return new(GachaLogTermExtendResultKind.NoSuchUser);
+                return new(TermExtendResultKind.NoSuchUser);
             }
 
             long now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
@@ -41,14 +41,14 @@ public sealed class ExpireService
 
             if (!result.Succeeded)
             {
-                return new(GachaLogTermExtendResultKind.DbError);
+                return new(TermExtendResultKind.DbError);
             }
 
-            return new(GachaLogTermExtendResultKind.Ok, DateTimeOffset.FromUnixTimeSeconds(user.GachaLogExpireAt));
+            return new(TermExtendResultKind.Ok, DateTimeOffset.FromUnixTimeSeconds(user.GachaLogExpireAt));
         }
     }
 
-    public async ValueTask<DateTimeOffset> ExtendGachaLogTermForAllUsersAsync(int days)
+    public async ValueTask<DateTimeOffset> ExtendTermForAllUsersAsync(int days)
     {
         long nowTick = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         int seconds = days * 24 * 60 * 60;

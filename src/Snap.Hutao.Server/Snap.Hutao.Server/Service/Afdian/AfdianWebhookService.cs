@@ -4,7 +4,7 @@
 using Snap.Hutao.Server.Model.Afdian;
 using Snap.Hutao.Server.Option;
 using Snap.Hutao.Server.Service.Discord;
-using Snap.Hutao.Server.Service.GachaLog;
+using Snap.Hutao.Server.Service.Expire;
 
 namespace Snap.Hutao.Server.Service.Afdian;
 
@@ -14,7 +14,7 @@ public sealed class AfdianWebhookService
     private readonly DiscordService discordService;
     private readonly IMemoryCache memoryCache;
     private readonly AfdianOptions afdianOptions;
-    private readonly ExpireService expireService;
+    private readonly GachaLogExpireService gachaLogExpireService;
     private readonly MailService mailService;
     private readonly HttpClient httpClient;
 
@@ -23,7 +23,7 @@ public sealed class AfdianWebhookService
         discordService = serviceProvider.GetRequiredService<DiscordService>();
         memoryCache = serviceProvider.GetRequiredService<IMemoryCache>();
         afdianOptions = serviceProvider.GetRequiredService<AppOptions>().Afdian;
-        expireService = serviceProvider.GetRequiredService<ExpireService>();
+        gachaLogExpireService = serviceProvider.GetRequiredService<GachaLogExpireService>();
         mailService = serviceProvider.GetRequiredService<MailService>();
         httpClient = serviceProvider.GetRequiredService<HttpClient>();
     }
@@ -69,8 +69,8 @@ public sealed class AfdianWebhookService
                 return info;
             }
 
-            GachaLogTermExtendResult result = await expireService.ExtendGachaLogTermForAfdianOrderAsync(info).ConfigureAwait(false);
-            if (result.Kind is GachaLogTermExtendResultKind.Ok)
+            TermExtendResult result = await gachaLogExpireService.ExtendGachaLogTermForAfdianOrderAsync(info).ConfigureAwait(false);
+            if (result.Kind is TermExtendResultKind.Ok)
             {
                 await mailService.SendPurchaseGachaLogStorageServiceAsync(info.UserName, result.ExpiredAt.ToString("yyy/MM/dd HH:mm:ss"), info.OrderNumber).ConfigureAwait(false);
             }
@@ -78,8 +78,8 @@ public sealed class AfdianWebhookService
             {
                 info.Status = result.Kind switch
                 {
-                    GachaLogTermExtendResultKind.NoSuchUser => AfdianOrderStatus.GachaLogTermExtendNoSuchUser,
-                    GachaLogTermExtendResultKind.DbError => AfdianOrderStatus.GachaLogTermExtendDbError,
+                    TermExtendResultKind.NoSuchUser => AfdianOrderStatus.GachaLogTermExtendNoSuchUser,
+                    TermExtendResultKind.DbError => AfdianOrderStatus.GachaLogTermExtendDbError,
                     _ => info.Status,
                 };
             }

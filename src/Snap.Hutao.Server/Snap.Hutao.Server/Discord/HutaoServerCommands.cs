@@ -4,7 +4,7 @@
 using Disqord;
 using Disqord.Bot.Commands.Application;
 using Qmmands;
-using Snap.Hutao.Server.Service.GachaLog;
+using Snap.Hutao.Server.Service.Expire;
 using Snap.Hutao.Server.Service.GachaLog.Statistics;
 using Snap.Hutao.Server.Service.Legacy;
 using Snap.Hutao.Server.Service.RoleCombat;
@@ -57,7 +57,7 @@ public sealed class HutaoServerCommands : DiscordApplicationModuleBase
     [Description("延长祈愿记录时间")]
     public async ValueTask<Qmmands.IResult> ExtendGachaLogTermForAllAsync([Description("延长天数")] int days)
     {
-        await Context.Services.GetRequiredService<ExpireService>().ExtendGachaLogTermForAllUsersAsync(days).ConfigureAwait(false);
+        await Context.Services.GetRequiredService<GachaLogExpireService>().ExtendTermForAllUsersAsync(days).ConfigureAwait(false);
         LocalEmbed embed = Embed.CreateStandardEmbed("祈愿记录统计", Embed.GachaLogIcon);
         embed.WithDescription("祈愿记录时间已延长");
         LocalInteractionMessageResponse response = new LocalInteractionMessageResponse()
@@ -70,7 +70,7 @@ public sealed class HutaoServerCommands : DiscordApplicationModuleBase
     [Description("延长祈愿记录时间")]
     public async ValueTask<Qmmands.IResult> ExtendGachaLogTermAsync([Description("邮箱")] string email, [Description("延长天数")] int days)
     {
-        await Context.Services.GetRequiredService<ExpireService>().ExtendGachaLogTermForUserNameAsync(email, days).ConfigureAwait(false);
+        await Context.Services.GetRequiredService<GachaLogExpireService>().ExtendTermForUserNameAsync(email, days).ConfigureAwait(false);
         LocalEmbed embed = Embed.CreateStandardEmbed("祈愿记录统计", Embed.GachaLogIcon);
         embed.WithDescription("祈愿记录时间已延长");
         LocalInteractionMessageResponse response = new LocalInteractionMessageResponse()

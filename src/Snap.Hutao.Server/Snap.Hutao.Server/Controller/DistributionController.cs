@@ -21,7 +21,7 @@ public class DistributionController : ControllerBase
     }
 
     [Authorize]
-    [ServiceFilter(typeof(ValidateGachaLogPermission))]
+    [ServiceFilter(typeof(ValidateCdnPermission))]
     [HttpGet("GetAcceleratedMirror")]
     public async Task<IActionResult> GetAcceleratedMirror([FromQuery(Name = "Filename")] string filename)
     {

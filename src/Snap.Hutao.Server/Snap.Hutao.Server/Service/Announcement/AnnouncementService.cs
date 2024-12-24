@@ -20,14 +20,8 @@ public sealed class AnnouncementService
         this.appDbContext = appDbContext;
     }
 
-    public async ValueTask<List<EntityAnnouncement>> GetAnnouncementsAsync(string? userAgent, string locale, IReadOnlySet<long> excludedIds)
+    public async ValueTask<List<EntityAnnouncement>> GetAnnouncementsAsync(Version currentVersion, string locale, IReadOnlySet<long> excludedIds)
     {
-        // Do not return any announcement for non hutao client requests
-        if (!TryGetClientVersion(userAgent, out Version? currentVersion))
-        {
-            return [];
-        }
-
         long limit = (DateTimeOffset.UtcNow - MinAnnouncementTimeThreshold).ToUnixTimeSeconds();
 
         List<EntityAnnouncement> anns = await appDbContext.Announcements
@@ -71,16 +65,5 @@ public sealed class AnnouncementService
         appDbContext.Announcements.Add(entity);
 
         await appDbContext.SaveChangesAsync().ConfigureAwait(false);
-    }
-
-    private static bool TryGetClientVersion(string? userAgent, [NotNullWhen(true)] out Version? version)
-    {
-        if (string.IsNullOrEmpty(userAgent) || !userAgent.StartsWith(SnapHutaoClientHeaderPrefix))
-        {
-            version = default;
-            return false;
-        }
-
-        return Version.TryParse(userAgent[SnapHutaoClientHeaderPrefix.Length..], out version);
     }
 }

@@ -5,6 +5,7 @@ namespace Snap.Hutao.Server.Controller;
 
 public static class ServerKeys
 {
+    public const string ServerCdnServiceInsufficientTime = "ServerCdnServiceInsufficientTime";
     public const string ServerGachaLogServiceDeleteEntrySucceed = "ServerGachaLogServiceDeleteEntrySucceed";
     public const string ServerGachaLogServiceInsufficientRecordSlot = "ServerGachaLogServiceInsufficientRecordSlot";
     public const string ServerGachaLogServiceInsufficientTime = "ServerGachaLogServiceInsufficientTime";
