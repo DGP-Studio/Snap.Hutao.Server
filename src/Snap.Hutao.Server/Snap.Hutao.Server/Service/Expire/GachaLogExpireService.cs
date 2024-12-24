@@ -4,19 +4,19 @@
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity.Passport;
 
-namespace Snap.Hutao.Server.Service.Distribution;
+namespace Snap.Hutao.Server.Service.Expire;
 
 // Singleton
-public sealed class CdnExpireService
+public sealed class GachaLogExpireService : IExpireService
 {
     private readonly IServiceProvider serviceProvider;
 
-    public CdnExpireService(IServiceProvider serviceProvider)
+    public GachaLogExpireService(IServiceProvider serviceProvider)
     {
         this.serviceProvider = serviceProvider;
     }
 
-    public async ValueTask<CdnTermExtendResult> ExtendCdnTermForUserNameAsync(string userName, int days)
+    public async ValueTask<TermExtendResult> ExtendTermForUserNameAsync(string userName, int days)
     {
         using (IServiceScope scope = serviceProvider.CreateScope())
         {
@@ -26,29 +26,29 @@ public sealed class CdnExpireService
 
             if (user == null)
             {
-                return new(CdnTermExtendResultKind.NoSuchUser);
+                return new(TermExtendResultKind.NoSuchUser);
             }
 
             long now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            if (user.CdnExpireAt < now)
+            if (user.GachaLogExpireAt < now)
             {
-                user.CdnExpireAt = now;
+                user.GachaLogExpireAt = now;
             }
 
-            user.CdnExpireAt += (long)TimeSpan.FromDays(days).TotalSeconds;
+            user.GachaLogExpireAt += (long)TimeSpan.FromDays(days).TotalSeconds;
 
             IdentityResult result = await userManager.UpdateAsync(user).ConfigureAwait(false);
 
             if (!result.Succeeded)
             {
-                return new(CdnTermExtendResultKind.DbError);
+                return new(TermExtendResultKind.DbError);
             }
 
-            return new(CdnTermExtendResultKind.Ok, DateTimeOffset.FromUnixTimeSeconds(user.CdnExpireAt));
+            return new(TermExtendResultKind.Ok, DateTimeOffset.FromUnixTimeSeconds(user.GachaLogExpireAt));
         }
     }
 
-    public async ValueTask<DateTimeOffset> ExtendCdnTermForAllUsersAsync(int days)
+    public async ValueTask<DateTimeOffset> ExtendTermForAllUsersAsync(int days)
     {
         long nowTick = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         int seconds = days * 24 * 60 * 60;
@@ -58,12 +58,12 @@ public sealed class CdnExpireService
             AppDbContext appDbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
             await appDbContext.Users
-                .Where(user => user.CdnExpireAt < nowTick)
-                .ExecuteUpdateAsync(user => user.SetProperty(u => u.CdnExpireAt, u => nowTick))
+                .Where(user => user.GachaLogExpireAt < nowTick)
+                .ExecuteUpdateAsync(user => user.SetProperty(u => u.GachaLogExpireAt, u => nowTick))
                 .ConfigureAwait(false);
 
             await appDbContext.Users
-                .ExecuteUpdateAsync(user => user.SetProperty(u => u.CdnExpireAt, u => u.CdnExpireAt + seconds))
+                .ExecuteUpdateAsync(user => user.SetProperty(u => u.GachaLogExpireAt, u => u.GachaLogExpireAt + seconds))
                 .ConfigureAwait(false);
         }
 
