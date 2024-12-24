@@ -7,6 +7,8 @@ public sealed class HutaoUser : IdentityUser<int>
 {
     public long GachaLogExpireAt { get; set; }
 
+    public long CdnExpireAt { get; set; }
+
     public bool IsLicensedDeveloper { get; set; }
 
     public bool IsMaintainer { get; set; }

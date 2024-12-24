@@ -214,6 +214,7 @@ public class PassportController : ControllerBase
             IsLicensedDeveloper = user.IsLicensedDeveloper,
             IsMaintainer = user.IsMaintainer,
             GachaLogExpireAt = DateTimeOffset.FromUnixTimeSeconds(user.GachaLogExpireAt),
+            CdnExpireAt = DateTimeOffset.FromUnixTimeSeconds(user.CdnExpireAt),
         });
     }
 }

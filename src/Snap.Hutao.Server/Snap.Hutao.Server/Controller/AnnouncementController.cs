@@ -23,8 +23,14 @@ public sealed class AnnouncementController : ControllerBase
     [HttpPost("List")]
     public async Task<IActionResult> List([FromBody] HashSet<long> excludedIds)
     {
+        // Do not return any announcement for non hutao client requests
+        if (!this.TryGetClientVersion(out Version? currentVersion))
+        {
+            return Model.Response.Response<List<EntityAnnouncement>>.Success("获取公告成功", []);
+        }
+
         List<EntityAnnouncement> results = await announcementService
-            .GetAnnouncementsAsync(Request.Headers.UserAgent, "ALL", excludedIds)
+            .GetAnnouncementsAsync(currentVersion, "ALL", excludedIds)
             .ConfigureAwait(false);
 
         return Model.Response.Response<List<EntityAnnouncement>>.Success("获取公告成功", results);

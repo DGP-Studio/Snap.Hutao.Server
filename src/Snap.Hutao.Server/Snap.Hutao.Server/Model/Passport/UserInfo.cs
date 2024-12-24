@@ -14,4 +14,6 @@ public class UserInfo
     public bool IsMaintainer { get; set; }
 
     public DateTimeOffset GachaLogExpireAt { get; set; }
+
+    public DateTimeOffset CdnExpireAt { get; set; }
 }

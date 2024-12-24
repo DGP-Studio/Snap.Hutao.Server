@@ -6,6 +6,7 @@ using Snap.Hutao.Server.Job;
 using Snap.Hutao.Server.Model.Response;
 using Snap.Hutao.Server.Model.Upload;
 using Snap.Hutao.Server.Service.Announcement;
+using Snap.Hutao.Server.Service.Distribution;
 using Snap.Hutao.Server.Service.GachaLog;
 
 namespace Snap.Hutao.Server.Controller;
@@ -19,12 +20,14 @@ namespace Snap.Hutao.Server.Controller;
 public class ServiceController : ControllerBase
 {
     private readonly ExpireService expireService;
+    private readonly CdnExpireService cdnExpireService;
     private readonly AnnouncementService announcementService;
     private readonly IServiceProvider serviceProvider;
 
     public ServiceController(IServiceProvider serviceProvider)
     {
         expireService = serviceProvider.GetRequiredService<ExpireService>();
+        cdnExpireService = serviceProvider.GetRequiredService<CdnExpireService>();
         announcementService = serviceProvider.GetRequiredService<AnnouncementService>();
         this.serviceProvider = serviceProvider;
     }
@@ -52,6 +55,25 @@ public class ServiceController : ControllerBase
         {
             GachaLogTermExtendResultKind.Ok => Model.Response.Response.Success($"操作成功，增加了 {days} 天时长，到期时间: {result.ExpiredAt}"),
             GachaLogTermExtendResultKind.NoSuchUser => Model.Response.Response.Fail(ReturnCode.UserNameNotExists, $"用户名不存在"),
+            _ => Model.Response.Response.Fail(ReturnCode.GachaLogExtendDbException, $"数据库错误"),
+        };
+    }
+
+    [HttpGet("Distribution/Compensation")]
+    public async Task<IActionResult> DistributionCompensationAsync([FromQuery] int days)
+    {
+        DateTimeOffset target = await this.cdnExpireService.ExtendCdnTermForAllUsersAsync(days).ConfigureAwait(false);
+        return Model.Response.Response.Success($"操作成功，增加了 {days} 天时长，到期时间: {target}");
+    }
+
+    [HttpGet("Distribution/Designation")]
+    public async Task<IActionResult> DistributionDesignationAsync([FromQuery] string userName, [FromQuery] int days)
+    {
+        CdnTermExtendResult result = await this.cdnExpireService.ExtendCdnTermForUserNameAsync(userName, days).ConfigureAwait(false);
+        return result.Kind switch
+        {
+            CdnTermExtendResultKind.Ok => Model.Response.Response.Success($"操作成功，增加了 {days} 天时长，到期时间: {result.ExpiredAt}"),
+            CdnTermExtendResultKind.NoSuchUser => Model.Response.Response.Fail(ReturnCode.UserNameNotExists, $"用户名不存在"),
             _ => Model.Response.Response.Fail(ReturnCode.GachaLogExtendDbException, $"数据库错误"),
         };
     }

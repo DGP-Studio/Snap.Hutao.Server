@@ -107,6 +107,7 @@ public static class Program
             .AddSingleton<IRankService, RankService>()
             .AddSingleton<MailService>()
             .AddSingleton<ExpireService>()
+            .AddSingleton<CdnExpireService>()
             .AddSingleton(appOptions)
             .AddSwaggerGen(options =>
             {
@@ -129,6 +130,7 @@ public static class Program
             .AddTransient<RoleCombatService>()
             .AddTransient<RoleCombatStatisticsRefreshJob>()
             .AddTransient<SpiralAbyssRecordCleanJob>()
+            .AddTransient<ValidateCdnPermission>()
             .AddTransient<ValidateGachaLogPermission>()
             .AddTransient<ValidateMaintainPermission>();
 
