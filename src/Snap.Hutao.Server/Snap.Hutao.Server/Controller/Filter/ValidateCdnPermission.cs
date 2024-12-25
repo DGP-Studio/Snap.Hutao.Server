@@ -29,7 +29,7 @@ public sealed class ValidateCdnPermission : IAsyncActionFilter
             return;
         }
 
-        if (!await CanUseCdnAsync(userId, version <= new Version(1, 13, 0, 0) ? user => user.GachaLogExpireAt : user => user.CdnExpireAt).ConfigureAwait(false))
+        if (!await CanUseCdnAsync(userId, version < new Version(1, 13, 0, 0) ? user => user.GachaLogExpireAt : user => user.CdnExpireAt).ConfigureAwait(false))
         {
             context.Result = Response.Fail(ReturnCode.GachaLogServiceNotAllowed, "未开通胡桃云 CDN 或已到期", ServerKeys.ServerCdnServiceInsufficientTime);
             return;

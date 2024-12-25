@@ -3,11 +3,7 @@
 
 namespace Snap.Hutao.Server.Option;
 
-public sealed class AfdianOptions
+public sealed class AfdianOptions : AfdianAuthorizationOptions
 {
     public string SkuGachaLogUploadService { get; set; } = default!;
-
-    public string UserId { get; set; } = default!;
-
-    public string UserToken { get; set; } = default!;
 }

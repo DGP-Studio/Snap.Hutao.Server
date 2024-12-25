@@ -187,6 +187,37 @@ public sealed class MailService
         return SendMailAsync(options);
     }
 
+    public Task SendPurchaseCdnServiceAsync(string emailAddress, string expireAt, string tradeNumber, string language = "CHS")
+    {
+        logger.LogInformation("Send CDN Mail to [{Email}] with [{Number}]", emailAddress, tradeNumber);
+        MailOptions options = new()
+        {
+            Subject = language == "CHS"
+                ? "胡桃云服务"
+                : "Snap Hutao Cloud Service",
+            Address = emailAddress,
+            Title = language == "CHS"
+                ? "感谢您购买 Snap Hutao 胡桃云 CDN 更新加速服务"
+                : "Thank you for purchasing Snap Hutao Cloud CDN Update Acceleration Service",
+            RawContent = language == "CHS"
+                ? $"""
+                <p>服务有效期至</p>
+                <span class="mail-code">{expireAt}</span>
+                <p>请妥善保存此邮件，订单编号：{tradeNumber}</p>
+                """
+                : $"""
+                <p>The service is valid until</p>
+                <span class="mail-code">{expireAt}</span>
+                <p>Please keep this email safe, order number: {tradeNumber}</p>
+                """,
+            Footer = language == "CHS"
+                ? "该邮件由 DGP Studio 系统自动生成，请勿回复"
+                : "This email is automatically sent by the DGP Studio system, please do not reply",
+        };
+
+        return SendMailAsync(options);
+    }
+
     public Task SendOpenSourceLicenseNotificationApprovalAsync(string emailAddress, string language = "CHS")
     {
         MailOptions options = new()

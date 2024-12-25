@@ -14,7 +14,9 @@ public sealed class AfdianWebhookService
     private readonly DiscordService discordService;
     private readonly IMemoryCache memoryCache;
     private readonly AfdianOptions afdianOptions;
+    private readonly Afdian2Options afdian2Options;
     private readonly GachaLogExpireService gachaLogExpireService;
+    private readonly CdnExpireService cdnExpireService;
     private readonly MailService mailService;
     private readonly HttpClient httpClient;
 
@@ -23,7 +25,9 @@ public sealed class AfdianWebhookService
         discordService = serviceProvider.GetRequiredService<DiscordService>();
         memoryCache = serviceProvider.GetRequiredService<IMemoryCache>();
         afdianOptions = serviceProvider.GetRequiredService<AppOptions>().Afdian;
+        afdian2Options = serviceProvider.GetRequiredService<AppOptions>().Afdian2;
         gachaLogExpireService = serviceProvider.GetRequiredService<GachaLogExpireService>();
+        cdnExpireService = serviceProvider.GetRequiredService<CdnExpireService>();
         mailService = serviceProvider.GetRequiredService<MailService>();
         httpClient = serviceProvider.GetRequiredService<HttpClient>();
     }
@@ -63,7 +67,7 @@ public sealed class AfdianWebhookService
         // GachaLog Upload
         if (skuDetail.SkuId == afdianOptions.SkuGachaLogUploadService)
         {
-            if (!await ValidateOrderInformationAsync(info).ConfigureAwait(false))
+            if (!await ValidateOrderInformationAsync(info, afdianOptions).ConfigureAwait(false))
             {
                 // info's status will be set in ValidateOrderInformationAsync
                 return info;
@@ -84,6 +88,29 @@ public sealed class AfdianWebhookService
                 };
             }
         }
+        else if (skuDetail.SkuId == afdian2Options.SkuCdnService)
+        {
+            if (!await ValidateOrderInformationAsync(info, afdian2Options).ConfigureAwait(false))
+            {
+                // info's status will be set in ValidateOrderInformationAsync
+                return info;
+            }
+
+            TermExtendResult result = await cdnExpireService.ExtendCdnTermForAfdianOrderAsync(info).ConfigureAwait(false);
+            if (result.Kind is TermExtendResultKind.Ok)
+            {
+                await mailService.SendPurchaseCdnServiceAsync(info.UserName, result.ExpiredAt.ToString("yyy/MM/dd HH:mm:ss"), info.OrderNumber).ConfigureAwait(false);
+            }
+            else
+            {
+                info.Status = result.Kind switch
+                {
+                    TermExtendResultKind.NoSuchUser => AfdianOrderStatus.CdnTermExtendNoSuchUser,
+                    TermExtendResultKind.DbError => AfdianOrderStatus.CdnTermExtendDbError,
+                    _ => info.Status,
+                };
+            }
+        }
         else
         {
             info.Status = AfdianOrderStatus.SkuIdNotSupported;
@@ -92,7 +119,7 @@ public sealed class AfdianWebhookService
         return info;
     }
 
-    private async ValueTask<bool> ValidateOrderInformationAsync(AfdianOrderInformation info)
+    private async ValueTask<bool> ValidateOrderInformationAsync(AfdianOrderInformation info, AfdianAuthorizationOptions afdianOptions)
     {
         QueryOrder query = QueryOrder.Create(afdianOptions.UserId, info.OrderNumber, afdianOptions.UserToken);
         HttpResponseMessage response = await httpClient.PostAsJsonAsync("https://afdian.com/api/open/query-order", query).ConfigureAwait(false);

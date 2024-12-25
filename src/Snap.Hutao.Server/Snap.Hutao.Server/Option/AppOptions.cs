@@ -21,6 +21,8 @@ public sealed class AppOptions
 
     public AfdianOptions Afdian { get; set; } = default!;
 
+    public Afdian2Options Afdian2 { get; set; } = default!;
+
     public DiscordOptions Discord { get; set; } = default!;
 
     public GenshinPizzaHelperOptions GenshinPizzaHelper { get; set; } = default!;

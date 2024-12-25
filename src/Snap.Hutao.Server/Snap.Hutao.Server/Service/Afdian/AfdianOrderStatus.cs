@@ -15,4 +15,6 @@ public enum AfdianOrderStatus
     ValidationResponseSkuDetailNotMatch,
     GachaLogTermExtendNoSuchUser,
     GachaLogTermExtendDbError,
+    CdnTermExtendNoSuchUser,
+    CdnTermExtendDbError,
 }

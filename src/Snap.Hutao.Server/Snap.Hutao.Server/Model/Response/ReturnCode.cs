@@ -17,6 +17,7 @@ namespace Snap.Hutao.Server.Model.Response;
 //    4 - Passport
 //    5 - Licensing
 //    6 - Hosting
+//    7 - CDN
 [SuppressMessage("", "SA1025")]
 public enum ReturnCode
 {
@@ -52,4 +53,5 @@ public enum ReturnCode
     GachaLogDbException = 553001,
     GachaLogExtendDbException = 553002,
     LicenseApprovalFailed = 555001,
+    CdnExtendDbException = 557001,
 }
