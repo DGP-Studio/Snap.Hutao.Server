@@ -95,7 +95,7 @@ public sealed class AfdianWebhookService
     private async ValueTask<bool> ValidateOrderInformationAsync(AfdianOrderInformation info)
     {
         QueryOrder query = QueryOrder.Create(afdianOptions.UserId, info.OrderNumber, afdianOptions.UserToken);
-        HttpResponseMessage response = await httpClient.PostAsJsonAsync("https://afdian.net/api/open/query-order", query).ConfigureAwait(false);
+        HttpResponseMessage response = await httpClient.PostAsJsonAsync("https://afdian.com/api/open/query-order", query).ConfigureAwait(false);
         if (!response.IsSuccessStatusCode)
         {
             info.Status = AfdianOrderStatus.ValidationRequestFailed;
