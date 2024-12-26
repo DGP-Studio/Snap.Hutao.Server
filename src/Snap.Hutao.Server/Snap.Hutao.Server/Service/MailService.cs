@@ -38,13 +38,13 @@ public sealed class MailService
                 ? $"""
                 <p>以下是您注册通行证所需的验证码：</p>
                 <span class="mail-code">{code}</span>
-                <p>该验证码将于<span class="mail-hint"15</span>分钟后过期。</p>
+                <p>该验证码将于<span class="mail-hint">15</span>分钟后过期。</p>
                 <p>如果您没有注册通行证，请忽略此邮件，不会有任何事情发生。</p>
                 """
                 : $"""
                 <p>The following is the verification code you need for the registration of your passport:</p>
                 <span class="mail-code">{code}</span>
-                <p>This code will expire in <span class="mail-hint"15</span> minutes.</p>
+                <p>This code will expire in <span class="mail-hint">15</span> minutes.</p>
                 <p>If you are not trying to register an passport, please ignore this email, nothing will happen.</p>
                 """,
             Footer = language == "CHS"
@@ -71,13 +71,13 @@ public sealed class MailService
                 ? $"""
                 <p>以下是您修改密码所需的验证码：</p>
                 <span class="mail-code">{code}</span>
-                <p>该验证码将于<span class="mail-hint"15</span>分钟后过期。</p>
+                <p>该验证码将于<span class="mail-hint">15</span>分钟后过期。</p>
                 <p>如果您没有重置密码，请忽略此邮件，不会有任何事情发生。</p>
                 """
                 : $"""
                 <p>The following is the verification code you need to change your password:</p>
                 <span class="mail-code">{code}</span>
-                <p>This code will expire in <span class="mail-hint"15</span> minutes.</p>
+                <p>This code will expire in <span class="mail-hint">15</span> minutes.</p>
                 <p>If you are not trying to reset your password, please ignore this email, nothing will happen.</p>
                 """,
             Footer = language == "CHS"
@@ -104,13 +104,13 @@ public sealed class MailService
                 ? $"""
                 <p>以下是您修改邮箱所需的验证码：</p>
                 <span class="mail-code">{code}</span>
-                <p>该验证码将于<span class="mail-hint"15</span>分钟后过期。</p>
+                <p>该验证码将于<span class="mail-hint">15</span>分钟后过期。</p>
                 <p>如果您没有修改邮箱，请忽略此邮件，不会有任何事情发生。</p>
                 """
                 : $"""
                 <p>The following is the verification code you need to change your email:</p>
                 <span class="mail-code">{code}</span>
-                <p>This code will expire in <span class="mail-hint"15</span> minutes.</p>
+                <p>This code will expire in <span class="mail-hint">15</span> minutes.</p>
                 <p>If you are not trying to change your email, please ignore this emai, nothing will happen.</p>
                 """,
             Footer = language == "CHS"
@@ -138,14 +138,14 @@ public sealed class MailService
                 <p><b style="font-size: 20px;">请注意：注销通行证的操作是不可逆的</b></p>
                 <p>以下是您注销通行证所需的验证码：</p>
                 <span class="mail-code">{code}</span>
-                <p>该验证码将于<span class="mail-hint"15</span>分钟后过期。</p>
+                <p>该验证码将于<span class="mail-hint">15</span>分钟后过期。</p>
                 <p>如果您没有注销通行证，请忽略此邮件，不会有任何事情发生。</p>
                 """
                 : $"""
                 <p><b style="font-size: 20px;">Please note: The operation of deleting your passport is not recoverable.</b></p>
                 <p>The following is the verification code you need to delete your passport:</p>
                 <span class="mail-code">{code}</span>
-                <p>This code will expire in <span class="mail-hint"15</span> minutes.</p>
+                <p>This code will expire in <span class="mail-hint">15</span> minutes.</p>
                 <p>If you are not trying to delete your passport, please ignore this email, nothing will happen.</p>
                 """,
             Footer = language == "CHS"
