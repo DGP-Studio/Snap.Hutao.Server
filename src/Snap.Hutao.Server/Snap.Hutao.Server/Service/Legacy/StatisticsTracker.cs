@@ -331,6 +331,9 @@ public class StatisticsTracker
             avatarAvatarBuildCounter.GetOrNew(team.Position3).IncreaseOne(team.Position1);
             avatarAvatarBuildCounter.GetOrNew(team.Position3).IncreaseOne(team.Position2);
             avatarAvatarBuildCounter.GetOrNew(team.Position3).IncreaseOne(team.Position4);
+            avatarAvatarBuildCounter.GetOrNew(team.Position4).IncreaseOne(team.Position1);
+            avatarAvatarBuildCounter.GetOrNew(team.Position4).IncreaseOne(team.Position2);
+            avatarAvatarBuildCounter.GetOrNew(team.Position4).IncreaseOne(team.Position3);
         }
         else if (team.Count == 3)
         {
