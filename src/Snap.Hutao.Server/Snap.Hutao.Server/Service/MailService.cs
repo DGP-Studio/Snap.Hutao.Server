@@ -1,6 +1,8 @@
 // Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
+using MailKit.Net.Smtp;
+using MimeKit;
 using Snap.Hutao.Server.Option;
 
 namespace Snap.Hutao.Server.Service;
@@ -36,15 +38,17 @@ public sealed class MailService
                 ? $"""
                 <p>以下是您注册通行证所需的验证码：</p>
                 <span class="mail-code">{code}</span>
+                <p>该验证码将于<span class="mail-hint"15</span>分钟后过期。</p>
                 <p>如果您没有注册通行证，请忽略此邮件，不会有任何事情发生。</p>
                 """
                 : $"""
-                <p>Here is the verification code you need for registering your passport:</p>
+                <p>The following is the verification code you need for the registration of your passport:</p>
                 <span class="mail-code">{code}</span>
-                <p>If you did not register an passport, please ignore this email, nothing will happen.</p>
+                <p>This code will expire in <span class="mail-hint"15</span> minutes.</p>
+                <p>If you are not trying to register an passport, please ignore this email, nothing will happen.</p>
                 """,
             Footer = language == "CHS"
-                ? "该邮件是 DGP Studio 系统自动发送的，请勿回复"
+                ? "该邮件由 DGP Studio 系统自动生成，请勿回复"
                 : "This email is automatically sent by the DGP Studio system, please do not reply",
         };
 
@@ -67,15 +71,50 @@ public sealed class MailService
                 ? $"""
                 <p>以下是您修改密码所需的验证码：</p>
                 <span class="mail-code">{code}</span>
+                <p>该验证码将于<span class="mail-hint"15</span>分钟后过期。</p>
                 <p>如果您没有重置密码，请忽略此邮件，不会有任何事情发生。</p>
                 """
                 : $"""
                 <p>The following is the verification code you need to change your password:</p>
                 <span class="mail-code">{code}</span>
-                <p>If you did not reset your password, please ignore this email, nothing will happen.</p>
+                <p>This code will expire in <span class="mail-hint"15</span> minutes.</p>
+                <p>If you are not trying to reset your password, please ignore this email, nothing will happen.</p>
                 """,
             Footer = language == "CHS"
-                ? "该邮件是 DGP Studio 系统自动发送的，请勿回复"
+                ? "该邮件由 DGP Studio 系统自动生成，请勿回复"
+                : "This email is automatically sent by the DGP Studio system, please do not reply",
+        };
+
+        return SendMailAsync(options);
+    }
+
+    public Task SendResetUsernameVerifyCodeAsync(string emailAddress, string code, string language = "CHS")
+    {
+        logger.LogInformation("Send ResetPassword Mail to [{Email}] with [{Code}]", emailAddress, code);
+        MailOptions options = new()
+        {
+            Subject = language == "CHS"
+                ? "Snap Hutao 通行证安全"
+                : "Snap Hutao Passport Security",
+            Address = emailAddress,
+            Title = language == "CHS"
+                ? "您正在修改 Snap Hutao 通行证邮箱"
+                : "You are changing your Snap Hutao passport email",
+            RawContent = language == "CHS"
+                ? $"""
+                <p>以下是您修改邮箱所需的验证码：</p>
+                <span class="mail-code">{code}</span>
+                <p>该验证码将于<span class="mail-hint"15</span>分钟后过期。</p>
+                <p>如果您没有修改邮箱，请忽略此邮件，不会有任何事情发生。</p>
+                """
+                : $"""
+                <p>The following is the verification code you need to change your email:</p>
+                <span class="mail-code">{code}</span>
+                <p>This code will expire in <span class="mail-hint"15</span> minutes.</p>
+                <p>If you are not trying to change your email, please ignore this emai, nothing will happen.</p>
+                """,
+            Footer = language == "CHS"
+                ? "该邮件由 DGP Studio 系统自动生成，请勿回复"
                 : "This email is automatically sent by the DGP Studio system, please do not reply",
         };
 
@@ -96,19 +135,21 @@ public sealed class MailService
                 : "You are deleting your Snap Hutao Passport",
             RawContent = language == "CHS"
                 ? $"""
-                <p><b>请注意：注销通行证的操作是不可逆的</b></p>
+                <p><b style="font-size: 20px;">请注意：注销通行证的操作是不可逆的</b></p>
                 <p>以下是您注销通行证所需的验证码：</p>
                 <span class="mail-code">{code}</span>
+                <p>该验证码将于<span class="mail-hint"15</span>分钟后过期。</p>
                 <p>如果您没有注销通行证，请忽略此邮件，不会有任何事情发生。</p>
                 """
                 : $"""
-                <p><b>Please note: The operation of delete your passport is not recoverable.</b></p>
+                <p><b style="font-size: 20px;">Please note: The operation of deleting your passport is not recoverable.</b></p>
                 <p>The following is the verification code you need to delete your passport:</p>
                 <span class="mail-code">{code}</span>
-                <p>If you did not delete your passport, please ignore this email, nothing will happen.</p>
+                <p>This code will expire in <span class="mail-hint"15</span> minutes.</p>
+                <p>If you are not trying to delete your passport, please ignore this email, nothing will happen.</p>
                 """,
             Footer = language == "CHS"
-                ? "该邮件是 DGP Studio 系统自动发送的，请勿回复"
+                ? "该邮件由 DGP Studio 系统自动生成，请勿回复"
                 : "This email is automatically sent by the DGP Studio system, please do not reply",
         };
 
@@ -125,21 +166,52 @@ public sealed class MailService
                 : "Snap Hutao Cloud Service",
             Address = emailAddress,
             Title = language == "CHS"
-                ? "感谢您购买 Snap Hutao 祈愿记录上传服务"
-                : "Thank you for purchasing Snap Hutao Wish Record Backup Service",
+                ? "感谢您赞助 Snap Hutao 祈愿记录上传服务"
+                : "Thank you for sponsor Snap Hutao Wish Record Backup Service",
             RawContent = language == "CHS"
                 ? $"""
                 <p>服务有效期至</p>
-                <span class="mail-code">{expireAt}</span>
-                <p>请妥善保存此邮件，订单编号：{tradeNumber}</p>
+                <span class="mail-date">{expireAt}</span>
+                <p>请妥善保存此邮件，订单编号：<span class="mail-hint">{tradeNumber}</span></p>
                 """
                 : $"""
                 <p>The service is valid until</p>
-                <span class="mail-code">{expireAt}</span>
+                <span class="mail-date">{expireAt}</span>
                 <p>Please keep this email safe, order number: {tradeNumber}</p>
                 """,
             Footer = language == "CHS"
-                ? "该邮件是 DGP Studio 系统自动发送的，请勿回复"
+                ? "该邮件由 DGP Studio 系统自动生成，请勿回复"
+                : "This email is automatically sent by the DGP Studio system, please do not reply",
+        };
+
+        return SendMailAsync(options);
+    }
+
+    public Task SendPurchaseCdnServiceAsync(string emailAddress, string expireAt, string tradeNumber, string language = "CHS")
+    {
+        logger.LogInformation("Send CDN Mail to [{Email}] with [{Number}]", emailAddress, tradeNumber);
+        MailOptions options = new()
+        {
+            Subject = language == "CHS"
+                ? "胡桃云服务"
+                : "Snap Hutao Cloud Service",
+            Address = emailAddress,
+            Title = language == "CHS"
+                ? "感谢您赞助 Snap Hutao 胡桃云 CDN 更新加速服务"
+                : "Thank you for sponsor Snap Hutao Cloud CDN Update Acceleration Service",
+            RawContent = language == "CHS"
+                ? $"""
+                <p>服务有效期至</p>
+                <span class="mail-date">{expireAt}</span>
+                <p>请妥善保存此邮件，订单编号：<span class="mail-hint">{tradeNumber}</span></p>
+                """
+                : $"""
+                <p>The service is valid until</p>
+                <span class="mail-date">{expireAt}</span>
+                <p>Please keep this email safe, order number: <span class="mail-hint">{tradeNumber}</span></p>
+                """,
+            Footer = language == "CHS"
+                ? "该邮件由 DGP Studio 系统自动生成，请勿回复"
                 : "This email is automatically sent by the DGP Studio system, please do not reply",
         };
 
@@ -158,10 +230,10 @@ public sealed class MailService
                 ? "胡桃开放平台开发者申请"
                 : "Snap Hutao Open Platform Developer Application",
             RawContent = language == "CHS"
-                ? $"{emailAddress}，你的开发者许可申请已经通过"
-                : $"{emailAddress}, your developer license application has been approved",
+                ? $"<span class="mail-hint">{emailAddress}</span>，你的开发者许可申请已经通过"
+                : $"<span class="mail-hint">{emailAddress}</span>, your developer license application has been approved",
             Footer = language == "CHS"
-                ? "该邮件是 DGP Studio 系统自动发送的，请勿回复"
+                ? "该邮件由 DGP Studio 系统自动生成，请勿回复"
                 : "This email is automatically sent by the DGP Studio system, please do not reply",
         };
 
@@ -182,17 +254,17 @@ public sealed class MailService
                 : "Snap Hutao Open Platform Developer Application",
             RawContent = language == "CHS"
                 ? $"""
-                <p>申请通行证：{userName}</p>
+                <p>申请通行证：<span class="mail-hint">{userName}</span></p>
                 <p>维护网站：<a href="{url}">{url}</a></p>
                 <a href="https://homa.snapgenshin.com/Accession/ApproveOpenSourceLicense?userName={userName}&code={code}">批准</a>
                 """
                 : $"""
-                <p>Application passport: {userName}</p>
+                <p>Application passport: <span class="mail-hint">{userName}</span></p>
                 <p>Maintenance website: <a href="{url}">{url}</a></p>
                 <a href="https://homa.snapgenshin.com/Accession/ApproveOpenSourceLicense?userName={userName}&code={code}">Approve</a>
                 """,
             Footer = language == "CHS"
-                ? "该邮件是 DGP Studio 系统自动发送的，请勿回复"
+                ? "该邮件由 DGP Studio 系统自动生成，请勿回复"
                 : "This email is automatically sent by the DGP Studio system, please do not reply",
         };
 
@@ -250,22 +322,51 @@ public sealed class MailService
 
                     #mail-content {
                         width: 100%;
-                        text-align: left;
+                        display: flex;
                         white-space: pre-wrap;
+                        flex-direction: column;
+                        align-items: flex-start;
+                        justify-content: center;
+                        text-align: left;
                     }
 
                     .mail-code {
-                        font-family:'Monaco', monospace;
-                        border:1px solid #DAE1E9;
-                        letter-spacing:2px;
-                        padding:5px 8px;
-                        border-radius:4px;
-                        background-color:#F4F7FA;
-                        color:#2E7BC4;
+                        font-family: 'Monaco', monospace;
+                        border: 1px solid #DAE1E9;
+                        letter-spacing: 4px;
+                        padding: 20px 8px;
+                        border-radius: 4px;
+                        background-color: #F4F7FA;
+                        color: #3a9aed;
                         margin: auto;
                         display: block;
-                        width: 25%;
+                        width: 60%;
                         text-align: center;
+                        font-weight: bold;
+                        font-size: 30px;
+                    }
+
+                    .mail-date {
+                        position: relative;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        font-family: 'Monaco', monospace;
+                        border: 1px solid #DAE1E9;
+                        padding: 20px 8px;
+                        border-radius: 4px;
+                        background-color: #F4F7FA;
+                        color: #febd2b;
+                        width: 100%;
+                        box-sizing: border-box;
+                        text-align: center;
+                        font-weight: bold;
+                        font-size: 20px;
+                    }
+
+                    .mail-hint {
+                        font-weight: bold;
+                        color: #fd6243;
                     }
 
                     #mail-footer {
@@ -291,7 +392,7 @@ public sealed class MailService
                 </div>
                 <div id="mail-footer">
                     <span>{{options.Footer}}</span>
-                    <span>&copy; 2023 <a href="https://github.com/DGP Studio">DGP Studio</a> | <a href="https://github.com/DGP Studio/Snap.Hutao">Snap Hutao</a> Dev Team</span>
+                    <span>&copy; 2024 <a href="https://github.com/DGP-Studio">DGP Studio</a> | <a href="https://github.com/DGP-Studio/Snap.Hutao">Snap Hutao</a> Dev Team</span>
                 </div>
             </div>
             </body>
@@ -299,7 +400,12 @@ public sealed class MailService
             """;
     }
 
-    private async Task SendMailAsync(MailOptions options)
+    private Task SendMailAsync(MailOptions options)
+    {
+        return SendMimeMailAsync(options);
+    }
+
+    private async Task SendHttpMailAsync(MailOptions options)
     {
         using (HttpClient httpClient = httpClientFactory.CreateClient())
         {
@@ -313,6 +419,34 @@ public sealed class MailService
 
             httpClient.DefaultRequestHeaders.Authorization = new("SECRET", mailerSecret);
             await httpClient.PostAsJsonAsync("https://mailer.snapgenshin.cn/api/sendEmail", data).ConfigureAwait(false);
+        }
+    }
+
+    private async Task SendMimeMailAsync(MailOptions options)
+    {
+        MimeMessage mimeMessage = new()
+        {
+            Subject = options.Subject,
+            From =
+            {
+                new MailboxAddress("DGP Studio", smtpOptions.UserName),
+            },
+            To =
+            {
+                new MailboxAddress(options.Address, options.Address),
+            },
+            Body = new TextPart("html")
+            {
+                Text = ComposeMailBody(options),
+            },
+        };
+
+        using (SmtpClient client = new())
+        {
+            await client.ConnectAsync(smtpOptions.Server).ConfigureAwait(false);
+            await client.AuthenticateAsync(smtpOptions.UserName, smtpOptions.Password).ConfigureAwait(false);
+            await client.SendAsync(mimeMessage).ConfigureAwait(false);
+            await client.DisconnectAsync(true).ConfigureAwait(false);
         }
     }
 
