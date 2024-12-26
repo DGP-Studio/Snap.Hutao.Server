@@ -177,7 +177,7 @@ public sealed class MailService
                 : $"""
                 <p>The service is valid until</p>
                 <span class="mail-date">{expireAt}</span>
-                <p>Please keep this email safe, order number: {tradeNumber}</p>
+                <p>Please keep this email safe, order number: <span class="mail-hint">{tradeNumber}</span></p>
                 """,
             Footer = language == "CHS"
                 ? "该邮件由 DGP Studio 系统自动生成，请勿回复"
