@@ -170,10 +170,10 @@ public class PassportController : ControllerBase
         Passport passport = new()
         {
             UserName = userName,
-            NewUserName = passportService.Decrypt(request.NewUserName),
+            NewUserName = request.NewUserName,
         };
 
-        PassportResult result = await passportService.ResetPasswordAsync(passport).ConfigureAwait(false);
+        PassportResult result = await passportService.ResetUsernameAsync(passport).ConfigureAwait(false);
 
         return result.Success
             ? Response<string>.Success(result.Message, result.LocalizationKey!, result.Token)
