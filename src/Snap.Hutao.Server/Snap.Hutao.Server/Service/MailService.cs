@@ -38,13 +38,13 @@ public sealed class MailService
                 ? $"""
                 <p>以下是您注册通行证所需的验证码：</p>
                 <span class="mail-code">{code}</span>
-                <p>该验证码将于15分钟后过期。</p>
+                <p>该验证码将于<span class="mail-hint">15</span>分钟后过期。</p>
                 <p>如果您没有注册通行证，请忽略此邮件，不会有任何事情发生。</p>
                 """
                 : $"""
                 <p>The following is the verification code you need for the registration of your passport:</p>
                 <span class="mail-code">{code}</span>
-                <p>This code will expire in 15 minutes.</p>
+                <p>This code will expire in <span class="mail-hint">15</span> minutes.</p>
                 <p>If you are not trying to register an passport, please ignore this email, nothing will happen.</p>
                 """,
             Footer = language == "CHS"
@@ -71,14 +71,14 @@ public sealed class MailService
                 ? $"""
                 <p>以下是您修改密码所需的验证码：</p>
                 <span class="mail-code">{code}</span>
-                <p>该验证码将于15分钟后过期。</p>
+                <p>该验证码将于<span class="mail-hint">15</span>分钟后过期。</p>
                 <p>如果您没有重置密码，请忽略此邮件，不会有任何事情发生。</p>
                 """
                 : $"""
                 <p>The following is the verification code you need to change your password:</p>
                 <span class="mail-code">{code}</span>
-                <p>This code will expire in 15 minutes.</p>
-                <p>If you are not trying to reset your password, please ignore this emai, nothing will happen.</p>
+                <p>This code will expire in <span class="mail-hint">15</span> minutes.</p>
+                <p>If you are not trying to reset your password, please ignore this email, nothing will happen.</p>
                 """,
             Footer = language == "CHS"
                 ? "该邮件由 DGP Studio 系统自动生成，请勿回复"
@@ -104,13 +104,13 @@ public sealed class MailService
                 ? $"""
                 <p>以下是您修改邮箱所需的验证码：</p>
                 <span class="mail-code">{code}</span>
-                <p>该验证码将于15分钟后过期。</p>
+                <p>该验证码将于<span class="mail-hint">15</span>分钟后过期。</p>
                 <p>如果您没有修改邮箱，请忽略此邮件，不会有任何事情发生。</p>
                 """
                 : $"""
                 <p>The following is the verification code you need to change your email:</p>
                 <span class="mail-code">{code}</span>
-                <p>This code will expire in 15 minutes.</p>
+                <p>This code will expire in <span class="mail-hint">15</span> minutes.</p>
                 <p>If you are not trying to change your email, please ignore this emai, nothing will happen.</p>
                 """,
             Footer = language == "CHS"
@@ -138,14 +138,14 @@ public sealed class MailService
                 <p><b style="font-size: 20px;">请注意：注销通行证的操作是不可逆的</b></p>
                 <p>以下是您注销通行证所需的验证码：</p>
                 <span class="mail-code">{code}</span>
-                <p>该验证码将于15分钟后过期。</p>
+                <p>该验证码将于<span class="mail-hint">15</span>分钟后过期。</p>
                 <p>如果您没有注销通行证，请忽略此邮件，不会有任何事情发生。</p>
                 """
                 : $"""
                 <p><b style="font-size: 20px;">Please note: The operation of deleting your passport is not recoverable.</b></p>
                 <p>The following is the verification code you need to delete your passport:</p>
                 <span class="mail-code">{code}</span>
-                <p>This code will expire in 15 minutes.</p>
+                <p>This code will expire in <span class="mail-hint">15</span> minutes.</p>
                 <p>If you are not trying to delete your passport, please ignore this email, nothing will happen.</p>
                 """,
             Footer = language == "CHS"
@@ -166,18 +166,18 @@ public sealed class MailService
                 : "Snap Hutao Cloud Service",
             Address = emailAddress,
             Title = language == "CHS"
-                ? "感谢您购买 Snap Hutao 祈愿记录上传服务"
-                : "Thank you for purchasing Snap Hutao Wish Record Backup Service",
+                ? "感谢您赞助 Snap Hutao 祈愿记录上传服务"
+                : "Thank you for sponsor Snap Hutao Wish Record Backup Service",
             RawContent = language == "CHS"
                 ? $"""
                 <p>服务有效期至</p>
-                <span class="mail-code">{expireAt}</span>
-                <p>请妥善保存此邮件，订单编号：{tradeNumber}</p>
+                <span class="mail-date">{expireAt}</span>
+                <p>请妥善保存此邮件，订单编号：<span class="mail-hint">{tradeNumber}</span></p>
                 """
                 : $"""
                 <p>The service is valid until</p>
-                <span class="mail-code">{expireAt}</span>
-                <p>Please keep this email safe, order number: {tradeNumber}</p>
+                <span class="mail-date">{expireAt}</span>
+                <p>Please keep this email safe, order number: <span class="mail-hint">{tradeNumber}</span></p>
                 """,
             Footer = language == "CHS"
                 ? "该邮件由 DGP Studio 系统自动生成，请勿回复"
@@ -197,18 +197,18 @@ public sealed class MailService
                 : "Snap Hutao Cloud Service",
             Address = emailAddress,
             Title = language == "CHS"
-                ? "感谢您购买 Snap Hutao 胡桃云 CDN 更新加速服务"
-                : "Thank you for purchasing Snap Hutao Cloud CDN Update Acceleration Service",
+                ? "感谢您赞助 Snap Hutao 胡桃云 CDN 更新加速服务"
+                : "Thank you for sponsor Snap Hutao Cloud CDN Update Acceleration Service",
             RawContent = language == "CHS"
                 ? $"""
                 <p>服务有效期至</p>
-                <span class="mail-code">{expireAt}</span>
-                <p>请妥善保存此邮件，订单编号：{tradeNumber}</p>
+                <span class="mail-date">{expireAt}</span>
+                <p>请妥善保存此邮件，订单编号：<span class="mail-hint">{tradeNumber}</span></p>
                 """
                 : $"""
                 <p>The service is valid until</p>
-                <span class="mail-code">{expireAt}</span>
-                <p>Please keep this email safe, order number: {tradeNumber}</p>
+                <span class="mail-date">{expireAt}</span>
+                <p>Please keep this email safe, order number: <span class="mail-hint">{tradeNumber}</span></p>
                 """,
             Footer = language == "CHS"
                 ? "该邮件由 DGP Studio 系统自动生成，请勿回复"
@@ -230,8 +230,8 @@ public sealed class MailService
                 ? "胡桃开放平台开发者申请"
                 : "Snap Hutao Open Platform Developer Application",
             RawContent = language == "CHS"
-                ? $"{emailAddress}，你的开发者许可申请已经通过"
-                : $"{emailAddress}, your developer license application has been approved",
+                ? $"<span class="mail-hint">{emailAddress}</span>，你的开发者许可申请已经通过"
+                : $"<span class="mail-hint">{emailAddress}</span>, your developer license application has been approved",
             Footer = language == "CHS"
                 ? "该邮件由 DGP Studio 系统自动生成，请勿回复"
                 : "This email is automatically sent by the DGP Studio system, please do not reply",
@@ -254,12 +254,12 @@ public sealed class MailService
                 : "Snap Hutao Open Platform Developer Application",
             RawContent = language == "CHS"
                 ? $"""
-                <p>申请通行证：{userName}</p>
+                <p>申请通行证：<span class="mail-hint">{userName}</span></p>
                 <p>维护网站：<a href="{url}">{url}</a></p>
                 <a href="https://homa.snapgenshin.com/Accession/ApproveOpenSourceLicense?userName={userName}&code={code}">批准</a>
                 """
                 : $"""
-                <p>Application passport: {userName}</p>
+                <p>Application passport: <span class="mail-hint">{userName}</span></p>
                 <p>Maintenance website: <a href="{url}">{url}</a></p>
                 <a href="https://homa.snapgenshin.com/Accession/ApproveOpenSourceLicense?userName={userName}&code={code}">Approve</a>
                 """,
@@ -322,8 +322,12 @@ public sealed class MailService
 
                     #mail-content {
                         width: 100%;
-                        text-align: left;
+                        display: flex;
                         white-space: pre-wrap;
+                        flex-direction: column;
+                        align-items: flex-start;
+                        justify-content: center;
+                        text-align: left;
                     }
 
                     .mail-code {
@@ -340,6 +344,29 @@ public sealed class MailService
                         text-align: center;
                         font-weight: bold;
                         font-size: 30px;
+                    }
+
+                    .mail-date {
+                        position: relative;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        font-family: 'Monaco', monospace;
+                        border: 1px solid #DAE1E9;
+                        padding: 20px 8px;
+                        border-radius: 4px;
+                        background-color: #F4F7FA;
+                        color: #febd2b;
+                        width: 100%;
+                        box-sizing: border-box;
+                        text-align: center;
+                        font-weight: bold;
+                        font-size: 20px;
+                    }
+
+                    .mail-hint {
+                        font-weight: bold;
+                        color: #fd6243;
                     }
 
                     #mail-footer {

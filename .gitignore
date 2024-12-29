@@ -369,3 +369,6 @@ src/Snap.Hutao.Server/.idea
 
 src/Snap.Hutao.Server/.env
 src/Snap.Hutao.Server/redis
+
+# JetBrains
+.idea/
