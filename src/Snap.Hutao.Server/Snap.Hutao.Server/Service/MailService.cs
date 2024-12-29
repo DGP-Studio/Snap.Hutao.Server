@@ -392,7 +392,7 @@ public sealed class MailService
                 </div>
                 <div id="mail-footer">
                     <span>{{options.Footer}}</span>
-                    <span>&copy; 2024 <a href="https://github.com/DGP-Studio">DGP Studio</a> | <a href="https://github.com/DGP-Studio/Snap.Hutao">Snap Hutao</a> Dev Team</span>
+                    <span>&copy; 2024~2025 <a href="https://github.com/DGP-Studio">DGP Studio</a> | <a href="https://github.com/DGP-Studio/Snap.Hutao">Snap Hutao</a> Dev Team</span>
                 </div>
             </div>
             </body>
