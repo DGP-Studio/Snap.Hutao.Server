@@ -24,6 +24,7 @@ public enum ReturnCode
     Success = 0,
     InvalidUploadData = 511001,
     InvalidQueryString = 511002,
+    UserNotLogin = 511003,
     BannedUid = 512001,
     NotCurrentSchedule = 512002,
     GachaLogServiceNotAllowed = 513001,
