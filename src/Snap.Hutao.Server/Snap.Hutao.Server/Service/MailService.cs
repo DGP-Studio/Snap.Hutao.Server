@@ -230,8 +230,8 @@ public sealed class MailService
                 ? "胡桃开放平台开发者申请"
                 : "Snap Hutao Open Platform Developer Application",
             RawContent = language == "CHS"
-                ? $"<span class="mail-hint">{emailAddress}</span>，你的开发者许可申请已经通过"
-                : $"<span class="mail-hint">{emailAddress}</span>, your developer license application has been approved",
+                ? $"""<span class="mail-hint">{emailAddress}</span>，你的开发者许可申请已经通过"""
+                : $"""<span class="mail-hint">{emailAddress}</span>, your developer license application has been approved""",
             Footer = language == "CHS"
                 ? "该邮件由 DGP Studio 系统自动生成，请勿回复"
                 : "This email is automatically sent by the DGP Studio system, please do not reply",
