@@ -19,5 +19,7 @@ public sealed class PassportRequest
 
     public bool IsResetUsername { get; set; }
 
+    public bool IsResetUsernameNew { get; set; }
+
     public bool IsCancelRegistration { get; set; }
 }

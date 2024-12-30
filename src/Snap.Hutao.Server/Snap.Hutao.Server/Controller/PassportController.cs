@@ -91,6 +91,12 @@ public class PassportController : ControllerBase
             return Model.Response.Response.Fail(ReturnCode.VerifyCodeNotAllowed, "请求验证码失败", ServerKeys.ServerPassportVerifyRequestUserAlreadyExisted);
         }
 
+        if (request.IsResetUsernameNew)
+        {
+            await mailService.SendResetUsernameVerifyCodeAsync(userName, code).ConfigureAwait(false);
+            return Model.Response.Response.Success("请求验证码成功", ServerKeys.ServerPassportVerifyRequestSuccess);
+        }
+
         // 默认注册
         await mailService.SendRegistrationVerifyCodeAsync(userName, code).ConfigureAwait(false);
         return Model.Response.Response.Success("请求验证码成功", ServerKeys.ServerPassportVerifyRequestSuccess);
