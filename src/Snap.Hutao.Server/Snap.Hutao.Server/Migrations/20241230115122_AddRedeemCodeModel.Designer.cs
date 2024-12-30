@@ -12,7 +12,7 @@ using Snap.Hutao.Server.Model.Context;
 namespace Snap.Hutao.Server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241229123418_AddRedeemCodeModel")]
+    [Migration("20241230115122_AddRedeemCodeModel")]
     partial class AddRedeemCodeModel
     {
         /// <inheritdoc />
@@ -503,8 +503,17 @@ namespace Snap.Hutao.Server.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<DateTimeOffset>("ExpireTime")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<bool>("IsUsed")
                         .HasColumnType("tinyint(1)");
+
+                    b.Property<uint>("ServiceType")
+                        .HasColumnType("int unsigned");
+
+                    b.Property<uint>("TimesRemain")
+                        .HasColumnType("int unsigned");
 
                     b.Property<uint>("Type")
                         .HasColumnType("int unsigned");
@@ -512,6 +521,9 @@ namespace Snap.Hutao.Server.Migrations
                     b.Property<string>("UseBy")
                         .IsRequired()
                         .HasColumnType("longtext");
+
+                    b.Property<uint>("UseCount")
+                        .HasColumnType("int unsigned");
 
                     b.Property<DateTimeOffset>("UseTime")
                         .HasColumnType("datetime(6)");

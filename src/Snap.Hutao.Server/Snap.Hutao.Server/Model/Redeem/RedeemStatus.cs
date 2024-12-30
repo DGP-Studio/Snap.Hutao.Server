@@ -9,5 +9,7 @@ public enum RedeemStatus
     Invalid,
     NotExists,
     AlreadyUsed,
+    Expired,
+    NotEnough,
     DbError,
 }

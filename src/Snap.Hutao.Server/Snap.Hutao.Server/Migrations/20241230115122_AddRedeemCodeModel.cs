@@ -22,16 +22,20 @@ namespace Snap.Hutao.Server.Migrations
                     Code = table.Column<string>(type: "varchar(24)", maxLength: 24, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Type = table.Column<uint>(type: "int unsigned", nullable: false),
+                    ServiceType = table.Column<uint>(type: "int unsigned", nullable: false),
                     Value = table.Column<int>(type: "int", nullable: false),
-                    IsUsed = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     Description = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Creator = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     CreateTime = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false),
+                    IsUsed = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     UseBy = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    UseTime = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false)
+                    UseTime = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false),
+                    ExpireTime = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false),
+                    UseCount = table.Column<uint>(type: "int unsigned", nullable: false),
+                    TimesRemain = table.Column<uint>(type: "int unsigned", nullable: false)
                 },
                 constraints: table =>
                 {

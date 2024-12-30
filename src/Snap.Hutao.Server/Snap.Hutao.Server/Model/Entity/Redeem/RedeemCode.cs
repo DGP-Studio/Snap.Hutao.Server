@@ -12,12 +12,14 @@ public sealed class RedeemCode
     [StringLength(24)]
     public string Code { get; set; } = default!;
 
-    // 1: Gacha Log, 2: CDN
+    // 0b000: One-time, 0b001: Time-limited, 0b010: Times-limited
+    // Allow bitwise operation
     public uint Type { get; set; }
 
-    public int Value { get; set; }
+    // 1: Gacha Log, 2: CDN
+    public uint ServiceType { get; set; }
 
-    public bool IsUsed { get; set; }
+    public int Value { get; set; }
 
     public string Description { get; set; } = default!;
 
@@ -25,7 +27,27 @@ public sealed class RedeemCode
 
     public DateTimeOffset CreateTime { get; set; }
 
+    #region One-time
+
+    public bool IsUsed { get; set; }
+
     public string UseBy { get; set; } = default!;
 
     public DateTimeOffset UseTime { get; set; }
+
+    #endregion
+
+    #region Time-limited
+
+    public DateTimeOffset ExpireTime { get; set; }
+
+    public uint UseCount { get; set; }
+
+    #endregion
+
+    #region Times-limited
+
+    public uint TimesRemain { get; set; }
+
+    #endregion
 }

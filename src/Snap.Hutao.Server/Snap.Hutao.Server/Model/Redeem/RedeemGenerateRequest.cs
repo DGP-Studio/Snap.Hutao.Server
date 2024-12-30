@@ -11,11 +11,20 @@ public sealed class RedeemGenerateRequest
     [JsonPropertyName("t")]
     public uint Type { get; set; }
 
+    [JsonPropertyName("s")]
+    public uint ServiceType { get; set; }
+
     [JsonPropertyName("v")]
     public int Value { get; set; }
 
     [JsonPropertyName("desc")]
     public string Description { get; set; } = default!;
+
+    [JsonPropertyName("expire")]
+    public DateTimeOffset ExpireTime { get; set; }
+
+    [JsonPropertyName("times")]
+    public uint Times { get; set; }
 
     [JsonIgnore]
     public string Creator { get; set; } = default!;
