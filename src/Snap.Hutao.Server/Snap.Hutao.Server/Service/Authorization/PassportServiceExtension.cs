@@ -19,4 +19,11 @@ public static class PassportServiceExtension
         verifyCode = passportService.Decrypt(request.VerifyCode);
         return plainUserName.ToUpperInvariant();
     }
+
+    public static string DecryptNewNormalizedUserNameAndNewVerifyCode(this PassportService passportService, PassportRequest request, out string plainUserName, out string verifyCode)
+    {
+        plainUserName = passportService.Decrypt(request.NewUserName);
+        verifyCode = passportService.Decrypt(request.NewVerifyCode);
+        return plainUserName.ToUpperInvariant();
+    }
 }

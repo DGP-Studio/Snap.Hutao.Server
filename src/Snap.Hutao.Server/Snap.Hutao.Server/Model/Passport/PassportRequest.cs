@@ -13,6 +13,8 @@ public sealed class PassportRequest
 
     public string VerifyCode { get; set; } = default!;
 
+    public string NewVerifyCode { get; set; } = default!;
+
     public bool IsResetPassword { get; set; }
 
     public bool IsResetUsername { get; set; }
