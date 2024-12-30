@@ -54,7 +54,7 @@ public sealed class RedeemService
             }
         }
 
-        if ((code.Type & 0b001U) > 0U)
+        if (code.Type.HasFlag(RedeemCodeType.TimeLimited))
         {
             if (code.ExpireTime < DateTimeOffset.UtcNow)
             {
@@ -69,7 +69,7 @@ public sealed class RedeemService
             }
         }
 
-        if ((code.Type & 0b010U) > 0U)
+        if (code.Type.HasFlag(RedeemCodeType.TimesLimited))
         {
             if (code.TimesRemain is 0U)
             {
@@ -103,12 +103,12 @@ public sealed class RedeemService
                 CreateTime = DateTimeOffset.UtcNow,
             };
 
-            if ((req.Type & 0b001U) > 0U)
+            if (code.Type.HasFlag(RedeemCodeType.TimeLimited))
             {
                 code.ExpireTime = req.ExpireTime;
             }
 
-            if ((req.Type & 0b010U) > 0U)
+            if (code.Type.HasFlag(RedeemCodeType.TimesLimited))
             {
                 code.TimesRemain = req.Times;
             }
@@ -124,8 +124,8 @@ public sealed class RedeemService
     {
         IExpireService expireService = code.ServiceType switch
         {
-            1 => gachaLogExpireService,
-            2 => cdnExpireService,
+            RedeemCodeTargetServiceType.GachaLog => gachaLogExpireService,
+            RedeemCodeTargetServiceType.Cdn => cdnExpireService,
             _ => throw new NotSupportedException(),
         };
 

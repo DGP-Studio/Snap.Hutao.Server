@@ -12,12 +12,9 @@ public sealed class RedeemCode
     [StringLength(24)]
     public string Code { get; set; } = default!;
 
-    // 0b000: One-time, 0b001: Time-limited, 0b010: Times-limited
-    // Allow bitwise operation
-    public uint Type { get; set; }
+    public RedeemCodeType Type { get; set; }
 
-    // 1: Gacha Log, 2: CDN
-    public uint ServiceType { get; set; }
+    public RedeemCodeTargetServiceType ServiceType { get; set; }
 
     public int Value { get; set; }
 
