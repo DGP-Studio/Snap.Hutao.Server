@@ -32,7 +32,7 @@ public class RedeemController : ControllerBase
             HutaoUser? user = await this.GetUserAsync(appDbContext.Users).ConfigureAwait(false);
             if (user is null)
             {
-                return Model.Response.Response.Fail(ReturnCode.UserNotLogin, "未登录");
+                return Model.Response.Response.Fail(ReturnCode.NoUserIdentity, "未登录");
             }
 
             req.Username = user.UserName;

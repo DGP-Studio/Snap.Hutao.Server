@@ -24,7 +24,6 @@ public enum ReturnCode
     Success = 0,
     InvalidUploadData = 511001,
     InvalidQueryString = 511002,
-    UserNotLogin = 511003,
     BannedUid = 512001,
     NotCurrentSchedule = 512002,
     GachaLogServiceNotAllowed = 513001,
@@ -35,7 +34,8 @@ public enum ReturnCode
     InternalGithubAuthException = 514004,
     InvalidGithubAuthState = 514005,
     GithubAlreadyAuthorized = 514006,
-    GithubAuthrizationCanceled = 514007,
+    GithubAuthorizationCanceled = 514007,
+    NoUserIdentity = 514008,
     ReCaptchaVerifyFailed = 515001,
     ServiceKeyInvalid = 516001,
     UserNameNotExists = 516002,
@@ -54,5 +54,6 @@ public enum ReturnCode
     GachaLogDbException = 553001,
     GachaLogExtendDbException = 553002,
     LicenseApprovalFailed = 555001,
+
     CdnExtendDbException = 557001,
 }
