@@ -11,5 +11,6 @@ public enum RedeemStatus
     AlreadyUsed,
     Expired,
     NotEnough,
+    NoSuchUser,
     DbError,
 }

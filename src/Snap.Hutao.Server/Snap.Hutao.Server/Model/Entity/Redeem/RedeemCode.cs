@@ -24,21 +24,11 @@ public sealed class RedeemCode
 
     public DateTimeOffset CreateTime { get; set; }
 
-    #region One-time
-
-    public bool IsUsed { get; set; }
-
-    public string UseBy { get; set; } = default!;
-
-    public DateTimeOffset UseTime { get; set; }
-
-    #endregion
+    public List<RedeemCodeUseItem> UseItems { get; set; } = default!;
 
     #region Time-limited
 
     public DateTimeOffset ExpireTime { get; set; }
-
-    public uint UseCount { get; set; }
 
     #endregion
 

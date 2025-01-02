@@ -1,6 +1,7 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
+using Microsoft.EntityFrameworkCore.Storage;
 using Snap.Hutao.Server.Core;
 using Snap.Hutao.Server.Extension;
 using Snap.Hutao.Server.Model.Context;
@@ -41,25 +42,17 @@ public sealed class RedeemService
                 return new(RedeemStatus.NotExists);
             }
 
+            await appDbContext.Entry(code).Collection(c => c.UseItems).LoadAsync().ConfigureAwait(false);
+
             // One-time logic is lifted
             if (code.Type is RedeemCodeType.OneTime)
             {
-                if (code.IsUsed)
+                if (code.UseItems.Count > 0)
                 {
                     return new(RedeemStatus.AlreadyUsed);
                 }
 
-                if (await this.ExtendTermForUserNameByCodeAsync(request.Username, code).ConfigureAwait(false) is { Kind: TermExtendResultKind.Ok } result)
-                {
-                    code.IsUsed = true;
-                    code.UseBy = request.Username;
-                    code.UseTime = DateTimeOffset.UtcNow;
-                    code.UseCount++; // Although it's one-time, we still want to count it
-                    await appDbContext.RedeemCodes.UpdateAndSaveAsync(code);
-                    return new(RedeemStatus.Ok, code.ServiceType, result.ExpiredAt);
-                }
-
-                return new(RedeemStatus.DbError);
+                return await ExtendTermForUserNameByCodeAsync(request.Username, code).ConfigureAwait(false);
             }
 
             if (code.Type.HasFlag(RedeemCodeType.TimeLimited))
@@ -72,20 +65,13 @@ public sealed class RedeemService
 
             if (code.Type.HasFlag(RedeemCodeType.TimesLimited))
             {
-                if (code.TimesAllowed <= code.UseCount)
+                if (code.TimesAllowed <= code.UseItems.Count)
                 {
                     return new(RedeemStatus.NotEnough);
                 }
             }
 
-            if (await this.ExtendTermForUserNameByCodeAsync(request.Username, code).ConfigureAwait(false) is { Kind: TermExtendResultKind.Ok } result2)
-            {
-                code.UseCount++;
-                await appDbContext.RedeemCodes.UpdateAndSaveAsync(code);
-                return new(RedeemStatus.Ok, code.ServiceType, result2.ExpiredAt);
-            }
-
-            return new(RedeemStatus.DbError);
+            return await ExtendTermForUserNameByCodeAsync(request.Username, code).ConfigureAwait(false);
         }
     }
 
@@ -118,23 +104,51 @@ public sealed class RedeemService
             // Avoid duplicate code
             if (!await appDbContext.RedeemCodes.AnyAsync(c => c.Code == code.Code).ConfigureAwait(false))
             {
-                codes.Add(code.Code);
-                await appDbContext.RedeemCodes.AddAndSaveAsync(code).ConfigureAwait(false);
+                using (IDbContextTransaction transaction = await appDbContext.Database.BeginTransactionAsync().ConfigureAwait(false))
+                {
+                    codes.Add(code.Code);
+                    await appDbContext.RedeemCodes.AddAndSaveAsync(code).ConfigureAwait(false);
+                    await transaction.CommitAsync().ConfigureAwait(false);
+                }
             }
         }
 
         return new(codes);
     }
 
-    private ValueTask<TermExtendResult> ExtendTermForUserNameByCodeAsync(string username, RedeemCode code)
+    private async ValueTask<RedeemUseResponse> ExtendTermForUserNameByCodeAsync(string username, RedeemCode code)
     {
-        IExpireService expireService = code.ServiceType switch
+        using (IDbContextTransaction transaction = await appDbContext.Database.BeginTransactionAsync().ConfigureAwait(false))
         {
-            RedeemCodeTargetServiceType.GachaLog => gachaLogExpireService,
-            RedeemCodeTargetServiceType.Cdn => cdnExpireService,
-            _ => throw new NotSupportedException(),
-        };
+            IExpireService expireService = code.ServiceType switch
+            {
+                RedeemCodeTargetServiceType.GachaLog => gachaLogExpireService,
+                RedeemCodeTargetServiceType.Cdn => cdnExpireService,
+                _ => throw new NotSupportedException(),
+            };
 
-        return expireService.ExtendTermForUserNameAsync(username, code.Value);
+            TermExtendResult result = await expireService.ExtendTermForUserNameAsync(username, code.Value).ConfigureAwait(false);
+            if (result.Kind is TermExtendResultKind.NoSuchUser)
+            {
+                return new(RedeemStatus.NoSuchUser);
+            }
+
+            if (result.Kind is TermExtendResultKind.DbError)
+            {
+                return new(RedeemStatus.DbError);
+            }
+
+            RedeemCodeUseItem useItem = new()
+            {
+                RedeemCodeId = code.Id,
+                UseBy = username,
+                UseTime = DateTimeOffset.UtcNow,
+            };
+
+            await appDbContext.RedeemCodeUseItems.AddAndSaveAsync(useItem);
+            await transaction.CommitAsync().ConfigureAwait(false);
+
+            return new(RedeemStatus.Ok, code.ServiceType, result.ExpiredAt);
+        }
     }
 }

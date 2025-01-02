@@ -36,6 +36,8 @@ public sealed class AppDbContext : IdentityDbContext<HutaoUser, IdentityRole<int
     public DbSet<GithubIdentity> GithubIdentities { get; set; } = default!;
 
     public DbSet<RedeemCode> RedeemCodes { get; set; } = default!;
+
+    public DbSet<RedeemCodeUseItem> RedeemCodeUseItems { get; set; } = default!;
     #endregion
 
     #region Telemetry

@@ -12,7 +12,7 @@ using Snap.Hutao.Server.Model.Context;
 namespace Snap.Hutao.Server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241230115122_AddRedeemCodeModel")]
+    [Migration("20250102042600_AddRedeemCodeModel")]
     partial class AddRedeemCodeModel
     {
         /// <inheritdoc />
@@ -506,27 +506,14 @@ namespace Snap.Hutao.Server.Migrations
                     b.Property<DateTimeOffset>("ExpireTime")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<bool>("IsUsed")
-                        .HasColumnType("tinyint(1)");
-
                     b.Property<uint>("ServiceType")
                         .HasColumnType("int unsigned");
 
-                    b.Property<uint>("TimesRemain")
+                    b.Property<uint>("TimesAllowed")
                         .HasColumnType("int unsigned");
 
                     b.Property<uint>("Type")
                         .HasColumnType("int unsigned");
-
-                    b.Property<string>("UseBy")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<uint>("UseCount")
-                        .HasColumnType("int unsigned");
-
-                    b.Property<DateTimeOffset>("UseTime")
-                        .HasColumnType("datetime(6)");
 
                     b.Property<int>("Value")
                         .HasColumnType("int");
@@ -534,6 +521,31 @@ namespace Snap.Hutao.Server.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("redeem_codes");
+                });
+
+            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.Redeem.RedeemCodeUseItem", b =>
+                {
+                    b.Property<uint>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int unsigned");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<uint>("Id"));
+
+                    b.Property<uint>("RedeemCodeId")
+                        .HasColumnType("int unsigned");
+
+                    b.Property<string>("UseBy")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTimeOffset>("UseTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RedeemCodeId");
+
+                    b.ToTable("redeem_code_use_items");
                 });
 
             modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.RequestStatistics", b =>
@@ -996,6 +1008,17 @@ namespace Snap.Hutao.Server.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.Redeem.RedeemCodeUseItem", b =>
+                {
+                    b.HasOne("Snap.Hutao.Server.Model.Entity.Redeem.RedeemCode", "RedeemCode")
+                        .WithMany("UseItems")
+                        .HasForeignKey("RedeemCodeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("RedeemCode");
+                });
+
             modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.RoleCombat.RoleCombatAvatar", b =>
                 {
                     b.HasOne("Snap.Hutao.Server.Model.Entity.RoleCombat.RoleCombatRecord", "Record")
@@ -1071,6 +1094,11 @@ namespace Snap.Hutao.Server.Migrations
                         .IsRequired();
 
                     b.Navigation("Log");
+                });
+
+            modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.Redeem.RedeemCode", b =>
+                {
+                    b.Navigation("UseItems");
                 });
 
             modelBuilder.Entity("Snap.Hutao.Server.Model.Entity.RoleCombat.RoleCombatRecord", b =>
