@@ -1,11 +1,11 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
+using Snap.Hutao.Server.Core;
 using Snap.Hutao.Server.Extension;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity.Redeem;
 using Snap.Hutao.Server.Model.Redeem;
-using Snap.Hutao.Server.Service.Authorization;
 using Snap.Hutao.Server.Service.Expire;
 
 namespace Snap.Hutao.Server.Service.Redeem;
@@ -13,6 +13,7 @@ namespace Snap.Hutao.Server.Service.Redeem;
 // Scoped
 public sealed class RedeemService
 {
+    private static readonly AsyncLock RedeemLock = new();
     private readonly GachaLogExpireService gachaLogExpireService;
     private readonly CdnExpireService cdnExpireService;
     private readonly AppDbContext appDbContext;
@@ -24,67 +25,68 @@ public sealed class RedeemService
         appDbContext = serviceProvider.GetRequiredService<AppDbContext>();
     }
 
+    // TODO: Database operation is not transactional
     public async Task<RedeemUseResponse> UseRedeemCodeAsync(RedeemUseRequest request)
     {
-        ArgumentNullException.ThrowIfNull(request.Username);
-        if (request.Code.Length is not 18)
+        using (await RedeemLock.LockAsync().ConfigureAwait(false))
         {
-            return new(RedeemStatus.Invalid);
-        }
-
-        if (appDbContext.RedeemCodes.SingleOrDefault(c => c.Code == request.Code) is not { } code)
-        {
-            return new(RedeemStatus.NotExists);
-        }
-
-        if (code.Type is 0U)
-        {
-            if (code.IsUsed)
+            ArgumentNullException.ThrowIfNull(request.Username);
+            if (request.Code.Length is not 18)
             {
-                return new(RedeemStatus.AlreadyUsed);
+                return new(RedeemStatus.Invalid);
             }
 
-            if (await this.ExtendTermForUserNameByCodeAsync(request.Username, code).ConfigureAwait(false) is { Kind: TermExtendResultKind.Ok } result)
+            if (appDbContext.RedeemCodes.SingleOrDefault(c => c.Code == request.Code) is not { } code)
             {
-                code.IsUsed = true;
-                code.UseBy = request.Username;
-                code.UseTime = DateTimeOffset.UtcNow;
-                await appDbContext.RedeemCodes.UpdateAndSaveAsync(code);
-                return new(RedeemStatus.Ok, code.ServiceType, result.ExpiredAt);
-            }
-        }
-
-        if (code.Type.HasFlag(RedeemCodeType.TimeLimited))
-        {
-            if (code.ExpireTime < DateTimeOffset.UtcNow)
-            {
-                return new(RedeemStatus.Expired);
+                return new(RedeemStatus.NotExists);
             }
 
-            if (await this.ExtendTermForUserNameByCodeAsync(request.Username, code).ConfigureAwait(false) is { Kind: TermExtendResultKind.Ok } result)
+            // One-time logic is lifted
+            if (code.Type is RedeemCodeType.OneTime)
+            {
+                if (code.IsUsed)
+                {
+                    return new(RedeemStatus.AlreadyUsed);
+                }
+
+                if (await this.ExtendTermForUserNameByCodeAsync(request.Username, code).ConfigureAwait(false) is { Kind: TermExtendResultKind.Ok } result)
+                {
+                    code.IsUsed = true;
+                    code.UseBy = request.Username;
+                    code.UseTime = DateTimeOffset.UtcNow;
+                    code.UseCount++; // Although it's one-time, we still want to count it
+                    await appDbContext.RedeemCodes.UpdateAndSaveAsync(code);
+                    return new(RedeemStatus.Ok, code.ServiceType, result.ExpiredAt);
+                }
+
+                return new(RedeemStatus.DbError);
+            }
+
+            if (code.Type.HasFlag(RedeemCodeType.TimeLimited))
+            {
+                if (code.ExpireTime <= DateTimeOffset.UtcNow)
+                {
+                    return new(RedeemStatus.Expired);
+                }
+            }
+
+            if (code.Type.HasFlag(RedeemCodeType.TimesLimited))
+            {
+                if (code.TimesAllowed <= code.UseCount)
+                {
+                    return new(RedeemStatus.NotEnough);
+                }
+            }
+
+            if (await this.ExtendTermForUserNameByCodeAsync(request.Username, code).ConfigureAwait(false) is { Kind: TermExtendResultKind.Ok } result2)
             {
                 code.UseCount++;
                 await appDbContext.RedeemCodes.UpdateAndSaveAsync(code);
-                return new(RedeemStatus.Ok, code.ServiceType, result.ExpiredAt);
+                return new(RedeemStatus.Ok, code.ServiceType, result2.ExpiredAt);
             }
+
+            return new(RedeemStatus.DbError);
         }
-
-        if (code.Type.HasFlag(RedeemCodeType.TimesLimited))
-        {
-            if (code.TimesRemain is 0U)
-            {
-                return new(RedeemStatus.NotEnough);
-            }
-
-            if (await this.ExtendTermForUserNameByCodeAsync(request.Username, code).ConfigureAwait(false) is { Kind: TermExtendResultKind.Ok } result)
-            {
-                code.TimesRemain--;
-                await appDbContext.RedeemCodes.UpdateAndSaveAsync(code);
-                return new(RedeemStatus.Ok, code.ServiceType, result.ExpiredAt);
-            }
-        }
-
-        return new(RedeemStatus.DbError);
     }
 
     public async Task<RedeemGenerateResponse> GenerateRedeemCodesAsync(RedeemGenerateRequest req)
@@ -110,11 +112,15 @@ public sealed class RedeemService
 
             if (code.Type.HasFlag(RedeemCodeType.TimesLimited))
             {
-                code.TimesRemain = req.Times;
+                code.TimesAllowed = req.Times;
             }
 
-            codes.Add(code.Code);
-            await appDbContext.RedeemCodes.AddAndSaveAsync(code).ConfigureAwait(false);
+            // Avoid duplicate code
+            if (!await appDbContext.RedeemCodes.AnyAsync(c => c.Code == code.Code).ConfigureAwait(false))
+            {
+                codes.Add(code.Code);
+                await appDbContext.RedeemCodes.AddAndSaveAsync(code).ConfigureAwait(false);
+            }
         }
 
         return new(codes);

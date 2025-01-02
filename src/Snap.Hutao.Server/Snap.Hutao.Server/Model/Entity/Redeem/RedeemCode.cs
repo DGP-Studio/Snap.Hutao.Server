@@ -44,7 +44,7 @@ public sealed class RedeemCode
 
     #region Times-limited
 
-    public uint TimesRemain { get; set; }
+    public uint TimesAllowed { get; set; }
 
     #endregion
 }
