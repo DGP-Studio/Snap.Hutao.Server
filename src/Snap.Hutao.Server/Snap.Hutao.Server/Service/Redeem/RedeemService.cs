@@ -44,17 +44,6 @@ public sealed class RedeemService
 
             await appDbContext.Entry(code).Collection(c => c.UseItems).LoadAsync().ConfigureAwait(false);
 
-            // One-time logic is lifted
-            if (code.Type is RedeemCodeType.OneTime)
-            {
-                if (code.UseItems.Count > 0)
-                {
-                    return new(RedeemStatus.AlreadyUsed);
-                }
-
-                return await ExtendTermForUserNameByCodeAsync(request.Username, code).ConfigureAwait(false);
-            }
-
             if (code.Type.HasFlag(RedeemCodeType.TimeLimited))
             {
                 if (code.ExpireTime <= DateTimeOffset.UtcNow)
@@ -67,6 +56,11 @@ public sealed class RedeemService
             {
                 if (code.TimesAllowed <= code.UseItems.Count)
                 {
+                    if (code.TimesAllowed == 1)
+                    {
+                        return new(RedeemStatus.AlreadyUsed);
+                    }
+
                     return new(RedeemStatus.NotEnough);
                 }
             }

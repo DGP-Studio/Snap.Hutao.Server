@@ -53,7 +53,7 @@ public sealed class DiscordService
         await hutaoServerBot.SendMessageAsync(discordOptions.KnownChannels.PublicStatus, new LocalMessage().WithEmbeds(embed));
     }
 
-    internal async Task ReportRoleCombatCleanResultAsync(RoleCombatRecordCleanResult result)
+    public async ValueTask ReportRoleCombatCleanResultAsync(RoleCombatRecordCleanResult result)
     {
         LocalEmbed embed = Embed.CreateStandardEmbed("Role Combat Record Cleanup", Embed.SpiralAbyssIcon);
 

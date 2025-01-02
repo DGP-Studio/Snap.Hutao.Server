@@ -6,7 +6,7 @@ namespace Snap.Hutao.Server.Model.Entity.Redeem;
 [Flags]
 public enum RedeemCodeType : uint
 {
-    OneTime = 0b0000U,
+    None = 0b0000U,
     TimeLimited = 0b0001U,
     TimesLimited = 0b0010U,
 }
