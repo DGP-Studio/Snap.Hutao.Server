@@ -1,6 +1,7 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
+using Snap.Hutao.Server.Extension;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity.Passport;
 
@@ -46,6 +47,33 @@ public sealed class GachaLogExpireService : IExpireService
 
             return new(TermExtendResultKind.Ok, DateTimeOffset.FromUnixTimeSeconds(user.GachaLogExpireAt));
         }
+    }
+
+    public async ValueTask<TermExtendResult> ExtendTermForUserNameAsync(DbSet<HutaoUser> users, string userName, int days)
+    {
+        HutaoUser? user = await users.SingleOrDefaultAsync(u => userName.Equals(u.UserName, StringComparison.OrdinalIgnoreCase)).ConfigureAwait(false);
+
+        if (user == null)
+        {
+            return new(TermExtendResultKind.NoSuchUser);
+        }
+
+        long now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        if (user.GachaLogExpireAt < now)
+        {
+            user.GachaLogExpireAt = now;
+        }
+
+        user.GachaLogExpireAt += (long)TimeSpan.FromDays(days).TotalSeconds;
+
+        int result = await users.UpdateAndSaveAsync(user).ConfigureAwait(false);
+
+        if (result is 0)
+        {
+            return new(TermExtendResultKind.DbError);
+        }
+
+        return new(TermExtendResultKind.Ok, DateTimeOffset.FromUnixTimeSeconds(user.GachaLogExpireAt));
     }
 
     public async ValueTask<DateTimeOffset> ExtendTermForAllUsersAsync(int days)

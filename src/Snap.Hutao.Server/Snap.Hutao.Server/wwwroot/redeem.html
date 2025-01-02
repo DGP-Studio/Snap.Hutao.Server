@@ -73,10 +73,10 @@
                     .execute('6Lc_TgomAAAAACMxQNidmC9G1dg9JbMN4b8r788A', { action: 'ApplyOpenSourceLicense' })
                     .then(function (token) {
                         $.ajax({
-                            url: '/code/user/use',
+                            url: '/Redeem/Use',
                             type: 'POST',
                             data: JSON.stringify({
-                                'user_name': userName,
+                                'username': userName,
                                 'code': redeemCode,
                                 'Token': token,
                             }),

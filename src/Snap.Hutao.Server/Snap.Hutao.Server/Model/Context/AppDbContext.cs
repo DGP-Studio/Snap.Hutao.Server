@@ -8,6 +8,7 @@ using Snap.Hutao.Server.Model.Entity.Achievement;
 using Snap.Hutao.Server.Model.Entity.Announcement;
 using Snap.Hutao.Server.Model.Entity.GachaLog;
 using Snap.Hutao.Server.Model.Entity.Passport;
+using Snap.Hutao.Server.Model.Entity.Redeem;
 using Snap.Hutao.Server.Model.Entity.RoleCombat;
 using Snap.Hutao.Server.Model.Entity.SpiralAbyss;
 using Snap.Hutao.Server.Model.Entity.Telemetry;
@@ -33,6 +34,10 @@ public sealed class AppDbContext : IdentityDbContext<HutaoUser, IdentityRole<int
     public DbSet<PassportVerification> PassportVerifications { get; set; } = default!;
 
     public DbSet<GithubIdentity> GithubIdentities { get; set; } = default!;
+
+    public DbSet<RedeemCode> RedeemCodes { get; set; } = default!;
+
+    public DbSet<RedeemCodeUseItem> RedeemCodeUseItems { get; set; } = default!;
     #endregion
 
     #region Telemetry

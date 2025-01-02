@@ -31,6 +31,10 @@ internal sealed class PizzaHelperRecordService
             return;
         }
 
+        ArgumentNullException.ThrowIfNull(record.Uid);
+        ArgumentNullException.ThrowIfNull(record.Avatars);
+        ArgumentNullException.ThrowIfNull(record.SpiralAbyss);
+
         string obfuscatedUid = MD5Hash($"{record.Uid}{MD5Hash(record.Uid)}{options.UidSalt}");
         string region = EvaluateRegion(record.Uid);
         List<int> owningChars = record.Avatars.Select(x => x.AvatarId).ToList();

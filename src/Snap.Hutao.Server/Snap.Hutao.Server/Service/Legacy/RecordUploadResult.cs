@@ -16,6 +16,4 @@ public enum RecordUploadResult
     NotCurrentSchedule,
     InvalidData,
     ConcurrencyNotSupported,
-    // ConcurrencyStateErrorAdd,
-    // ConcurrencyStateErrorRemove,
 }

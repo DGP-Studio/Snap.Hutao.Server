@@ -3,10 +3,14 @@
 
 using Snap.Hutao.Server.Controller.Filter;
 using Snap.Hutao.Server.Job;
+using Snap.Hutao.Server.Model.Context;
+using Snap.Hutao.Server.Model.Entity.Passport;
+using Snap.Hutao.Server.Model.Redeem;
 using Snap.Hutao.Server.Model.Response;
 using Snap.Hutao.Server.Model.Upload;
 using Snap.Hutao.Server.Service.Announcement;
 using Snap.Hutao.Server.Service.Expire;
+using Snap.Hutao.Server.Service.Redeem;
 
 namespace Snap.Hutao.Server.Controller;
 
@@ -20,14 +24,18 @@ public class ServiceController : ControllerBase
 {
     private readonly GachaLogExpireService gachaLogExpireService;
     private readonly CdnExpireService cdnExpireService;
+    private readonly RedeemService redeemService;
     private readonly AnnouncementService announcementService;
+    private readonly AppDbContext appDbContext;
     private readonly IServiceProvider serviceProvider;
 
     public ServiceController(IServiceProvider serviceProvider)
     {
         gachaLogExpireService = serviceProvider.GetRequiredService<GachaLogExpireService>();
         cdnExpireService = serviceProvider.GetRequiredService<CdnExpireService>();
+        redeemService = serviceProvider.GetRequiredService<RedeemService>();
         announcementService = serviceProvider.GetRequiredService<AnnouncementService>();
+        appDbContext = serviceProvider.GetRequiredService<AppDbContext>();
         this.serviceProvider = serviceProvider;
     }
 
@@ -82,5 +90,16 @@ public class ServiceController : ControllerBase
     {
         await announcementService.ProcessUploadAnnouncementAsync(announcement).ConfigureAwait(false);
         return Model.Response.Response.Success("上传公告成功");
+    }
+
+    [HttpPost("Redeem/Generate")]
+    public async Task<IActionResult> GenerateRedeemCodesAsync([FromBody] RedeemGenerateRequest req)
+    {
+        HutaoUser? hutaoUser = await this.GetUserAsync(appDbContext.Users).ConfigureAwait(false);
+        ArgumentNullException.ThrowIfNull(hutaoUser?.UserName);
+        req.Creator = hutaoUser.UserName;
+
+        RedeemGenerateResponse response = await redeemService.GenerateRedeemCodesAsync(req).ConfigureAwait(false);
+        return Response<RedeemGenerateResponse>.Success("生成成功", response);
     }
 }
