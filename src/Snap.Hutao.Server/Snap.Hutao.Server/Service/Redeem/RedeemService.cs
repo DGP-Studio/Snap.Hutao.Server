@@ -95,15 +95,11 @@ public sealed class RedeemService
                 code.TimesAllowed = req.Times;
             }
 
-            // Avoid duplicate code
+            // Avoid generating duplicate code
             if (!await appDbContext.RedeemCodes.AnyAsync(c => c.Code == code.Code).ConfigureAwait(false))
             {
-                using (IDbContextTransaction transaction = await appDbContext.Database.BeginTransactionAsync().ConfigureAwait(false))
-                {
-                    codes.Add(code.Code);
-                    await appDbContext.RedeemCodes.AddAndSaveAsync(code).ConfigureAwait(false);
-                    await transaction.CommitAsync().ConfigureAwait(false);
-                }
+                codes.Add(code.Code);
+                await appDbContext.RedeemCodes.AddAndSaveAsync(code).ConfigureAwait(false);
             }
         }
 
