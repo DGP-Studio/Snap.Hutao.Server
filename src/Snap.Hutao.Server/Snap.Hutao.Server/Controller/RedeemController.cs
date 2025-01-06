@@ -29,10 +29,9 @@ public class RedeemController : ControllerBase
     {
         if (req.Username is null)
         {
-            HutaoUser? user = await this.GetUserAsync(appDbContext.Users).ConfigureAwait(false);
-            if (user is null)
+            if (await this.GetUserAsync(appDbContext.Users).ConfigureAwait(false) is not { } user)
             {
-                return Model.Response.Response.Fail(ReturnCode.NoUserIdentity, "未登录");
+                return Model.Response.Response.Fail(ReturnCode.NoUserIdentity, "请先登录或注册胡桃账号");
             }
 
             req.Username = user.UserName;
