@@ -35,13 +35,13 @@
                 <form class="p-4 p-md-5 border rounded-3 bg-body-tertiary">
                     <div class="form-floating mb-3">
                         <input type="email" class="form-control" id="userNameInput" placeholder="name@example.com">
-                        <label for="floatingInput">胡桃通行证邮箱账号</label>
+                        <label for="userNameInput">胡桃通行证邮箱账号</label>
                     </div>
                     <div class="form-floating mb-3">
                         <input type="text" class="form-control" id="codeInput" placeholder="AAAE8424-A614-49A1">
-                        <label for="floatingPassword">兑换码</label>
+                        <label for="codeInput">兑换码</label>
                     </div>
-                    <button type="button" id="openSourceDevLicenseButton" class="w-100 btn btn-lg btn-primary">兑换</button>
+                    <button type="button" id="redeemButton" class="w-100 btn btn-lg btn-primary">兑换</button>
                     <hr class="my-4">
                     <small class="text-body-secondary">如有任何疑问请联系我们的管理员</small>
                 </form>
@@ -51,7 +51,7 @@
 
     <footer class="footer mt-auto py-3 bg-body-tertiary">
         <div class="container">
-            <span class="text-body-secondary">Copyright © 2022 - 2023 DGP Studio</span>
+            <span class="text-body-secondary">Copyright © 2022 - 2025 DGP Studio</span>
         </div>
     </footer>
 
@@ -59,7 +59,7 @@
     <script src="https://www.google.com/recaptcha/api.js?render=6Lc_TgomAAAAACMxQNidmC9G1dg9JbMN4b8r788A"></script>
     <script src="https://cdn.staticfile.org/jquery/3.7.0/jquery.min.js"></script>
     <script>
-        $('#openSourceDevLicenseButton').on('click', function (event) {
+        $('#redeemButton').on('click', function (event) {
             var userName = $('#userNameInput').val();
             var redeemCode = $('#codeInput').val();
 
@@ -68,7 +68,7 @@
             }
 
             grecaptcha.ready(function () {
-                $('#openSourceDevLicenseButton').prop('disabled', true);
+                $('#redeemButton').prop('disabled', true);
                 grecaptcha
                     .execute('6Lc_TgomAAAAACMxQNidmC9G1dg9JbMN4b8r788A', { action: 'ApplyOpenSourceLicense' })
                     .then(function (token) {
@@ -84,11 +84,12 @@
                             contentType: 'application/json',
                             success: function (resp) {
                                 alert(resp.message);
-                                $('#openSourceDevLicenseButton').prop('disabled', false);
+                                $('#codeInput').val('');
+                                $('#redeemButton').prop('disabled', false);
                             },
                             error: function (resp) {
                                 alert(resp.message);
-                                $('#openSourceDevLicenseButton').prop('disabled', false);
+                                $('#redeemButton').prop('disabled', false);
                             }
                         });
                     });
