@@ -44,6 +44,11 @@ public sealed class RedeemService
 
             await appDbContext.Entry(code).Collection(c => c.UseItems).LoadAsync().ConfigureAwait(false);
 
+            if (code.UseItems.Any(u => u.UseBy == request.Username))
+            {
+                return new(RedeemStatus.AlreadyUsed);
+            }
+
             if (code.Type.HasFlag(RedeemCodeType.TimeLimited))
             {
                 if (code.ExpireTime <= DateTimeOffset.UtcNow)

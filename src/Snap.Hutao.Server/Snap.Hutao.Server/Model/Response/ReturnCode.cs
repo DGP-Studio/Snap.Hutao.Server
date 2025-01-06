@@ -18,6 +18,7 @@ namespace Snap.Hutao.Server.Model.Response;
 //    5 - Licensing
 //    6 - Hosting
 //    7 - CDN
+//    8 - Redeem
 [SuppressMessage("", "SA1025")]
 public enum ReturnCode
 {
@@ -39,6 +40,12 @@ public enum ReturnCode
     ReCaptchaVerifyFailed = 515001,
     ServiceKeyInvalid = 516001,
     UserNameNotExists = 516002,
+    RedeemCodeInvalid = 518001,
+    RedeemCodeNotExists = 518002,
+    RedeemCodeAlreadyUsed = 518003,
+    RedeemCodeExpired = 518004,
+    RedeemCodeNotEnough = 518005,
+    RedeemCodeNoSuchUser = 518006,
 
     RequestTooFrequently = 521001,
     VerifyCodeTooFrequently = 524001,
@@ -54,6 +61,6 @@ public enum ReturnCode
     GachaLogDbException = 553001,
     GachaLogExtendDbException = 553002,
     LicenseApprovalFailed = 555001,
-
     CdnExtendDbException = 557001,
+    RedeemCodeDbException = 558001,
 }

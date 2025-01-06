@@ -37,7 +37,19 @@ public class RedeemController : ControllerBase
             req.Username = user.UserName;
         }
 
-        RedeemUseResponse response = await this.redeemService.UseRedeemCodeAsync(req).ConfigureAwait(false);
-        return Response<RedeemUseResponse>.Success("兑换成功", response);
+        RedeemUseResponse response = await redeemService.UseRedeemCodeAsync(req).ConfigureAwait(false);
+
+        return response.Status switch
+        {
+            RedeemStatus.Ok => Response<RedeemUseResponse>.Success("兑换成功", response),
+            RedeemStatus.Invalid => Model.Response.Response.Fail(ReturnCode.RedeemCodeInvalid, "兑换码无效"),
+            RedeemStatus.NotExists => Model.Response.Response.Fail(ReturnCode.RedeemCodeNotExists, "兑换码不存在"),
+            RedeemStatus.AlreadyUsed => Model.Response.Response.Fail(ReturnCode.RedeemCodeAlreadyUsed, "兑换码已被使用"),
+            RedeemStatus.Expired => Model.Response.Response.Fail(ReturnCode.RedeemCodeExpired, "兑换码已过期"),
+            RedeemStatus.NotEnough => Model.Response.Response.Fail(ReturnCode.RedeemCodeNotEnough, "兑换码剩余次数不足"),
+            RedeemStatus.NoSuchUser => Model.Response.Response.Fail(ReturnCode.RedeemCodeNoSuchUser, "用户不存在"),
+            RedeemStatus.DbError => Model.Response.Response.Fail(ReturnCode.RedeemCodeDbException, "数据库错误"),
+            _ => throw new ArgumentOutOfRangeException()
+        };
     }
 }
