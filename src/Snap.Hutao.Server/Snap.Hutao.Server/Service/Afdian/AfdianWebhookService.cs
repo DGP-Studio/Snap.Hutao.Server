@@ -76,7 +76,7 @@ public sealed class AfdianWebhookService
             TermExtendResult result = await gachaLogExpireService.ExtendGachaLogTermForAfdianOrderAsync(info).ConfigureAwait(false);
             if (result.Kind is TermExtendResultKind.Ok)
             {
-                await mailService.SendPurchaseGachaLogStorageServiceAsync(info.UserName, result.ExpiredAt.ToString("yyy/MM/dd HH:mm:sszzz"), info.OrderNumber).ConfigureAwait(false);
+                await mailService.SendPurchaseGachaLogStorageServiceAsync(info.UserName, result.ExpiredAt.ToOffset(new(8, 0, 0)).ToString("yyy/MM/dd HH:mm:sszzz"), info.OrderNumber).ConfigureAwait(false);
             }
             else
             {
@@ -99,7 +99,7 @@ public sealed class AfdianWebhookService
             TermExtendResult result = await cdnExpireService.ExtendCdnTermForAfdianOrderAsync(info).ConfigureAwait(false);
             if (result.Kind is TermExtendResultKind.Ok)
             {
-                await mailService.SendPurchaseCdnServiceAsync(info.UserName, result.ExpiredAt.ToString("yyy/MM/dd HH:mm:sszzz"), info.OrderNumber).ConfigureAwait(false);
+                await mailService.SendPurchaseCdnServiceAsync(info.UserName, result.ExpiredAt.ToOffset(new(8, 0, 0)).ToString("yyy/MM/dd HH:mm:sszzz"), info.OrderNumber).ConfigureAwait(false);
             }
             else
             {
