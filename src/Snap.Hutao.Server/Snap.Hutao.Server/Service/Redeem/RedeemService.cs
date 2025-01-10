@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Snap.Hutao.Server.Core;
 using Snap.Hutao.Server.Extension;
 using Snap.Hutao.Server.Model.Context;
+using Snap.Hutao.Server.Model.Entity.Passport;
 using Snap.Hutao.Server.Model.Entity.Redeem;
 using Snap.Hutao.Server.Model.Redeem;
 using Snap.Hutao.Server.Service.Expire;
@@ -26,7 +27,6 @@ public sealed class RedeemService
         appDbContext = serviceProvider.GetRequiredService<AppDbContext>();
     }
 
-    // TODO: Database operation is not transactional
     public async Task<RedeemUseResponse> UseRedeemCodeAsync(RedeemUseRequest request)
     {
         using (await RedeemLock.LockAsync().ConfigureAwait(false))
@@ -37,14 +37,19 @@ public sealed class RedeemService
                 return new(RedeemStatus.Invalid);
             }
 
-            if (appDbContext.RedeemCodes.SingleOrDefault(c => c.Code == request.Code) is not { } code)
+            if (await appDbContext.RedeemCodes.Where(c => c.Code == request.Code).SingleOrDefaultAsync().ConfigureAwait(false) is not { } code)
             {
                 return new(RedeemStatus.NotExists);
             }
 
-            await appDbContext.Entry(code).Collection(c => c.UseItems).LoadAsync().ConfigureAwait(false);
+            string normalizedUsername = request.Username.ToUpperInvariant();
+            if (await appDbContext.Users.Where(u => u.UserName == normalizedUsername).SingleOrDefaultAsync().ConfigureAwait(false) is not { } user)
+            {
+                return new(RedeemStatus.NoSuchUser);
+            }
 
-            if (code.UseItems.Any(u => u.UseBy == request.Username))
+            int userId = user.Id;
+            if (await appDbContext.RedeemCodeUseItems.AnyAsync(i => i.RedeemCodeId == code.Id && i.UsedBy == userId).ConfigureAwait(false))
             {
                 return new(RedeemStatus.AlreadyUsed);
             }
@@ -59,18 +64,13 @@ public sealed class RedeemService
 
             if (code.Type.HasFlag(RedeemCodeType.TimesLimited))
             {
-                if (code.TimesAllowed <= code.UseItems.Count)
+                if (code.TimesAllowed <= await appDbContext.RedeemCodeUseItems.Where(i => i.RedeemCodeId == code.Id).CountAsync().ConfigureAwait(false))
                 {
-                    if (code.TimesAllowed == 1)
-                    {
-                        return new(RedeemStatus.AlreadyUsed);
-                    }
-
                     return new(RedeemStatus.NotEnough);
                 }
             }
 
-            return await ExtendTermForUserNameByCodeAsync(request.Username, code).ConfigureAwait(false);
+            return await ExtendTermForUserByCodeAsync(user, code).ConfigureAwait(false);
         }
     }
 
@@ -111,7 +111,7 @@ public sealed class RedeemService
         return new(codes);
     }
 
-    private async ValueTask<RedeemUseResponse> ExtendTermForUserNameByCodeAsync(string username, RedeemCode code)
+    private async ValueTask<RedeemUseResponse> ExtendTermForUserByCodeAsync(HutaoUser user, RedeemCode code)
     {
         using (IDbContextTransaction transaction = await appDbContext.Database.BeginTransactionAsync().ConfigureAwait(false))
         {
@@ -122,7 +122,7 @@ public sealed class RedeemService
                 _ => throw new NotSupportedException(),
             };
 
-            TermExtendResult result = await expireService.ExtendTermForUserNameAsync(username, code.Value).ConfigureAwait(false);
+            TermExtendResult result = await expireService.ExtendTermForUserAsync(appDbContext.Users, user, code.Value).ConfigureAwait(false);
             if (result.Kind is TermExtendResultKind.NoSuchUser)
             {
                 return new(RedeemStatus.NoSuchUser);
@@ -136,7 +136,7 @@ public sealed class RedeemService
             RedeemCodeUseItem useItem = new()
             {
                 RedeemCodeId = code.Id,
-                UseBy = username,
+                UsedBy = user.Id,
                 UseTime = DateTimeOffset.UtcNow,
             };
 

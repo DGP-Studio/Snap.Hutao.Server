@@ -49,15 +49,8 @@ public sealed class CdnExpireService : IExpireService
         }
     }
 
-    public async ValueTask<TermExtendResult> ExtendTermForUserNameAsync(DbSet<HutaoUser> users, string userName, int days)
+    public async ValueTask<TermExtendResult> ExtendTermForUserAsync(DbSet<HutaoUser> users, HutaoUser user, int days)
     {
-        HutaoUser? user = await users.SingleOrDefaultAsync(u => userName.Equals(u.UserName, StringComparison.OrdinalIgnoreCase)).ConfigureAwait(false);
-
-        if (user == null)
-        {
-            return new(TermExtendResultKind.NoSuchUser);
-        }
-
         long now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         if (user.CdnExpireAt < now)
         {

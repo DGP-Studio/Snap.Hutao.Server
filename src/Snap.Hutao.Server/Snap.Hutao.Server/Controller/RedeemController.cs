@@ -49,7 +49,7 @@ public class RedeemController : ControllerBase
             RedeemStatus.NotEnough => Model.Response.Response.Fail(ReturnCode.RedeemCodeNotEnough, "兑换码剩余次数不足"),
             RedeemStatus.NoSuchUser => Model.Response.Response.Fail(ReturnCode.RedeemCodeNoSuchUser, "用户不存在"),
             RedeemStatus.DbError => Model.Response.Response.Fail(ReturnCode.RedeemCodeDbException, "数据库错误"),
-            _ => throw new ArgumentOutOfRangeException()
+            _ => throw new NotSupportedException(),
         };
     }
 }
