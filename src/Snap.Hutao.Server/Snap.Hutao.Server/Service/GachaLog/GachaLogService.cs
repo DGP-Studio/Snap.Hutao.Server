@@ -127,13 +127,7 @@ public sealed class GachaLogService
 
     public async ValueTask<GachaLogSaveResult> SaveGachaItemsAsync(int userId, string uid, List<SimpleGachaItem> gachaItems)
     {
-        // await appDbContext.Database.SqlQuery<int>($"""
-        //    SELECT COUNT( DISTINCT `g`.`Uid`)
-        //    FROM `gacha_items` AS `g`
-        //    WHERE `g`.`UserId` = {userId}
-        //    """).SingleAsync();
-        // CountAsync is executed locally in EF 7
-        if (await appDbContext.GachaItems.Where(i => i.UserId == userId).Select(i => i.Uid).Distinct().CountAsync().ConfigureAwait(false) >= UidPerUserLimit)
+        if (await appDbContext.GachaItems.Where(i => i.UserId == userId && i.Uid != uid).Select(i => i.Uid).Distinct().CountAsync().ConfigureAwait(false) >= UidPerUserLimit)
         {
             return new(GachaLogSaveResultKind.UidPerUserLimitExceeded);
         }
