@@ -17,6 +17,7 @@ public static class ServerKeys
     public const string ServerPassportResetPasswordSucceed = "ServerPassportResetPasswordSucceed";
     public const string ServerPassportResetUserNameSucceed = "ServerPassportResetUserNameSucceed";
     public const string ServerPassportRegisterSucceed = "ServerPassportRegisterSucceed";
+    public const string ServerPassportRegisterSucceedFirstTime = "ServerPassportRegisterSucceedFirstTime";
     public const string ServerPassportServiceEmailHasNotRegistered = "ServerPassportServiceEmailHasNotRegistered";
     public const string ServerPassportServiceEmailHasRegistered = "ServerPassportServiceEmailHasRegistered";
     public const string ServerPassportServiceInternalException = "ServerPassportServiceInternalException";

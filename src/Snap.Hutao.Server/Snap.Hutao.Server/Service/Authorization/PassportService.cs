@@ -2,6 +2,8 @@
 // Licensed under the MIT license.
 
 using Snap.Hutao.Server.Controller;
+using Snap.Hutao.Server.Extension;
+using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity.Passport;
 using Snap.Hutao.Server.Model.Passport;
 using Snap.Hutao.Server.Option;
@@ -14,12 +16,14 @@ namespace Snap.Hutao.Server.Service.Authorization;
 public sealed class PassportService
 {
     private readonly UserManager<HutaoUser> userManager;
+    private readonly AppDbContext appDbContext;
     private readonly SymmetricSecurityKey jwtSigningKey;
     private readonly string rsaPrivateKey;
 
-    public PassportService(UserManager<HutaoUser> userManager, AppOptions appOptions)
+    public PassportService(UserManager<HutaoUser> userManager, AppDbContext appDbContext, AppOptions appOptions)
     {
         this.userManager = userManager;
+        this.appDbContext = appDbContext;
 
         jwtSigningKey = appOptions.GetJwtSecurityKey();
         rsaPrivateKey = appOptions.RSAPrivateKey;
@@ -57,6 +61,17 @@ public sealed class PassportService
             return new(false, $"注册失败:{messageBuilder}", ServerKeys.ServerPassportServiceInternalException);
         }
 
+        if (!await appDbContext.RegistrationRecords.AnyAsync(r => r.UserName == passport.UserName).ConfigureAwait(false))
+        {
+            await appDbContext.RegistrationRecords.AddAndSaveAsync(new() { UserName = passport.UserName }).ConfigureAwait(false);
+
+            newUser.CdnExpireAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds() + (long)TimeSpan.FromDays(3).TotalSeconds;
+            newUser.GachaLogExpireAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds() + (long)TimeSpan.FromDays(3).TotalSeconds;
+            await userManager.UpdateAsync(newUser).ConfigureAwait(false);
+
+            return new(true, "注册成功，首次注册获赠 3 天胡桃云权限", ServerKeys.ServerPassportRegisterSucceedFirstTime, CreateToken(newUser));
+        }
+
         return new(true, "注册成功", ServerKeys.ServerPassportRegisterSucceed, CreateToken(newUser));
     }
 
@@ -69,10 +84,8 @@ public sealed class PassportService
 
             return new(true, "新密码设置成功", ServerKeys.ServerPassportResetPasswordSucceed, CreateToken(user));
         }
-        else
-        {
-            return new(false, "该邮箱尚未注册", ServerKeys.ServerPassportServiceEmailHasNotRegistered);
-        }
+
+        return new(false, "该邮箱尚未注册", ServerKeys.ServerPassportServiceEmailHasNotRegistered);
     }
 
     public async Task<PassportResult> ResetUsernameAsync(Passport passport)
@@ -85,12 +98,16 @@ public sealed class PassportService
         if (await userManager.FindByNameAsync(passport.UserName).ConfigureAwait(false) is { } user)
         {
             await userManager.SetUserNameAsync(user, passport.NewUserName).ConfigureAwait(false);
+
+            if (!await appDbContext.RegistrationRecords.AnyAsync(r => r.UserName == passport.NewUserName).ConfigureAwait(false))
+            {
+                await appDbContext.RegistrationRecords.AddAndSaveAsync(new() { UserName = passport.NewUserName }).ConfigureAwait(false);
+            }
+
             return new(true, "邮箱修改成功", ServerKeys.ServerPassportResetUserNameSucceed, CreateToken(user));
         }
-        else
-        {
-            return new(false, "该邮箱尚未注册", ServerKeys.ServerPassportServiceEmailHasNotRegistered);
-        }
+
+        return new(false, "该邮箱尚未注册", ServerKeys.ServerPassportServiceEmailHasNotRegistered);
     }
 
     public async Task<PassportResult> LoginAsync(Passport passport)
