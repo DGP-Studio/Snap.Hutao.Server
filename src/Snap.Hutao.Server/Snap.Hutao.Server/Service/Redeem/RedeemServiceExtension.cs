@@ -14,11 +14,12 @@ public static class RedeemServiceExtension
         RedeemGenerateRequest req = new()
         {
             Count = 1U,
-            Type = RedeemCodeType.TimeLimited,
+            Type = RedeemCodeType.TimeLimited | RedeemCodeType.TimesLimited,
             ServiceType = RedeemCodeTargetServiceType.GachaLog,
             Value = 30 * info.OrderCount,
             Description = "For unregistered user",
             ExpireTime = DateTimeOffset.UtcNow + TimeSpan.FromDays(3),
+            Times = 1,
             Creator = "AfdianWebhookService",
         };
 
@@ -31,11 +32,12 @@ public static class RedeemServiceExtension
         RedeemGenerateRequest req = new()
         {
             Count = 1U,
-            Type = RedeemCodeType.TimeLimited,
+            Type = RedeemCodeType.TimeLimited | RedeemCodeType.TimesLimited,
             ServiceType = RedeemCodeTargetServiceType.Cdn,
             Value = 30 * info.OrderCount,
             Description = "For unregistered user",
             ExpireTime = DateTimeOffset.UtcNow + TimeSpan.FromDays(3),
+            Times = 1,
             Creator = "AfdianWebhookService",
         };
 
