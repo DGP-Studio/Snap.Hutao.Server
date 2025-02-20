@@ -187,6 +187,39 @@ public sealed class MailService
         return SendMailAsync(options);
     }
 
+    public Task SendPurchaseGachaLogStorageServiceNoSuchUserAsync(string emailAddress, string redeemCode, string tradeNumber, string language = "CHS")
+    {
+        logger.LogInformation("Send GachaLog Mail to [{Email}] with [{Number}]", emailAddress, tradeNumber);
+        MailOptions options = new()
+        {
+            Subject = language == "CHS"
+                ? "胡桃云服务"
+                : "Snap Hutao Cloud Service",
+            Address = emailAddress,
+            Title = language == "CHS"
+                ? "感谢您赞助 Snap Hutao 祈愿记录上传服务"
+                : "Thank you for sponsor Snap Hutao Wish Record Backup Service",
+            RawContent = language == "CHS"
+                ? $"""
+                <p>由于您尚未注册胡桃通行证，现向您发放胡桃云兑换码，有效期为 3 天</p>
+                <p>您可以在 Snap Hutao 内胡桃通行证页面注册后进行兑换</p>
+                <span class="mail-date">{redeemCode}</span>
+                <p>请妥善保存此邮件，订单编号：<span class="mail-hint">{tradeNumber}</span></p>
+                """
+                : $"""
+                <p>Since you have not registered for Snap Hutao Passport, we are issuing you a redeem code, valid for 3 days</p>
+                <p>You can redeem it after registering on the Snap Hutao Passport page in Snap Hutao</p>
+                <span class="mail-date">{redeemCode}</span>
+                <p>Please keep this email safe, order number: <span class="mail-hint">{tradeNumber}</span></p>
+                """,
+            Footer = language == "CHS"
+                ? "该邮件由 DGP Studio 系统自动生成，请勿回复"
+                : "This email is automatically sent by the DGP Studio system, please do not reply",
+        };
+
+        return SendMailAsync(options);
+    }
+
     public Task SendPurchaseCdnServiceAsync(string emailAddress, string expireAt, string tradeNumber, string language = "CHS")
     {
         logger.LogInformation("Send CDN Mail to [{Email}] with [{Number}]", emailAddress, tradeNumber);
@@ -208,6 +241,39 @@ public sealed class MailService
                 : $"""
                 <p>The service is valid until</p>
                 <span class="mail-date">{expireAt}</span>
+                <p>Please keep this email safe, order number: <span class="mail-hint">{tradeNumber}</span></p>
+                """,
+            Footer = language == "CHS"
+                ? "该邮件由 DGP Studio 系统自动生成，请勿回复"
+                : "This email is automatically sent by the DGP Studio system, please do not reply",
+        };
+
+        return SendMailAsync(options);
+    }
+
+    public Task SendPurchaseCdnServiceNoSuchUserAsync(string emailAddress, string redeemCode, string tradeNumber, string language = "CHS")
+    {
+        logger.LogInformation("Send CDN Mail to [{Email}] with [{Number}]", emailAddress, tradeNumber);
+        MailOptions options = new()
+        {
+            Subject = language == "CHS"
+                ? "胡桃云服务"
+                : "Snap Hutao Cloud Service",
+            Address = emailAddress,
+            Title = language == "CHS"
+                ? "感谢您赞助 Snap Hutao 胡桃云 CDN 更新加速服务"
+                : "Thank you for sponsor Snap Hutao Cloud CDN Update Acceleration Service",
+            RawContent = language == "CHS"
+                ? $"""
+                <p>由于您尚未注册胡桃通行证，现向您发放胡桃云兑换码，有效期为 3 天</p>
+                <p>您可以在 Snap Hutao 内胡桃通行证页面注册后进行兑换</p>
+                <span class="mail-date">{redeemCode}</span>
+                <p>请妥善保存此邮件，订单编号：<span class="mail-hint">{tradeNumber}</span></p>
+                """
+                : $"""
+                <p>Since you have not registered for Snap Hutao Passport, we are issuing you a redeem code, valid for 3 days</p>
+                <p>You can redeem it after registering on the Snap Hutao Passport page in Snap Hutao</p>
+                <span class="mail-date">{redeemCode}</span>
                 <p>Please keep this email safe, order number: <span class="mail-hint">{tradeNumber}</span></p>
                 """,
             Footer = language == "CHS"

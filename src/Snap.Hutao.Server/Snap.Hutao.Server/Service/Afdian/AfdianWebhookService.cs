@@ -5,6 +5,7 @@ using Snap.Hutao.Server.Model.Afdian;
 using Snap.Hutao.Server.Option;
 using Snap.Hutao.Server.Service.Discord;
 using Snap.Hutao.Server.Service.Expire;
+using Snap.Hutao.Server.Service.Redeem;
 
 namespace Snap.Hutao.Server.Service.Afdian;
 
@@ -19,6 +20,7 @@ public sealed class AfdianWebhookService
     private readonly CdnExpireService cdnExpireService;
     private readonly MailService mailService;
     private readonly HttpClient httpClient;
+    private readonly RedeemService redeemService;
 
     public AfdianWebhookService(IServiceProvider serviceProvider)
     {
@@ -30,6 +32,7 @@ public sealed class AfdianWebhookService
         cdnExpireService = serviceProvider.GetRequiredService<CdnExpireService>();
         mailService = serviceProvider.GetRequiredService<MailService>();
         httpClient = serviceProvider.GetRequiredService<HttpClient>();
+        redeemService = serviceProvider.GetRequiredService<RedeemService>();
     }
 
     public async ValueTask ProcessIncomingOrderAsync(Order order)
@@ -74,18 +77,19 @@ public sealed class AfdianWebhookService
             }
 
             TermExtendResult result = await gachaLogExpireService.ExtendGachaLogTermForAfdianOrderAsync(info).ConfigureAwait(false);
-            if (result.Kind is TermExtendResultKind.Ok)
+            switch (result.Kind)
             {
-                await mailService.SendPurchaseGachaLogStorageServiceAsync(info.UserName, result.ExpiredAt.ToOffset(new(8, 0, 0)).ToString("yyy/MM/dd HH:mm:sszzz"), info.OrderNumber).ConfigureAwait(false);
-            }
-            else
-            {
-                info.Status = result.Kind switch
-                {
-                    TermExtendResultKind.NoSuchUser => AfdianOrderStatus.GachaLogTermExtendNoSuchUser,
-                    TermExtendResultKind.DbError => AfdianOrderStatus.GachaLogTermExtendDbError,
-                    _ => info.Status,
-                };
+                case TermExtendResultKind.Ok:
+                    await mailService.SendPurchaseGachaLogStorageServiceAsync(info.UserName, result.ExpiredAt.ToOffset(new(8, 0, 0)).ToString("yyy/MM/dd HH:mm:sszzz"), info.OrderNumber).ConfigureAwait(false);
+                    break;
+                case TermExtendResultKind.NoSuchUser:
+                    string redeemCode = await redeemService.GenerateRedeemCodeForPurchaseGachaLogServiceAsync(info).ConfigureAwait(false);
+                    await mailService.SendPurchaseGachaLogStorageServiceNoSuchUserAsync(info.UserName, redeemCode, info.OrderNumber).ConfigureAwait(false);
+                    info.Status = AfdianOrderStatus.GachaLogTermExtendNoSuchUser;
+                    break;
+                case TermExtendResultKind.DbError:
+                    info.Status = AfdianOrderStatus.GachaLogTermExtendDbError;
+                    break;
             }
         }
         else if (skuDetail.SkuId == afdian2Options.SkuCdnService)
@@ -97,18 +101,19 @@ public sealed class AfdianWebhookService
             }
 
             TermExtendResult result = await cdnExpireService.ExtendCdnTermForAfdianOrderAsync(info).ConfigureAwait(false);
-            if (result.Kind is TermExtendResultKind.Ok)
+            switch (result.Kind)
             {
-                await mailService.SendPurchaseCdnServiceAsync(info.UserName, result.ExpiredAt.ToOffset(new(8, 0, 0)).ToString("yyy/MM/dd HH:mm:sszzz"), info.OrderNumber).ConfigureAwait(false);
-            }
-            else
-            {
-                info.Status = result.Kind switch
-                {
-                    TermExtendResultKind.NoSuchUser => AfdianOrderStatus.CdnTermExtendNoSuchUser,
-                    TermExtendResultKind.DbError => AfdianOrderStatus.CdnTermExtendDbError,
-                    _ => info.Status,
-                };
+                case TermExtendResultKind.Ok:
+                    await mailService.SendPurchaseCdnServiceAsync(info.UserName, result.ExpiredAt.ToOffset(new(8, 0, 0)).ToString("yyy/MM/dd HH:mm:sszzz"), info.OrderNumber).ConfigureAwait(false);
+                    break;
+                case TermExtendResultKind.NoSuchUser:
+                    string redeemCode = await redeemService.GenerateRedeemCodeForPurchaseCdnServiceAsync(info).ConfigureAwait(false);
+                    await mailService.SendPurchaseCdnServiceNoSuchUserAsync(info.UserName, redeemCode, info.OrderNumber).ConfigureAwait(false);
+                    info.Status = AfdianOrderStatus.GachaLogTermExtendNoSuchUser;
+                    break;
+                case TermExtendResultKind.DbError:
+                    info.Status = AfdianOrderStatus.GachaLogTermExtendDbError;
+                    break;
             }
         }
         else
