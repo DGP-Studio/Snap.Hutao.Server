@@ -12,16 +12,19 @@ public sealed class RedeemUseResponse
         Status = status;
     }
 
-    public RedeemUseResponse(RedeemStatus status, RedeemCodeTargetServiceType type, DateTimeOffset expireTime)
+    public RedeemUseResponse(RedeemStatus status, RedeemCodeTargetServiceType type, int value, DateTimeOffset expireTime)
     {
         Status = status;
         Type = type;
+        Value = value;
         ExpireTime = expireTime;
     }
 
     public RedeemStatus Status { get; set; }
 
     public RedeemCodeTargetServiceType Type { get; set; }
+
+    public int Value { get; set; }
 
     public DateTimeOffset ExpireTime { get; set; }
 }

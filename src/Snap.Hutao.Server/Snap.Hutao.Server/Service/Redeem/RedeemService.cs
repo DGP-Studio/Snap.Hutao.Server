@@ -143,7 +143,7 @@ public sealed class RedeemService
             await appDbContext.RedeemCodeUseItems.AddAndSaveAsync(useItem);
             await transaction.CommitAsync().ConfigureAwait(false);
 
-            return new(RedeemStatus.Ok, code.ServiceType, result.ExpiredAt);
+            return new(RedeemStatus.Ok, code.ServiceType, code.Value, result.ExpiredAt);
         }
     }
 }
