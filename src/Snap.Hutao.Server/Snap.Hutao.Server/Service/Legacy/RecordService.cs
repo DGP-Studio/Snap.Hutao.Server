@@ -279,10 +279,11 @@ public sealed class RecordService
             return RecordUploadResult.OkWithNotFirstAttempt;
         }
 
-        if (record.Identity is not UploaderIdentities.SnapHutao)
-        {
-            return RecordUploadResult.OkWithNotSnapHutaoClient;
-        }
+// remove this to allow other app to upload with SnapHutao Account and get GachaLogExtended
+//        if (record.Identity is not UploaderIdentities.SnapHutao)
+//        {
+//            return RecordUploadResult.OkWithNotSnapHutaoClient;
+//        }
 
         if (record.ReservedUserName == null)
         {
