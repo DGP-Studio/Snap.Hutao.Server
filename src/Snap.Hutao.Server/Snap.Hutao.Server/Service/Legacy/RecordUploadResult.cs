@@ -6,7 +6,6 @@ namespace Snap.Hutao.Server.Service.Legacy;
 public enum RecordUploadResult
 {
     OkWithNotFirstAttempt,
-    OkWithNotSnapHutaoClient,
     OkWithNoUserNamePresented,
     OkWithGachaLogExtended,
     OkWithGachaLogNoSuchUser,

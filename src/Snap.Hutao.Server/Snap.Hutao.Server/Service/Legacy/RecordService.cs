@@ -279,11 +279,6 @@ public sealed class RecordService
             return RecordUploadResult.OkWithNotFirstAttempt;
         }
 
-        if (record.Identity is not UploaderIdentities.SnapHutao)
-        {
-            return RecordUploadResult.OkWithNotSnapHutaoClient;
-        }
-
         if (record.ReservedUserName == null)
         {
             return RecordUploadResult.OkWithNoUserNamePresented;

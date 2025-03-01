@@ -40,7 +40,6 @@ public class RecordController : ControllerBase
             return result switch
             {
                 RecordUploadResult.OkWithNotFirstAttempt => Model.Response.Response.Success("数据提交成功，但不是本期首次提交，无法获赠祈愿记录上传服务时长", ServerKeys.ServerRecordUploadSuccessButNotFirstTimeAtCurrentSchedule),
-                RecordUploadResult.OkWithNotSnapHutaoClient => Model.Response.Response.Success("数据提交成功，但不是由胡桃客户端发起，无法获赠祈愿记录上传服务时长"),
                 RecordUploadResult.OkWithNoUserNamePresented => Model.Response.Response.Success("数据提交成功，但未绑定胡桃账号，无法获赠祈愿记录上传服务时长", ServerKeys.ServerRecordUploadSuccessButNoPassport),
                 RecordUploadResult.OkWithGachaLogExtended => Model.Response.Response.Success("数据提交成功，获赠祈愿记录上传服务时长", ServerKeys.ServerRecordUploadSuccessAndGachaLogServiceTimeExtended),
                 RecordUploadResult.OkWithGachaLogNoSuchUser => Model.Response.Response.Success("数据提交成功，但不存在该胡桃账号", ServerKeys.ServerRecordUploadSuccessButNoSuchUser),
