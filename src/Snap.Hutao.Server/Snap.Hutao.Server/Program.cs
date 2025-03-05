@@ -51,7 +51,7 @@ public static class Program
 #pragma warning disable CS0618
             options.Release = $"{dto:yyyy.M.d.hm}";
 #pragma warning restore CS0618
-            options.Dsn = "http://7de19654a539bfdd56a798ce89e85137@host.docker.internal:9510/7";
+            options.Dsn = "http://7de19654a539bfdd56a798ce89e85137@host.docker.gateway:9510/7";
             options.TracesSampleRate = 1D;
         });
 

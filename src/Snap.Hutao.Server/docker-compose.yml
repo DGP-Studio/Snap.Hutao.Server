@@ -8,15 +8,14 @@ services:
       target: final
     image: homa-server:latest
     extra_hosts:
-      host.docker.internal: 172.27.0.1
+      - "host.docker.internal: 172.27.0.1"
+      - "host.docker.gateway:host-gateway"
     container_name: Homa-Server
     volumes:
       - ./.env:/app/.env
     restart: unless-stopped
     depends_on:
       - redis
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
 
   redis:
     container_name: Homa-Server-Redis
