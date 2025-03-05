@@ -1,4 +1,7 @@
-﻿using Quartz;
+﻿// Copyright (c) DGP Studio. All rights reserved.
+// Licensed under the MIT license.
+
+using Quartz;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Service.Discord;
 using Snap.Hutao.Server.Service.GachaLog.Statistics;
