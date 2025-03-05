@@ -42,16 +42,10 @@ public static class Program
     {
         WebApplicationBuilder appBuilder = WebApplication.CreateBuilder(args);
 
-#pragma warning disable CS0618
-        DateTimeOffset dto = DateTimeOffset.Parse(ThisAssembly.Git.CommitDate);
-#pragma warning restore CS0618
-
         appBuilder.WebHost.UseSentry(options =>
         {
-#pragma warning disable CS0618
-            options.Release = $"{dto:yyyy.M.d.hm}";
-#pragma warning restore CS0618
-            options.Dsn = "http://7de19654a539bfdd56a798ce89e85137@host.docker.gateway:9510/7";
+            options.Release = $"{DateTimeOffset.Now:yyyy.M.d.hm}";
+            options.Dsn = "http://7de19654a539bfdd56a798ce89e85137@host.docker.internal:9510/7";
             options.TracesSampleRate = 1D;
         });
 
