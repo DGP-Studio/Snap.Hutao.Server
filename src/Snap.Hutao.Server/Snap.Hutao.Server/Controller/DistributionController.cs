@@ -9,7 +9,6 @@ namespace Snap.Hutao.Server.Controller;
 
 [ApiController]
 [Route("[controller]")]
-[ServiceFilter(typeof(CountRequests))]
 [ApiExplorerSettings(GroupName = "Distribution")]
 public class DistributionController : ControllerBase
 {

@@ -11,7 +11,6 @@ namespace Snap.Hutao.Server.Controller;
 
 [ApiController]
 [Route("[controller]")]
-[ServiceFilter(typeof(CountRequests))]
 [ApiExplorerSettings(GroupName = "SpiralAbyss")]
 public class StatisticsController : ControllerBase
 {

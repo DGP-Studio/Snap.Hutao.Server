@@ -128,11 +128,11 @@ public static class Program
                 options.SwaggerDoc("RoleCombat", new() { Version = "1.0", Title = "剧演统计", Description = "幻想真境剧诗" });
                 options.SwaggerDoc("Passport", new() { Version = "1.0", Title = "胡桃账户", Description = "胡桃通行证" });
                 options.SwaggerDoc("GachaLog", new() { Version = "1.0", Title = "祈愿记录", Description = "账户祈愿记录管理" });
+                options.SwaggerDoc("Distribution", new() { Version = "1.0", Title = "分发管理", Description = "胡桃分发管理" });
                 options.SwaggerDoc("Services", new() { Version = "1.0", Title = "服务管理", Description = "维护专用管理接口，调用需要维护权限" });
 
                 options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "Snap.Hutao.Server.xml"));
             })
-            .AddTransient<CountRequests>()
             .AddTransient<GachaLogStatisticsRefreshJob>()
             .AddTransient<GachaLogStatisticsService>()
             .AddTransient<GithubApiService>()
@@ -252,6 +252,7 @@ public static class Program
             option.SwaggerEndpoint("/swagger/RoleCombat/swagger.json", "剧演统计");
             option.SwaggerEndpoint("/swagger/Passport/swagger.json", "胡桃账户");
             option.SwaggerEndpoint("/swagger/GachaLog/swagger.json", "祈愿记录");
+            option.SwaggerEndpoint("/swagger/Distribution/swagger.json", "分发管理");
 
             option.DefaultModelExpandDepth(-1);
             option.DocExpansion(DocExpansion.None);

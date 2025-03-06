@@ -12,7 +12,6 @@ namespace Snap.Hutao.Server.Controller;
 
 [ApiController]
 [Route("[controller]")]
-[ServiceFilter(typeof(CountRequests))]
 public class RedeemController : ControllerBase
 {
     private readonly RedeemService redeemService;

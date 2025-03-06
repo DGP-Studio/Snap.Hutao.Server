@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 
 using Quartz;
+using Sentry;
 using Snap.Hutao.Server.Service.Legacy;
 
 namespace Snap.Hutao.Server.Job;
@@ -15,8 +16,18 @@ public class LegacyStatisticsRefreshJob : IJob
         this.statisticsService = statisticsService;
     }
 
-    public Task Execute(IJobExecutionContext context)
+    public async Task Execute(IJobExecutionContext context)
     {
-        return statisticsService.RunAsync();
+        SentryId id = SentrySdk.CaptureCheckIn("LegacyStatisticsRefreshJob", CheckInStatus.InProgress);
+        try
+        {
+            await statisticsService.RunAsync().ConfigureAwait(false);
+            SentrySdk.CaptureCheckIn("LegacyStatisticsRefreshJob", CheckInStatus.Ok, id);
+        }
+        catch
+        {
+            SentrySdk.CaptureCheckIn("LegacyStatisticsRefreshJob", CheckInStatus.Error, id);
+            throw;
+        }
     }
 }

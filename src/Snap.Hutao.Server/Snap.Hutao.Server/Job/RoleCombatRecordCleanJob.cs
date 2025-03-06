@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 
 using Quartz;
+using Sentry;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Service.Discord;
 using Snap.Hutao.Server.Service.GachaLog.Statistics;
@@ -24,20 +25,31 @@ public sealed class RoleCombatRecordCleanJob : IJob
     /// <inheritdoc/>
     public async Task Execute(IJobExecutionContext context)
     {
+        SentryId id = SentrySdk.CaptureCheckIn("RoleCombatRecordCleanJob", CheckInStatus.InProgress);
         try
         {
-            memoryCache.Set(GachaLogStatisticsService.Working, true);
+            try
+            {
+                memoryCache.Set(GachaLogStatisticsService.Working, true);
 
-            await appDbContext.RoleCombatAvatars.ExecuteDeleteAsync().ConfigureAwait(false);
+                await appDbContext.RoleCombatAvatars.ExecuteDeleteAsync().ConfigureAwait(false);
 
-            int deletedRecordsCount = await appDbContext.RoleCombatRecords.ExecuteDeleteAsync().ConfigureAwait(false);
+                int deletedRecordsCount = await appDbContext.RoleCombatRecords.ExecuteDeleteAsync().ConfigureAwait(false);
 
-            RoleCombatRecordCleanResult result = new(deletedRecordsCount);
-            await discordService.ReportRoleCombatCleanResultAsync(result).ConfigureAwait(false);
+                RoleCombatRecordCleanResult result = new(deletedRecordsCount);
+                await discordService.ReportRoleCombatCleanResultAsync(result).ConfigureAwait(false);
+            }
+            finally
+            {
+                memoryCache.Remove(GachaLogStatisticsService.Working);
+            }
+
+            SentrySdk.CaptureCheckIn("RoleCombatRecordCleanJob", CheckInStatus.Ok, id);
         }
-        finally
+        catch
         {
-            memoryCache.Remove(GachaLogStatisticsService.Working);
+            SentrySdk.CaptureCheckIn("RoleCombatRecordCleanJob", CheckInStatus.Error, id);
+            throw;
         }
     }
 }

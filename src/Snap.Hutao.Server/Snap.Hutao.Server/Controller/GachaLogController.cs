@@ -12,7 +12,6 @@ namespace Snap.Hutao.Server.Controller;
 
 [ApiController]
 [Route("[controller]")]
-[ServiceFilter(typeof(CountRequests))]
 [ApiExplorerSettings(GroupName = "GachaLog")]
 public class GachaLogController : ControllerBase
 {

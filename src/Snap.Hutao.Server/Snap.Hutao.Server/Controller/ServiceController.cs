@@ -17,7 +17,6 @@ namespace Snap.Hutao.Server.Controller;
 [Authorize]
 [ApiController]
 [Route("[controller]")]
-[ServiceFilter(typeof(CountRequests))]
 [ServiceFilter(typeof(ValidateMaintainPermission))]
 [ApiExplorerSettings(GroupName = "Services")]
 public class ServiceController : ControllerBase

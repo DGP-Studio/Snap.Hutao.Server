@@ -9,7 +9,6 @@ namespace Snap.Hutao.Server.Controller;
 
 [ApiController]
 [Route("[controller]")]
-[ServiceFilter(typeof(CountRequests))]
 [ApiExplorerSettings(IgnoreApi = true)]
 public sealed class AnnouncementController : ControllerBase
 {

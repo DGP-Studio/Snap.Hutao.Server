@@ -15,7 +15,6 @@ namespace Snap.Hutao.Server.Controller;
 
 [ApiController]
 [Route("[controller]")]
-[ServiceFilter(typeof(CountRequests))]
 [ApiExplorerSettings(GroupName = "RoleCombat")]
 public class RoleCombatController
 {
