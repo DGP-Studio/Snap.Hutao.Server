@@ -31,6 +31,7 @@ using Snap.Hutao.Server.Service.Ranking;
 using Snap.Hutao.Server.Service.ReCaptcha;
 using Snap.Hutao.Server.Service.Redeem;
 using Snap.Hutao.Server.Service.RoleCombat;
+using Snap.Hutao.Server.Service.Sentry;
 using Snap.Hutao.Server.Service.Telemetry;
 using Swashbuckle.AspNetCore.SwaggerUI;
 
@@ -115,12 +116,13 @@ public static class Program
             .AddScoped<TelemetryService>()
             .AddScoped<RedeemService>()
             .AddSingleton<AfdianWebhookService>()
+            .AddSingleton<CdnExpireService>()
             .AddSingleton<DiscordService>()
+            .AddSingleton<GachaLogExpireService>()
             .AddSingleton<IAuthorizationMiddlewareResultHandler, ResponseAuthorizationMiddlewareResultHandler>()
             .AddSingleton<IRankService, RankService>()
             .AddSingleton<MailService>()
-            .AddSingleton<GachaLogExpireService>()
-            .AddSingleton<CdnExpireService>()
+            .AddSingleton<SentryUserFactory>()
             .AddSingleton(appOptions)
             .AddSwaggerGen(options =>
             {
