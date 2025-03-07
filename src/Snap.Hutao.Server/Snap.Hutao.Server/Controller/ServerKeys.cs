@@ -28,6 +28,7 @@ public static class ServerKeys
     public const string ServerPassportVerifyFailed = "ServerPassportVerifyFailed";
     public const string ServerPassportVerifyTooFrequent = "ServerPassportVerifyTooFrequent";
     public const string ServerPassportVerifyRequestSuccess = "ServerPassportVerifyRequestSuccess";
+    public const string ServerPassportVerifyRequestFailed = "ServerPassportVerifyRequestFailed";
     public const string ServerPassportVerifyRequestNotCurrentUser = "ServerPassportVerifyRequestNotCurrentUser";
     public const string ServerPassportVerifyRequestUserAlreadyExisted = "ServerPassportVerifyRequestUserAlreadyExisted";
     public const string ServerPassportVerifyRequestUserNotExisted = "ServerPassportVerifyRequestUserNotExisted";
