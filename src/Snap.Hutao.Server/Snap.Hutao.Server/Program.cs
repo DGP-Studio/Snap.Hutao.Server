@@ -45,7 +45,7 @@ public static class Program
 
         appBuilder.WebHost.UseSentry(options =>
         {
-            options.Release = $"{DateTimeOffset.Now:yyyy.M.d.hm}";
+            options.Release = $"{DateTimeOffset.Now:yyyy.M.d.Hm}";
             options.Dsn = "http://7de19654a539bfdd56a798ce89e85137@host.docker.internal:9510/7";
             options.TracesSampleRate = 1D;
             options.SendDefaultPii = true;
