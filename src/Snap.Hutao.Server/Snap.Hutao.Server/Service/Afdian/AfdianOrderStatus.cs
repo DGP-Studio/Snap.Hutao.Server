@@ -17,4 +17,5 @@ public enum AfdianOrderStatus
     GachaLogTermExtendDbError,
     CdnTermExtendNoSuchUser,
     CdnTermExtendDbError,
+    InvalidUserName,
 }

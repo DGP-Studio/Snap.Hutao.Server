@@ -7,6 +7,7 @@ using Disqord.Gateway;
 using Microsoft.AspNetCore.Hosting;
 using Quartz;
 using Quartz.AspNetCore;
+using Sentry;
 using Snap.Hutao.Server.Controller.Filter;
 using Snap.Hutao.Server.Discord;
 using Snap.Hutao.Server.Job;
@@ -123,7 +124,7 @@ public static class Program
             .AddSingleton<IAuthorizationMiddlewareResultHandler, ResponseAuthorizationMiddlewareResultHandler>()
             .AddSingleton<IRankService, RankService>()
             .AddSingleton<MailService>()
-            .AddSingleton<SentryUserFactory>()
+            .AddSingleton<ISentryUserFactory, SentryUserFactory>()
             .AddSingleton(appOptions)
             .AddSwaggerGen(options =>
             {

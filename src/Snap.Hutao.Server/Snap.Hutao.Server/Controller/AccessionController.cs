@@ -36,6 +36,11 @@ public sealed class AccessionController : ControllerBase
     [HttpGet("ApproveOpenSourceLicense")]
     public async Task<IActionResult> ApproveOpenSourceLicenseAsync([FromQuery] string userName, [FromQuery] string code)
     {
+        if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(code))
+        {
+            return Model.Response.Response.Fail(ReturnCode.LicenseApprovalFailed, "批准失败");
+        }
+
         return await accessionService.ApproveApplicationAsync(userName, code).ConfigureAwait(false) switch
         {
             ApplicationApproveResult.Ok => Model.Response.Response.Success("批准成功"),

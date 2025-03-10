@@ -1,6 +1,7 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
+using MailKit.Net.Smtp;
 using Snap.Hutao.Server.Model.Afdian;
 using Snap.Hutao.Server.Option;
 using Snap.Hutao.Server.Service.Discord;
@@ -58,7 +59,7 @@ public sealed class AfdianWebhookService
             UserName = order.Remark, // We use remark to get the userName(email) of the user
         };
 
-        if (order is not { SkuDetail: [SkuDetail skuDetail, ..] })
+        if (order is not { SkuDetail: [{ } skuDetail, ..] })
         {
             info.Status = AfdianOrderStatus.NoSkuDetails;
             return info;
@@ -84,8 +85,16 @@ public sealed class AfdianWebhookService
                     break;
                 case TermExtendResultKind.NoSuchUser:
                     string redeemCode = await redeemService.GenerateRedeemCodeForPurchaseGachaLogServiceAsync(info).ConfigureAwait(false);
-                    await mailService.SendPurchaseGachaLogStorageServiceNoSuchUserAsync(info.UserName, redeemCode, info.OrderNumber).ConfigureAwait(false);
-                    info.Status = AfdianOrderStatus.GachaLogTermExtendNoSuchUser;
+                    try
+                    {
+                        await mailService.SendPurchaseGachaLogStorageServiceNoSuchUserAsync(info.UserName, redeemCode, info.OrderNumber).ConfigureAwait(false);
+                        info.Status = AfdianOrderStatus.GachaLogTermExtendNoSuchUser;
+                    }
+                    catch (SmtpCommandException)
+                    {
+                        info.Status = AfdianOrderStatus.InvalidUserName;
+                    }
+
                     break;
                 case TermExtendResultKind.DbError:
                     info.Status = AfdianOrderStatus.GachaLogTermExtendDbError;
@@ -108,11 +117,19 @@ public sealed class AfdianWebhookService
                     break;
                 case TermExtendResultKind.NoSuchUser:
                     string redeemCode = await redeemService.GenerateRedeemCodeForPurchaseCdnServiceAsync(info).ConfigureAwait(false);
-                    await mailService.SendPurchaseCdnServiceNoSuchUserAsync(info.UserName, redeemCode, info.OrderNumber).ConfigureAwait(false);
-                    info.Status = AfdianOrderStatus.GachaLogTermExtendNoSuchUser;
+                    try
+                    {
+                        await mailService.SendPurchaseCdnServiceNoSuchUserAsync(info.UserName, redeemCode, info.OrderNumber).ConfigureAwait(false);
+                        info.Status = AfdianOrderStatus.CdnTermExtendNoSuchUser;
+                    }
+                    catch (SmtpCommandException)
+                    {
+                        info.Status = AfdianOrderStatus.InvalidUserName;
+                    }
+
                     break;
                 case TermExtendResultKind.DbError:
-                    info.Status = AfdianOrderStatus.GachaLogTermExtendDbError;
+                    info.Status = AfdianOrderStatus.CdnTermExtendDbError;
                     break;
             }
         }
@@ -141,13 +158,13 @@ public sealed class AfdianWebhookService
             return false;
         }
 
-        if (resp is not { Data.List: [Order order, ..] })
+        if (resp is not { Data.List: [{ } order, ..] })
         {
             info.Status = AfdianOrderStatus.ValidationResponseNoOrder;
             return false;
         }
 
-        if (order is not { SkuDetail: [SkuDetail skuDetail, ..] })
+        if (order is not { SkuDetail: [{ } skuDetail, ..] })
         {
             info.Status = AfdianOrderStatus.ValidationResponseNoSkuDetail;
             return false;
