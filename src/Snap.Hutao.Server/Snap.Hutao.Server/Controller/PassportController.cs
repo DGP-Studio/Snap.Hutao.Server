@@ -2,7 +2,6 @@
 // Licensed under the MIT license.
 
 using MailKit.Net.Smtp;
-using Snap.Hutao.Server.Controller.Filter;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity.Passport;
 using Snap.Hutao.Server.Model.Passport;
