@@ -144,18 +144,37 @@ public sealed class AfdianWebhookService
     private async ValueTask<bool> ValidateOrderInformationAsync(AfdianOrderInformation info, AfdianAuthorizationOptions afdianOptions)
     {
         QueryOrder query = QueryOrder.Create(afdianOptions.UserId, info.OrderNumber, afdianOptions.UserToken);
-        HttpResponseMessage response = await httpClient.PostAsJsonAsync("https://afdian.com/api/open/query-order", query).ConfigureAwait(false);
-        if (!response.IsSuccessStatusCode)
+
+        HttpResponseMessage? response = default;
+
+        int requestCount = 0;
+        while (++requestCount <= 10)
         {
-            info.Status = AfdianOrderStatus.ValidationRequestFailed;
-            return false;
+            response = await httpClient.PostAsJsonAsync("https://afdian.com/api/open/query-order", query).ConfigureAwait(false);
+            if (response.IsSuccessStatusCode)
+            {
+                break;
+            }
+
+            response.Dispose();
+            await Task.Delay(3000).ConfigureAwait(false);
         }
 
-        AfdianResponse<ListWrapper<Order>>? resp = await response.Content.ReadFromJsonAsync<AfdianResponse<ListWrapper<Order>>>().ConfigureAwait(false);
-        if (resp is not { ErrorCode: 200 })
+        AfdianResponse<ListWrapper<Order>>? resp;
+        using (response)
         {
-            info.Status = AfdianOrderStatus.ValidationResponseInvalid;
-            return false;
+            if (response is not { IsSuccessStatusCode: true })
+            {
+                info.Status = AfdianOrderStatus.ValidationRequestFailed;
+                return false;
+            }
+
+            resp = await response.Content.ReadFromJsonAsync<AfdianResponse<ListWrapper<Order>>>().ConfigureAwait(false);
+            if (resp is not { ErrorCode: 200 })
+            {
+                info.Status = AfdianOrderStatus.ValidationResponseInvalid;
+                return false;
+            }
         }
 
         if (resp is not { Data.List: [{ } order, ..] })
