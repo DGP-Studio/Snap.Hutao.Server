@@ -37,6 +37,7 @@ public enum ReturnCode
     GithubAlreadyAuthorized = 514006,
     GithubAuthorizationCanceled = 514007,
     NoUserIdentity = 514008,
+    InvalidUserName = 514009,
     ReCaptchaVerifyFailed = 515001,
     ServiceKeyInvalid = 516001,
     UserNameNotExists = 516002,

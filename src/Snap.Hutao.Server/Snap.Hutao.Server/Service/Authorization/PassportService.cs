@@ -41,7 +41,7 @@ public sealed class PassportService
 
     public async Task<PassportResult> RegisterAsync(Passport passport)
     {
-        if (await userManager.FindByNameAsync(passport.UserName).ConfigureAwait(false) is HutaoUser user)
+        if (await userManager.FindByNameAsync(passport.UserName).ConfigureAwait(false) is not null)
         {
             return new(false, "邮箱已被注册", ServerKeys.ServerPassportServiceEmailHasRegistered);
         }

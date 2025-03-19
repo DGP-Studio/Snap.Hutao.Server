@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 
 using MailKit.Net.Smtp;
+using MimeKit;
 using Snap.Hutao.Server.Model.Afdian;
 using Snap.Hutao.Server.Option;
 using Snap.Hutao.Server.Service.Discord;
@@ -94,6 +95,10 @@ public sealed class AfdianWebhookService
                     {
                         info.Status = AfdianOrderStatus.InvalidUserName;
                     }
+                    catch (ParseException)
+                    {
+                        info.Status = AfdianOrderStatus.InvalidUserName;
+                    }
 
                     break;
                 case TermExtendResultKind.DbError:
@@ -123,6 +128,10 @@ public sealed class AfdianWebhookService
                         info.Status = AfdianOrderStatus.CdnTermExtendNoSuchUser;
                     }
                     catch (SmtpCommandException)
+                    {
+                        info.Status = AfdianOrderStatus.InvalidUserName;
+                    }
+                    catch (ParseException)
                     {
                         info.Status = AfdianOrderStatus.InvalidUserName;
                     }

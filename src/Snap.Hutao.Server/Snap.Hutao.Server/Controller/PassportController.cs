@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 
 using MailKit.Net.Smtp;
+using MimeKit;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity.Passport;
 using Snap.Hutao.Server.Model.Passport;
@@ -85,7 +86,7 @@ public class PassportController : ControllerBase
             return Model.Response.Response.Fail(ReturnCode.RegisterFail, "验证失败", ServerKeys.ServerPassportVerifyFailed);
         }
 
-        if (!(await this.GetUserAsync(appDbContext.Users).ConfigureAwait(false) is { } user))
+        if (await this.GetUserAsync(appDbContext.Users).ConfigureAwait(false) is not { } user)
         {
             return Model.Response.Response.Fail(ReturnCode.CancelFail, "用户名或密码错误", ServerKeys.ServerPassportUserNameOrPasswordIncorrect);
         }
@@ -190,62 +191,69 @@ public class PassportController : ControllerBase
 
     private async Task<IActionResult> PrivateRequestVerifyCodeAsync(PassportRequest request, string normalizedUserName, string userName, bool userExists, string code)
     {
-        // 重置密码
-        if (request.IsResetPassword)
+        try
         {
-            if (!userExists)
+            // 重置密码
+            if (request.IsResetPassword)
             {
-                passportVerificationService.RemoveVerifyCodeForUserName(normalizedUserName);
-                return Model.Response.Response.Fail(ReturnCode.VerifyCodeNotAllowed, "请求验证码失败", ServerKeys.ServerPassportVerifyRequestUserNotExisted);
+                if (!userExists)
+                {
+                    passportVerificationService.RemoveVerifyCodeForUserName(normalizedUserName);
+                    return Model.Response.Response.Fail(ReturnCode.VerifyCodeNotAllowed, "请求验证码失败", ServerKeys.ServerPassportVerifyRequestUserNotExisted);
+                }
+
+                await mailService.SendResetPasswordVerifyCodeAsync(userName, code).ConfigureAwait(false);
+                return Model.Response.Response.Success("请求验证码成功", ServerKeys.ServerPassportVerifyRequestSuccess);
             }
 
-            await mailService.SendResetPasswordVerifyCodeAsync(userName, code).ConfigureAwait(false);
-            return Model.Response.Response.Success("请求验证码成功", ServerKeys.ServerPassportVerifyRequestSuccess);
-        }
-
-        // 重置用户名
-        if (request.IsResetUsername)
-        {
-            if (!userExists)
+            // 重置用户名
+            if (request.IsResetUsername)
             {
-                passportVerificationService.RemoveVerifyCodeForUserName(normalizedUserName);
-                return Model.Response.Response.Fail(ReturnCode.VerifyCodeNotAllowed, "请求验证码失败", ServerKeys.ServerPassportVerifyRequestUserNotExisted);
+                if (!userExists)
+                {
+                    passportVerificationService.RemoveVerifyCodeForUserName(normalizedUserName);
+                    return Model.Response.Response.Fail(ReturnCode.VerifyCodeNotAllowed, "请求验证码失败", ServerKeys.ServerPassportVerifyRequestUserNotExisted);
+                }
+
+                await mailService.SendResetUsernameVerifyCodeAsync(userName, code).ConfigureAwait(false);
+                return Model.Response.Response.Success("请求验证码成功", ServerKeys.ServerPassportVerifyRequestSuccess);
             }
 
-            await mailService.SendResetUsernameVerifyCodeAsync(userName, code).ConfigureAwait(false);
-            return Model.Response.Response.Success("请求验证码成功", ServerKeys.ServerPassportVerifyRequestSuccess);
-        }
-
-        // 注销账号
-        if (request.IsCancelRegistration)
-        {
-            // 注销时特判，只能注销当前用户
-            HutaoUser? user = await this.GetUserAsync(appDbContext.Users).ConfigureAwait(false);
-            if (user is null || !string.Equals(normalizedUserName, user.NormalizedUserName, StringComparison.Ordinal))
+            // 注销账号
+            if (request.IsCancelRegistration)
             {
-                passportVerificationService.RemoveVerifyCodeForUserName(normalizedUserName);
-                return Model.Response.Response.Fail(ReturnCode.VerifyCodeNotAllowed, "请求验证码失败", ServerKeys.ServerPassportVerifyRequestNotCurrentUser);
+                // 注销时特判，只能注销当前用户
+                HutaoUser? user = await this.GetUserAsync(appDbContext.Users).ConfigureAwait(false);
+                if (user is null || !string.Equals(normalizedUserName, user.NormalizedUserName, StringComparison.Ordinal))
+                {
+                    passportVerificationService.RemoveVerifyCodeForUserName(normalizedUserName);
+                    return Model.Response.Response.Fail(ReturnCode.VerifyCodeNotAllowed, "请求验证码失败", ServerKeys.ServerPassportVerifyRequestNotCurrentUser);
+                }
+
+                await mailService.SendCancelRegistrationVerifyCodeAsync(userName, code).ConfigureAwait(false);
+                return Model.Response.Response.Success("请求验证码成功", ServerKeys.ServerPassportVerifyRequestSuccess);
             }
 
-            await mailService.SendCancelRegistrationVerifyCodeAsync(userName, code).ConfigureAwait(false);
+            // 注册账号，用户名已存在
+            if (userExists)
+            {
+                passportVerificationService.RemoveVerifyCodeForUserName(normalizedUserName);
+                return Model.Response.Response.Fail(ReturnCode.VerifyCodeNotAllowed, "请求验证码失败", ServerKeys.ServerPassportVerifyRequestUserAlreadyExisted);
+            }
+
+            if (request.IsResetUsernameNew)
+            {
+                await mailService.SendResetUsernameVerifyCodeAsync(userName, code).ConfigureAwait(false);
+                return Model.Response.Response.Success("请求验证码成功", ServerKeys.ServerPassportVerifyRequestSuccess);
+            }
+
+            // 默认注册
+            await mailService.SendRegistrationVerifyCodeAsync(userName, code).ConfigureAwait(false);
             return Model.Response.Response.Success("请求验证码成功", ServerKeys.ServerPassportVerifyRequestSuccess);
         }
-
-        // 注册账号，用户名已存在
-        if (userExists)
+        catch (ParseException)
         {
-            passportVerificationService.RemoveVerifyCodeForUserName(normalizedUserName);
-            return Model.Response.Response.Fail(ReturnCode.VerifyCodeNotAllowed, "请求验证码失败", ServerKeys.ServerPassportVerifyRequestUserAlreadyExisted);
+            return Model.Response.Response.Fail(ReturnCode.InvalidUserName, "请求验证码失败", ServerKeys.ServerPassportVerifyRequestUserNameInvalid);
         }
-
-        if (request.IsResetUsernameNew)
-        {
-            await mailService.SendResetUsernameVerifyCodeAsync(userName, code).ConfigureAwait(false);
-            return Model.Response.Response.Success("请求验证码成功", ServerKeys.ServerPassportVerifyRequestSuccess);
-        }
-
-        // 默认注册
-        await mailService.SendRegistrationVerifyCodeAsync(userName, code).ConfigureAwait(false);
-        return Model.Response.Response.Success("请求验证码成功", ServerKeys.ServerPassportVerifyRequestSuccess);
     }
 }

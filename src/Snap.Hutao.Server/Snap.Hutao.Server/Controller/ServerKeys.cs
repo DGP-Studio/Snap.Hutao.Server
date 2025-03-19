@@ -32,6 +32,7 @@ public static class ServerKeys
     public const string ServerPassportVerifyRequestNotCurrentUser = "ServerPassportVerifyRequestNotCurrentUser";
     public const string ServerPassportVerifyRequestUserAlreadyExisted = "ServerPassportVerifyRequestUserAlreadyExisted";
     public const string ServerPassportVerifyRequestUserNotExisted = "ServerPassportVerifyRequestUserNotExisted";
+    public const string ServerPassportVerifyRequestUserNameInvalid = "ServerPassportVerifyRequestUserNameInvalid";
     public const string ServerRecordBannedUid = "ServerRecordBannedUid";
     public const string ServerRecordComputingStatistics = "ServerRecordComputingStatistics";
     public const string ServerRecordComputingStatistics2 = "ServerRecordComputingStatistics2";
