@@ -7,6 +7,7 @@ using Disqord.Gateway;
 using Microsoft.AspNetCore.Hosting;
 using Quartz;
 using Quartz.AspNetCore;
+using Quartz.Simpl;
 using Sentry;
 using Snap.Hutao.Server.Controller.Filter;
 using Snap.Hutao.Server.Discord;
@@ -98,6 +99,7 @@ public static class Program
             })
             .AddQuartz(config =>
             {
+                config.UseJobFactory<MicrosoftDependencyInjectionJobFactory>();
                 config.ScheduleJob<GachaLogStatisticsRefreshJob>(t => t.StartNow().WithCronSchedule("0 30 */1 * * ?"));
                 config.ScheduleJob<LegacyStatisticsRefreshJob>(t => t.StartNow().WithCronSchedule("0 5 */1 * * ?"));
                 config.ScheduleJob<SpiralAbyssRecordCleanJob>(t => t.StartNow().WithCronSchedule("0 0 4 16 * ?"));
