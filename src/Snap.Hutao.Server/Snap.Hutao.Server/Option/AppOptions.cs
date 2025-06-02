@@ -17,8 +17,6 @@ public sealed class AppOptions
 
     public string CdnEndpoint { get; set; } = default!;
 
-    public string CdnImgEndpoint { get; set; } = default!;
-
     public string CdnToken { get; set; } = default!;
 
     public AfdianOptions Afdian { get; set; } = default!;

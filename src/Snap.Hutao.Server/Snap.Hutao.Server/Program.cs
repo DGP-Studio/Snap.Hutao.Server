@@ -34,7 +34,6 @@ using Snap.Hutao.Server.Service.ReCaptcha;
 using Snap.Hutao.Server.Service.Redeem;
 using Snap.Hutao.Server.Service.RoleCombat;
 using Snap.Hutao.Server.Service.Sentry;
-using Snap.Hutao.Server.Service.StaticResource;
 using Snap.Hutao.Server.Service.Telemetry;
 using Swashbuckle.AspNetCore.SwaggerUI;
 
@@ -118,7 +117,6 @@ public static class Program
             .AddScoped<PizzaHelperRecordService>()
             .AddScoped<RecordService>()
             .AddScoped<SpiralAbyssStatisticsService>()
-            .AddScoped<StaticResourceService>()
             .AddScoped<TelemetryService>()
             .AddScoped<RedeemService>()
             .AddSingleton<AfdianWebhookService>()
