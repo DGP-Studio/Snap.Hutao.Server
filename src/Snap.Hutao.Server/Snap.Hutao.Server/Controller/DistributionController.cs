@@ -21,10 +21,29 @@ public class DistributionController : ControllerBase
 
     [Authorize]
     [ServiceFilter(typeof(ValidateCdnPermission))]
+    [HttpGet("GetDownloadToken")]
+    public async Task<IActionResult> GetDownloadToken()
+    {
+        string? token = await distributionService.GetDownloadTokenAsync();
+        if (token is null)
+        {
+            return Model.Response.Response.Fail(ReturnCode.CdnDispatcherException, "获取下载令牌失败");
+        }
+
+        return Response<string>.Success("获取下载令牌成功", token);
+    }
+
+    [Authorize]
+    [ServiceFilter(typeof(ValidateCdnPermission))]
     [HttpGet("GetAcceleratedMirror")]
     public async Task<IActionResult> GetAcceleratedMirror([FromQuery(Name = "Filename")] string filename)
     {
         HutaoPackageMirror? mirror = await distributionService.GetAcceleratedMirrorAsync(filename);
+        if (mirror is null)
+        {
+            return Model.Response.Response.Fail(ReturnCode.CdnDispatcherException, "获取加速镜像失败");
+        }
+
         return Response<HutaoPackageMirror?>.Success("获取加速镜像成功", mirror);
     }
 }

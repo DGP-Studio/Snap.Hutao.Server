@@ -63,5 +63,6 @@ public enum ReturnCode
     GachaLogExtendDbException = 553002,
     LicenseApprovalFailed = 555001,
     CdnExtendDbException = 557001,
+    CdnDispatcherException = 557002,
     RedeemCodeDbException = 558001,
 }

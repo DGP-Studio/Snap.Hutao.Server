@@ -5,6 +5,13 @@ namespace Snap.Hutao.Server.Service.Distribution;
 
 public sealed class HutaoPackageMirror
 {
+    public HutaoPackageMirror(string url, string mirrorName, string mirrorType)
+    {
+        Url = url;
+        MirrorName = mirrorName;
+        MirrorType = mirrorType;
+    }
+
     [JsonPropertyName("url")]
     public string Url { get; set; } = default!;
 
