@@ -69,6 +69,11 @@ public class PassportController : ControllerBase
             Password = passportService.Decrypt(request.Password),
         };
 
+        if (passport.Password.Length < 8)
+        {
+            return Model.Response.Response.Fail(ReturnCode.TooShortPassword, "密码长度不能小于 8 位", ServerKeys.ServerPassportPasswordTooShort);
+        }
+
         PassportResult result = await passportService.RegisterAsync(passport).ConfigureAwait(false);
         return result.Success
             ? Response<string>.Success(result.Message, result.LocalizationKey!, result.Token)
@@ -119,6 +124,11 @@ public class PassportController : ControllerBase
             UserName = userName,
             Password = passportService.Decrypt(request.Password),
         };
+
+        if (passport.Password.Length < 8)
+        {
+            return Model.Response.Response.Fail(ReturnCode.TooShortPassword, "密码长度不能小于 8 位", ServerKeys.ServerPassportPasswordTooShort);
+        }
 
         PassportResult result = await passportService.ResetPasswordAsync(passport).ConfigureAwait(false);
 
