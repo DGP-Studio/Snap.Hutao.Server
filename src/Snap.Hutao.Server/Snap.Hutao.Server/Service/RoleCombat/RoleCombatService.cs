@@ -68,7 +68,7 @@ public sealed class RoleCombatService
             memoryCache.Set($"RoleCombatStatistics:{scheduleId}", item);
             statistics.Data = JsonSerializer.Serialize(item);
 
-            appDbContext.SaveChanges();
+            await appDbContext.SaveChangesAsync().ConfigureAwait(false);
 
             await discordService.ReportRoleCombatStatisticsAsync(item).ConfigureAwait(false);
         }
