@@ -5,6 +5,7 @@ using Snap.Hutao.Server.Extension;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity.Passport;
 using Snap.Hutao.Server.Model.Github;
+using Snap.Hutao.Server.Model.Passport;
 using Snap.Hutao.Server.Model.Response;
 using Snap.Hutao.Server.Option;
 using Snap.Hutao.Server.Service.Authorization;
@@ -95,7 +96,7 @@ public class GithubService
 
         if (identity is null)
         {
-            return new AuthorizationStatus { IsAuthorized = false };
+            return new() { IsAuthorized = false };
         }
 
         GithubAccessTokenResponse? accessTokenResponse = await githubApiService.GetAccessTokenByRefreshTokenAsync(identity.RefreshToken).ConfigureAwait(false);

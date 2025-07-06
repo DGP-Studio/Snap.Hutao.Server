@@ -1,7 +1,6 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
-using Snap.Hutao.Server.Controller.Filter;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity.Redeem;
 using Snap.Hutao.Server.Model.Redeem;
@@ -12,6 +11,7 @@ namespace Snap.Hutao.Server.Controller;
 
 [ApiController]
 [Route("[controller]")]
+[ApiExplorerSettings(GroupName = "Redeem")]
 public class RedeemController : ControllerBase
 {
     private readonly RedeemService redeemService;

@@ -8,6 +8,7 @@
     <UserSecretsId>f5e9eb75-6632-4266-b3f1-2d363414cbe5</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>

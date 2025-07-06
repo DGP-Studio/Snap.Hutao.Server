@@ -15,6 +15,8 @@ public static class ServerKeys
     public const string ServerPassportLoginRequired = "ServerPassportLoginRequired";
     public const string ServerPassportLoginSucceed = "ServerPassportLoginSucceed";
     public const string ServerPassportPasswordTooShort = "ServerPassportPasswordTooShort";
+    public const string ServerPassportRefreshTokenEmpty = "ServerPassportRefreshTokenEmpty";
+    public const string ServerPassportRefreshTokenInvalid = "ServerPassportRefreshTokenInvalid";
     public const string ServerPassportResetPasswordSucceed = "ServerPassportResetPasswordSucceed";
     public const string ServerPassportResetUserNameSucceed = "ServerPassportResetUserNameSucceed";
     public const string ServerPassportRegisterSucceed = "ServerPassportRegisterSucceed";
@@ -23,6 +25,8 @@ public static class ServerKeys
     public const string ServerPassportServiceEmailHasRegistered = "ServerPassportServiceEmailHasRegistered";
     public const string ServerPassportServiceInternalException = "ServerPassportServiceInternalException";
     public const string ServerPassportServiceUnregisterFailed = "ServerPassportServiceUnregisterFailed";
+    public const string ServerPassportTokenRevokeFailed = "ServerPassportTokenRevokeFailed";
+    public const string ServerPassportTokenRevokeSuccess = "ServerPassportTokenRevokeSuccess";
     public const string ServerPassportUnregisterSucceed = "ServerPassportUnregisterSucceed";
     public const string ServerPassportUserInfoNotExist = "ServerPassportUserInfoNotExist";
     public const string ServerPassportUserNameOrPasswordIncorrect = "ServerPassportUserNameOrPasswordIncorrect";

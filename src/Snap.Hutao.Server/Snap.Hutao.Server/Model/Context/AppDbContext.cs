@@ -88,10 +88,32 @@ public sealed class AppDbContext : IdentityDbContext<HutaoUser, IdentityRole<int
     public DbSet<RoleCombatStatistics> RoleCombatStatistics { get; set; } = default!;
     #endregion
 
+    #region Passport
+    public DbSet<RefreshToken> RefreshTokens { get; set; } = default!;
+
+    public DbSet<UserProvider> UserProviders { get; set; } = default!;
+    #endregion
+
     /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfiguration(new EntityFloorConfiguration());
+
+        modelBuilder.Entity<RefreshToken>(entity =>
+        {
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<UserProvider>(entity =>
+        {
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
     }
 }
