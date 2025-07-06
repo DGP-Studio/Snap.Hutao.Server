@@ -15,6 +15,9 @@ namespace Snap.Hutao.Server.Service.Authorization;
 // Scoped
 public sealed class PassportService
 {
+    private const int AccessTokenExpirationMinutes = 15;
+    private const int RefreshTokenExpirationDays = 30;
+
     private readonly UserManager<HutaoUser> userManager;
     private readonly AppDbContext appDbContext;
     private readonly SymmetricSecurityKey jwtSigningKey;
@@ -68,11 +71,10 @@ public sealed class PassportService
             newUser.CdnExpireAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds() + (long)TimeSpan.FromDays(3).TotalSeconds;
             newUser.GachaLogExpireAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds() + (long)TimeSpan.FromDays(3).TotalSeconds;
             await userManager.UpdateAsync(newUser).ConfigureAwait(false);
-
-            return new(true, "注册成功，首次注册获赠 3 天胡桃云权限", ServerKeys.ServerPassportRegisterSucceedFirstTime, CreateToken(newUser));
         }
 
-        return new(true, "注册成功", ServerKeys.ServerPassportRegisterSucceed, CreateToken(newUser));
+        TokenResponse tokenResponse = await CreateTokenResponseAsync(newUser).ConfigureAwait(false);
+        return new(true, "注册成功", ServerKeys.ServerPassportRegisterSucceed, tokenResponse);
     }
 
     public async Task<PassportResult> ResetPasswordAsync(Passport passport)
@@ -82,7 +84,8 @@ public sealed class PassportService
             await userManager.RemovePasswordAsync(user).ConfigureAwait(false);
             await userManager.AddPasswordAsync(user, passport.Password).ConfigureAwait(false);
 
-            return new(true, "新密码设置成功", ServerKeys.ServerPassportResetPasswordSucceed, CreateToken(user));
+            TokenResponse tokenResponse = await CreateTokenResponseAsync(user).ConfigureAwait(false);
+            return new(true, "新密码设置成功", ServerKeys.ServerPassportResetPasswordSucceed, tokenResponse);
         }
 
         return new(false, "该邮箱尚未注册", ServerKeys.ServerPassportServiceEmailHasNotRegistered);
@@ -104,7 +107,8 @@ public sealed class PassportService
                 await appDbContext.RegistrationRecords.AddAndSaveAsync(new() { UserName = passport.NewUserName }).ConfigureAwait(false);
             }
 
-            return new(true, "邮箱修改成功", ServerKeys.ServerPassportResetUserNameSucceed, CreateToken(user));
+            TokenResponse tokenResponse = await CreateTokenResponseAsync(user).ConfigureAwait(false);
+            return new(true, "邮箱修改成功", ServerKeys.ServerPassportResetUserNameSucceed, tokenResponse);
         }
 
         return new(false, "该邮箱尚未注册", ServerKeys.ServerPassportServiceEmailHasNotRegistered);
@@ -116,11 +120,12 @@ public sealed class PassportService
         {
             if (await userManager.CheckPasswordAsync(user, passport.Password).ConfigureAwait(false))
             {
-                return new(true, "登录成功", ServerKeys.ServerPassportLoginSucceed, CreateToken(user));
+                TokenResponse tokenResponse = await CreateTokenResponseAsync(user).ConfigureAwait(false);
+                return new(true, "登录成功", ServerKeys.ServerPassportLoginSucceed, tokenResponse);
             }
         }
 
-        return new PassportResult(false, "邮箱或密码不正确", ServerKeys.ServerPassportUserNameOrPasswordIncorrect);
+        return new(false, "邮箱或密码不正确", ServerKeys.ServerPassportUserNameOrPasswordIncorrect);
     }
 
     public async Task<PassportResult> CancelAsync(Passport passport)
@@ -154,8 +159,98 @@ public sealed class PassportService
         return handler.WriteToken(token);
     }
 
-    private string CreateToken(HutaoUser user)
+    public async Task<TokenResponse?> RefreshTokenAsync(string refreshTokenValue)
     {
-        return CreateTokenByUserId(user.Id);
+        RefreshToken? refreshToken = await appDbContext.RefreshTokens
+            .Include(rt => rt.User)
+            .FirstOrDefaultAsync(rt => rt.Token == refreshTokenValue && !rt.IsRevoked);
+
+        if (refreshToken is null || refreshToken.ExpiresAt <= DateTime.UtcNow)
+        {
+            return null;
+        }
+
+        refreshToken.IsRevoked = true;
+        await appDbContext.RefreshTokens.UpdateAndSaveAsync(refreshToken).ConfigureAwait(false);
+        return await CreateTokenResponseAsync(refreshToken.User);
+    }
+
+    public async Task<bool> RevokeRefreshTokenAsync(string refreshTokenValue)
+    {
+        RefreshToken? refreshToken = await appDbContext.RefreshTokens
+            .FirstOrDefaultAsync(rt => rt.Token == refreshTokenValue);
+
+        if (refreshToken == null)
+        {
+            return false;
+        }
+
+        refreshToken.IsRevoked = true;
+        await appDbContext.RefreshTokens.UpdateAndSaveAsync(refreshToken).ConfigureAwait(false);
+
+        return true;
+    }
+
+    public async Task RevokeAllUserTokensAsync(int userId)
+    {
+        await appDbContext.RefreshTokens
+            .Where(rt => rt.UserId == userId && !rt.IsRevoked)
+            .ExecuteUpdateAsync(rt => rt.SetProperty(r => r.IsRevoked, true));
+    }
+
+    private static unsafe string GenerateRefreshToken()
+    {
+        Span<byte> randomBytes = stackalloc byte[64];
+        RandomNumberGenerator.Create().GetBytes(randomBytes);
+        return Convert.ToBase64String(randomBytes);
+    }
+
+    private async Task<TokenResponse> CreateTokenResponseAsync(HutaoUser user)
+    {
+        string jwtId = Guid.NewGuid().ToString();
+        string accessToken = CreateAccessToken(user, jwtId);
+        RefreshToken refreshToken = await CreateRefreshTokenAsync(user.Id, jwtId);
+
+        return new()
+        {
+            AccessToken = accessToken,
+            RefreshToken = refreshToken.Token,
+            ExpiresIn = AccessTokenExpirationMinutes * 60,
+        };
+    }
+
+    private string CreateAccessToken(HutaoUser user, string jwtId)
+    {
+        JwtSecurityTokenHandler handler = new();
+        SecurityTokenDescriptor descriptor = new()
+        {
+            Subject = new([
+                new(PassportClaimTypes.UserId, user.Id.ToString()),
+                new(JwtRegisteredClaimNames.Jti, jwtId),
+                new(JwtRegisteredClaimNames.Sub, user.UserName ?? string.Empty)
+            ]),
+            Expires = DateTime.UtcNow.AddMinutes(AccessTokenExpirationMinutes),
+            Issuer = "homa.snapgenshin.com",
+            SigningCredentials = new(jwtSigningKey, SecurityAlgorithms.HmacSha256Signature),
+        };
+
+        SecurityToken token = handler.CreateToken(descriptor);
+        return handler.WriteToken(token);
+    }
+
+    private async Task<RefreshToken> CreateRefreshTokenAsync(int userId, string jwtId)
+    {
+        RefreshToken refreshToken = new()
+        {
+            UserId = userId,
+            Token = GenerateRefreshToken(),
+            ExpiresAt = DateTime.UtcNow.AddDays(RefreshTokenExpirationDays),
+            CreatedAt = DateTime.UtcNow,
+            JwtId = jwtId,
+            IsRevoked = false,
+        };
+
+        await appDbContext.RefreshTokens.AddAndSaveAsync(refreshToken);
+        return refreshToken;
     }
 }

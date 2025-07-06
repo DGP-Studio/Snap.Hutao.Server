@@ -136,6 +136,7 @@ public static class Program
                 options.SwaggerDoc("GachaLog", new() { Version = "1.0", Title = "祈愿记录", Description = "账户祈愿记录管理" });
                 options.SwaggerDoc("Distribution", new() { Version = "1.0", Title = "分发管理", Description = "胡桃分发管理" });
                 options.SwaggerDoc("Services", new() { Version = "1.0", Title = "服务管理", Description = "维护专用管理接口，调用需要维护权限" });
+                options.SwaggerDoc("Redeem", new() { Version = "1.0", Title = "兑换码", Description = "兑换码相关接口" });
 
                 options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "Snap.Hutao.Server.xml"));
             })
@@ -259,6 +260,7 @@ public static class Program
             option.SwaggerEndpoint("/swagger/Passport/swagger.json", "胡桃账户");
             option.SwaggerEndpoint("/swagger/GachaLog/swagger.json", "祈愿记录");
             option.SwaggerEndpoint("/swagger/Distribution/swagger.json", "分发管理");
+            option.SwaggerEndpoint("/swagger/Redeem/swagger.json", "兑换码");
 
             option.DefaultModelExpandDepth(-1);
             option.DocExpansion(DocExpansion.None);
