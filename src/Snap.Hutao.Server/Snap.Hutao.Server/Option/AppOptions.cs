@@ -19,6 +19,8 @@ public sealed class AppOptions
 
     public string CdnToken { get; set; } = default!;
 
+    public byte[] OAuthStateEncryptKey { get; set; } = default!;
+
     public AfdianOptions Afdian { get; set; } = default!;
 
     public Afdian2Options Afdian2 { get; set; } = default!;

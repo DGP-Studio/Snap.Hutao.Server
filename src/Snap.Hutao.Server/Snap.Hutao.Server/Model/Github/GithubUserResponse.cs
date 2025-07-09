@@ -10,4 +10,7 @@ public sealed class GithubUserResponse
 
     [JsonPropertyName("node_id")]
     public string NodeId { get; set; } = default!;
+
+    [JsonPropertyName("login")]
+    public string Login { get; set; } = default!;
 }

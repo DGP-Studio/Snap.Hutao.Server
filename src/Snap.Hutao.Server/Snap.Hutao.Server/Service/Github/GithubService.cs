@@ -10,13 +10,14 @@ using Snap.Hutao.Server.Model.Response;
 using Snap.Hutao.Server.Option;
 using Snap.Hutao.Server.Service.Authorization;
 using Snap.Hutao.Server.Service.Discord;
+using Snap.Hutao.Server.Service.OAuth;
 using System.Security.Cryptography;
 using System.Web;
 
 namespace Snap.Hutao.Server.Service.Github;
 
 // Scoped
-public class GithubService
+public class GithubService : IOAuthProvider
 {
     private readonly GithubApiService githubApiService;
     private readonly PassportService passportService;
@@ -39,6 +40,65 @@ public class GithubService
         return HttpUtility.UrlEncode(EncryptState(JsonSerializer.Serialize(identity)));
     }
 
+    public async ValueTask<OAuthResult> HandleOAuthCallbackAsync(string code, OAuthBindState state)
+    {
+        GithubAccessTokenResponse? accessTokenResponse = await githubApiService.GetAccessTokenByCodeAsync(code).ConfigureAwait(false);
+        if (accessTokenResponse is null)
+        {
+            return OAuthResult.Fail("ServerOAuthInternalException");
+        }
+
+        GithubUserResponse? userResponse = await githubApiService.GetUserInfoByAccessTokenAsync(accessTokenResponse.AccessToken).ConfigureAwait(false);
+        if (userResponse is null)
+        {
+            return OAuthResult.Fail("ServerOAuthInternalException");
+        }
+
+        OAuthBindIdentity? identity = await this.appDbContext.OAuthBindIdentities.SingleOrDefaultAsync(b => b.ProviderKind == OAuthProviderKind.Github && b.ProviderId == userResponse.NodeId);
+        if (state.UserId is -1)
+        {
+            // Login mode
+            if (identity is null)
+            {
+                // TODO: Or register new account
+                return OAuthResult.Fail("ServerOAuthNotBinded");
+            }
+
+            return OAuthResult.LoginSuccess(await this.passportService.CreateTokenResponseAsync(identity.UserId).ConfigureAwait(false));
+        }
+
+        if (identity is not null)
+        {
+            if (state.UserId != identity.UserId)
+            {
+                // Already authorized to another user
+                return OAuthResult.Fail("ServerOAuthAlreadyBinded");
+            }
+
+            // Already bound to this user, update access token
+            identity.RefreshToken = accessTokenResponse.RefreshToken;
+            identity.ExpiresAt = (DateTimeOffset.Now + TimeSpan.FromSeconds(accessTokenResponse.RefreshTokenExpiresIn)).ToUnixTimeSeconds();
+            await this.appDbContext.OAuthBindIdentities.UpdateAndSaveAsync(identity).ConfigureAwait(false);
+            return OAuthResult.BindSuccess();
+        }
+
+        // First time to bind
+        identity = new OAuthBindIdentity
+        {
+            UserId = state.UserId,
+            ProviderKind = OAuthProviderKind.Github,
+            ProviderId = userResponse.NodeId,
+            DisplayName = userResponse.Login,
+            RefreshToken = accessTokenResponse.RefreshToken,
+            CreatedAt = DateTimeOffset.Now.ToUnixTimeSeconds(),
+            ExpiresAt = (DateTimeOffset.Now + TimeSpan.FromSeconds(accessTokenResponse.RefreshTokenExpiresIn)).ToUnixTimeSeconds(),
+        };
+
+        await this.appDbContext.OAuthBindIdentities.AddAndSaveAsync(identity).ConfigureAwait(false);
+        return OAuthResult.BindSuccess();
+    }
+
+    [Obsolete]
     public async ValueTask<AuthorizeResult> HandleAuthorizationCallbackAsync(string code, string state)
     {
         UserIdentity? userIdentity;
@@ -217,5 +277,25 @@ public class GithubService
                 }
             }
         }
+    }
+
+    public async Task<string> RequestAuthUrlAsync(string state)
+    {
+        return $"https://github.com/login/oauth/authorize?client_id={githubOptions.ClientId}&state={HttpUtility.UrlEncode(state)}";
+    }
+
+    public async Task<bool> RefreshTokenAsync(OAuthBindIdentity identity)
+    {
+        GithubAccessTokenResponse? accessTokenResponse = await githubApiService.GetAccessTokenByRefreshTokenAsync(identity.RefreshToken).ConfigureAwait(false);
+        if (accessTokenResponse is null)
+        {
+            return false;
+        }
+
+        identity.RefreshToken = accessTokenResponse.RefreshToken;
+        identity.ExpiresAt = (DateTimeOffset.Now + TimeSpan.FromSeconds(accessTokenResponse.RefreshTokenExpiresIn)).ToUnixTimeSeconds();
+
+        await this.appDbContext.OAuthBindIdentities.UpdateAndSaveAsync(identity).ConfigureAwait(false);
+        return true;
     }
 }

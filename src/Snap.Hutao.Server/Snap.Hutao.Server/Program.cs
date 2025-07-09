@@ -29,6 +29,7 @@ using Snap.Hutao.Server.Service.Github;
 using Snap.Hutao.Server.Service.Legacy;
 using Snap.Hutao.Server.Service.Legacy.PizzaHelper;
 using Snap.Hutao.Server.Service.Licensing;
+using Snap.Hutao.Server.Service.OAuth;
 using Snap.Hutao.Server.Service.Ranking;
 using Snap.Hutao.Server.Service.ReCaptcha;
 using Snap.Hutao.Server.Service.Redeem;
@@ -112,6 +113,7 @@ public static class Program
             .AddScoped<DistributionService>()
             .AddScoped<GachaLogService>()
             .AddScoped<GithubService>()
+            .AddKeyedScoped<IOAuthProvider, GithubService>(OAuthProviderKind.Github)
             .AddScoped<PassportService>()
             .AddScoped<PassportVerificationService>()
             .AddScoped<PizzaHelperRecordService>()
@@ -137,6 +139,7 @@ public static class Program
                 options.SwaggerDoc("Distribution", new() { Version = "1.0", Title = "分发管理", Description = "胡桃分发管理" });
                 options.SwaggerDoc("Services", new() { Version = "1.0", Title = "服务管理", Description = "维护专用管理接口，调用需要维护权限" });
                 options.SwaggerDoc("Redeem", new() { Version = "1.0", Title = "兑换码", Description = "兑换码相关接口" });
+                options.SwaggerDoc("OAuth", new() { Version = "1.0", Title = "OAuth", Description = "OAuth相关接口" });
 
                 options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "Snap.Hutao.Server.xml"));
             })
@@ -261,6 +264,7 @@ public static class Program
             option.SwaggerEndpoint("/swagger/GachaLog/swagger.json", "祈愿记录");
             option.SwaggerEndpoint("/swagger/Distribution/swagger.json", "分发管理");
             option.SwaggerEndpoint("/swagger/Redeem/swagger.json", "兑换码");
+            option.SwaggerEndpoint("/swagger/OAuth/swagger.json", "OAuth");
 
             option.DefaultModelExpandDepth(-1);
             option.DocExpansion(DocExpansion.None);
