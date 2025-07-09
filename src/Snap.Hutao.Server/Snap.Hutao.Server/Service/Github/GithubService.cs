@@ -60,7 +60,6 @@ public class GithubService : IOAuthProvider
             // Login mode
             if (identity is null)
             {
-                // TODO: Or register new account
                 return OAuthResult.Fail("ServerOAuthNotBinded");
             }
 

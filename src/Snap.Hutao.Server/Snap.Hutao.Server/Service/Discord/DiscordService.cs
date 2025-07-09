@@ -130,4 +130,17 @@ public sealed class DiscordService
 
         await hutaoServerBot.SendMessageAsync(channelId, message);
     }
+
+    public async ValueTask ReportOAuthBindIdentityTokenRefreshResultAsync(int successCount, int failureCount)
+    {
+        LocalEmbed embed = Embed.CreateStandardEmbed("OAuth Bind Identity Token Refresh");
+
+        embed.AddField("Success Count", successCount, true);
+        embed.AddField("Failure Count", failureCount, true);
+
+        await hutaoServerBot
+            .SendMessageAsync(discordOptions.KnownChannels.PrivateReport, new LocalMessage().WithEmbeds(embed))
+            .WaitAsync(new CancellationToken(true))
+            .ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
+    }
 }

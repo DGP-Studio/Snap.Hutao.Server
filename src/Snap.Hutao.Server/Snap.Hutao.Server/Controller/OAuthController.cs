@@ -131,8 +131,6 @@ public class OAuthController : ControllerBase
             return BadRequest("Invalid state.");
         }
 
-        // TODO: We can unify the callback handling function for different providers in the interface
-        // But the callback handling function signatures may have `params object` which cannot be fixed at compile time.
         GithubService githubService = this.serviceProvider.GetRequiredService<GithubService>();
         OAuthResult result = await githubService.HandleOAuthCallbackAsync(code, decryptedState).ConfigureAwait(false);
         if (!result.IsSuccess)
