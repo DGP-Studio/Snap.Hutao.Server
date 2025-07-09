@@ -196,18 +196,16 @@ public sealed class PassportService
             .ExecuteUpdateAsync(rt => rt.SetProperty(r => r.IsRevoked, true));
     }
 
-    private static unsafe string GenerateRefreshToken()
+    public Task<TokenResponse> CreateTokenResponseAsync(HutaoUser user)
     {
-        Span<byte> randomBytes = stackalloc byte[64];
-        RandomNumberGenerator.Create().GetBytes(randomBytes);
-        return Convert.ToBase64String(randomBytes);
+        return CreateTokenResponseAsync(user.Id);
     }
 
-    private async Task<TokenResponse> CreateTokenResponseAsync(HutaoUser user)
+    public async Task<TokenResponse> CreateTokenResponseAsync(int userId)
     {
         string jwtId = Guid.NewGuid().ToString();
-        string accessToken = CreateAccessToken(user, jwtId);
-        RefreshToken refreshToken = await CreateRefreshTokenAsync(user.Id, jwtId);
+        string accessToken = CreateAccessToken(userId, jwtId);
+        RefreshToken refreshToken = await CreateRefreshTokenAsync(userId, jwtId);
 
         return new()
         {
@@ -217,15 +215,21 @@ public sealed class PassportService
         };
     }
 
-    private string CreateAccessToken(HutaoUser user, string jwtId)
+    private static unsafe string GenerateRefreshToken()
+    {
+        Span<byte> randomBytes = stackalloc byte[64];
+        RandomNumberGenerator.Create().GetBytes(randomBytes);
+        return Convert.ToBase64String(randomBytes);
+    }
+
+    private string CreateAccessToken(int userId, string jwtId)
     {
         JwtSecurityTokenHandler handler = new();
         SecurityTokenDescriptor descriptor = new()
         {
             Subject = new([
-                new(PassportClaimTypes.UserId, user.Id.ToString()),
+                new(PassportClaimTypes.UserId, userId.ToString()),
                 new(JwtRegisteredClaimNames.Jti, jwtId),
-                new(JwtRegisteredClaimNames.Sub, user.UserName ?? string.Empty)
             ]),
             Expires = DateTime.UtcNow.AddMinutes(AccessTokenExpirationMinutes),
             Issuer = "homa.snapgenshin.com",
