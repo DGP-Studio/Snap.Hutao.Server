@@ -10,6 +10,5 @@ public interface IOAuthProvider
     Task<string> RequestAuthUrlAsync(string state);
 
     // Internal use
-    // TODO: add a job to refresh refresh token
     Task<bool> RefreshTokenAsync(OAuthBindIdentity identity);
 }
