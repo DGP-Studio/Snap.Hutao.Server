@@ -28,8 +28,8 @@ public class OAuthController : ControllerBase
         this.appOptions = serviceProvider.GetRequiredService<AppOptions>();
     }
 
-    [HttpGet("Login")]
-    public async Task<IActionResult> LoginAsync([FromQuery(Name = "provider")] string providerKind, [FromQuery(Name = "callback")] string callbackUri)
+    [HttpGet("Auth")]
+    public async Task<IActionResult> RequestAuthAsync([FromQuery(Name = "provider")] string providerKind, [FromQuery(Name = "callback")] string callbackUri)
     {
         if (string.IsNullOrEmpty(providerKind))
         {
@@ -46,34 +46,16 @@ public class OAuthController : ControllerBase
             return BadRequest("Unsupported OAuth provider kind.");
         }
 
-        OAuthBindState state = new(callbackUri);
-        string encryptedState = EncryptState(JsonSerializer.Serialize(state));
-
-        IOAuthProvider provider = this.serviceProvider.GetRequiredKeyedService<IOAuthProvider>(kind);
-        return Redirect(await provider.RequestAuthUrlAsync(encryptedState).ConfigureAwait(false));
-    }
-
-    [Authorize]
-    [HttpGet("Bind")]
-    public async Task<IActionResult> BindAsync([FromQuery(Name = "provider")] string providerKind, [FromQuery(Name = "callback")] string callbackUri)
-    {
-        if (string.IsNullOrEmpty(providerKind))
+        OAuthBindState state;
+        if (this.TryGetUserId(out int userId))
         {
-            return BadRequest("Invalid OAuth provider kind.");
+            state = new(userId, callbackUri);
+        }
+        else
+        {
+            state = new(callbackUri);
         }
 
-        if (string.IsNullOrEmpty(callbackUri))
-        {
-            return BadRequest("Callback URL is required.");
-        }
-
-        if (!Enum.TryParse(providerKind, true, out OAuthProviderKind kind))
-        {
-            return BadRequest("Unsupported OAuth provider kind.");
-        }
-
-        int userId = this.GetUserId();
-        OAuthBindState state = new(userId, callbackUri);
         string encryptedState = EncryptState(JsonSerializer.Serialize(state));
 
         IOAuthProvider provider = this.serviceProvider.GetRequiredKeyedService<IOAuthProvider>(kind);
