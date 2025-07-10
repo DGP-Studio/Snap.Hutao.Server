@@ -76,7 +76,7 @@ public class PassportController : ControllerBase
 
         PassportResult result = await passportService.RegisterAsync(passport).ConfigureAwait(false);
         return result.Success
-            ? Response<string>.Success(result.Message, result.LocalizationKey!, result.Token.AccessToken)
+            ? Response<TokenResponse>.Success(result.Message, result.LocalizationKey!, result.Token)
             : Model.Response.Response.Fail(ReturnCode.RegisterFail, result.Message, result.LocalizationKey!);
     }
 
@@ -133,7 +133,7 @@ public class PassportController : ControllerBase
         PassportResult result = await passportService.ResetPasswordAsync(passport).ConfigureAwait(false);
 
         return result.Success
-            ? Response<string>.Success(result.Message, result.LocalizationKey!, result.Token.AccessToken)
+            ? Response<TokenResponse>.Success(result.Message, result.LocalizationKey!, result.Token)
             : Model.Response.Response.Fail(ReturnCode.RegisterFail, result.Message, result.LocalizationKey!);
     }
 
@@ -157,7 +157,7 @@ public class PassportController : ControllerBase
         PassportResult result = await passportService.ResetUsernameAsync(passport).ConfigureAwait(false);
 
         return result.Success
-            ? Response<string>.Success(result.Message, result.LocalizationKey!, result.Token.AccessToken)
+            ? Response<TokenResponse>.Success(result.Message, result.LocalizationKey!, result.Token)
             : Model.Response.Response.Fail(ReturnCode.RegisterFail, result.Message, result.LocalizationKey!);
     }
 
@@ -173,7 +173,7 @@ public class PassportController : ControllerBase
         PassportResult result = await passportService.LoginAsync(passport).ConfigureAwait(false);
 
         return result.Success
-            ? Response<string>.Success(result.Message, result.LocalizationKey!, result.Token.AccessToken)
+            ? Response<TokenResponse>.Success(result.Message, result.LocalizationKey!, result.Token)
             : Model.Response.Response.Fail(ReturnCode.LoginFail, result.Message, result.LocalizationKey!);
     }
 
