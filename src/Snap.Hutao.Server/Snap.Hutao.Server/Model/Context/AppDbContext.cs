@@ -88,6 +88,12 @@ public sealed class AppDbContext : IdentityDbContext<HutaoUser, IdentityRole<int
     public DbSet<RoleCombatStatistics> RoleCombatStatistics { get; set; } = default!;
     #endregion
 
+    #region Passport
+    public DbSet<RefreshToken> RefreshTokens { get; set; } = default!;
+
+    public DbSet<OAuthBindIdentity> OAuthBindIdentities { get; set; } = default!;
+    #endregion
+
     /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

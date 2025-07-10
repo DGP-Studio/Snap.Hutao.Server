@@ -1,12 +1,19 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
+using Snap.Hutao.Server.Model.Passport;
+
 namespace Snap.Hutao.Server.Service.Authorization;
 
 public class PassportResult
 {
-    public PassportResult(bool success, string message, string? key, string? token = null)
+    public PassportResult(bool success, string message, string? key, TokenResponse? token = null)
     {
+        if (success)
+        {
+            ArgumentNullException.ThrowIfNull(token);
+        }
+
         Success = success;
         Message = message;
         LocalizationKey = key;
@@ -18,7 +25,7 @@ public class PassportResult
 
     public string Message { get; set; }
 
-    public string? Token { get; set; }
+    public TokenResponse? Token { get; set; }
 
     public string? LocalizationKey { get; set; }
 }

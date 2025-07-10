@@ -4,7 +4,7 @@
 namespace Snap.Hutao.Server.Model.Response;
 
 // |5| X | Y |  ZZZ  |
-// |5|1-5|1-6|000-999|
+// |5|1-5|1-8|000-999|
 // -----------------------------
 // X: 1 - Invalid Request
 //    2 - Request Frequency
@@ -25,6 +25,7 @@ public enum ReturnCode
     Success = 0,
     InvalidUploadData = 511001,
     InvalidQueryString = 511002,
+    InvalidRequestBody = 511003,
     BannedUid = 512001,
     NotCurrentSchedule = 512002,
     GachaLogServiceNotAllowed = 513001,
@@ -62,6 +63,7 @@ public enum ReturnCode
     InternalStateException = 551001,
     GachaLogDbException = 553001,
     GachaLogExtendDbException = 553002,
+    RefreshTokenDbException = 554001,
     LicenseApprovalFailed = 555001,
     CdnExtendDbException = 557001,
     CdnDispatcherException = 557002,

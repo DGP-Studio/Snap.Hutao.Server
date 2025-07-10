@@ -118,15 +118,15 @@ public class GithubController : ControllerBase
         switch (HttpContext.Request.Headers["X-GitHub-Event"])
         {
             case "ping":
-                return new JsonResult(new GithubWebhookResponse() { Message = "pong" });
+                return new JsonResult(new GithubWebhookResponse { Message = "pong" });
             case "workflow_run" when request is { Action: "completed", WorkflowRun.Name: "Snap Hutao Alpha", WorkflowRun.PullRequests.Count: 0 }:
                 await githubService.ProcessWorkflowRunEventAsync(request.WorkflowRun).ConfigureAwait(false);
-                return new JsonResult(new GithubWebhookResponse() { Message = "Alpha sent to Discord" });
-            case "release" when request is { Action: "released", Release: { } }:
+                return new JsonResult(new GithubWebhookResponse { Message = "Alpha sent to Discord" });
+            case "release" when request is { Action: "released", Release: not null }:
                 await githubService.ProcessReleaseEventAsync(request.Release).ConfigureAwait(false);
-                return new JsonResult(new GithubWebhookResponse() { Message = "Release sent to Discord" });
+                return new JsonResult(new GithubWebhookResponse { Message = "Release sent to Discord" });
             default:
-                return new JsonResult(new GithubWebhookResponse() { Message = "Skip" });
+                return new JsonResult(new GithubWebhookResponse { Message = "Skip" });
         }
     }
 

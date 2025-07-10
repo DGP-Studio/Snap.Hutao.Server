@@ -15,6 +15,9 @@ namespace Snap.Hutao.Server.Controller;
 [ApiController]
 [Route("[controller]")]
 [ApiExplorerSettings(GroupName = "Passport")]
+// TODO: add v2 api versioning which returns full token response instead of just access token
+// DO NOT remove old api versioning due to client compatibility
+// add endpoints with "v2" prefix OR add a new controller (e.g. PassportV2Controller) as v2
 public class PassportController : ControllerBase
 {
     private readonly PassportVerificationService passportVerificationService;
@@ -84,7 +87,7 @@ public class PassportController : ControllerBase
 
         PassportResult result = await passportService.RegisterAsync(passport).ConfigureAwait(false);
         return result.Success
-            ? Response<string>.Success(result.Message, result.LocalizationKey!, result.Token)
+            ? Response<string>.Success(result.Message, result.LocalizationKey!, result.Token.AccessToken)
             : Model.Response.Response.Fail(ReturnCode.RegisterFail, result.Message, result.LocalizationKey!);
     }
 
@@ -135,7 +138,7 @@ public class PassportController : ControllerBase
         PassportResult result = await passportService.ResetPasswordAsync(passport).ConfigureAwait(false);
 
         return result.Success
-            ? Response<string>.Success(result.Message, result.LocalizationKey!, result.Token)
+            ? Response<string>.Success(result.Message, result.LocalizationKey!, result.Token.AccessToken)
             : Model.Response.Response.Fail(ReturnCode.RegisterFail, result.Message, result.LocalizationKey!);
     }
 
@@ -159,7 +162,7 @@ public class PassportController : ControllerBase
         PassportResult result = await passportService.ResetUsernameAsync(passport).ConfigureAwait(false);
 
         return result.Success
-            ? Response<string>.Success(result.Message, result.LocalizationKey!, result.Token)
+            ? Response<string>.Success(result.Message, result.LocalizationKey!, result.Token.AccessToken)
             : Model.Response.Response.Fail(ReturnCode.RegisterFail, result.Message, result.LocalizationKey!);
     }
 
@@ -175,7 +178,7 @@ public class PassportController : ControllerBase
         PassportResult result = await passportService.LoginAsync(passport).ConfigureAwait(false);
 
         return result.Success
-            ? Response<string>.Success(result.Message, result.LocalizationKey!, result.Token)
+            ? Response<string>.Success(result.Message, result.LocalizationKey!, result.Token.AccessToken)
             : Model.Response.Response.Fail(ReturnCode.LoginFail, result.Message, result.LocalizationKey!);
     }
 
@@ -199,6 +202,46 @@ public class PassportController : ControllerBase
             GachaLogExpireAt = DateTimeOffset.FromUnixTimeSeconds(user.GachaLogExpireAt),
             CdnExpireAt = DateTimeOffset.FromUnixTimeSeconds(user.CdnExpireAt),
         });
+    }
+
+    [HttpPost("RefreshToken")]
+    public async Task<IActionResult> RefreshTokenAsync([FromBody] RefreshTokenRequest request)
+    {
+        if (string.IsNullOrEmpty(request.RefreshToken))
+        {
+            return Model.Response.Response.Fail(ReturnCode.InvalidRequestBody, "刷新令牌不能为空", ServerKeys.ServerPassportRefreshTokenEmpty);
+        }
+
+        TokenResponse? tokenResponse = await passportService.RefreshTokenAsync(request.RefreshToken);
+        if (tokenResponse is null)
+        {
+            return Model.Response.Response.Fail(ReturnCode.LoginFail, "刷新令牌无效或已过期", ServerKeys.ServerPassportRefreshTokenInvalid);
+        }
+
+        return Response<TokenResponse>.Success("令牌刷新成功", tokenResponse);
+    }
+
+    [Authorize]
+    [HttpPost("RevokeToken")]
+    public async Task<IActionResult> RevokeTokenAsync([FromBody] RefreshTokenRequest request)
+    {
+        if (string.IsNullOrEmpty(request.RefreshToken))
+        {
+            return Model.Response.Response.Fail(ReturnCode.InvalidRequestBody, "刷新令牌不能为空", ServerKeys.ServerPassportRefreshTokenEmpty);
+        }
+
+        return await passportService.RevokeRefreshTokenAsync(request.RefreshToken).ConfigureAwait(false)
+            ? Model.Response.Response.Success("令牌撤销成功", ServerKeys.ServerPassportTokenRevokeSuccess)
+            : Model.Response.Response.Fail(ReturnCode.RefreshTokenDbException, "令牌撤销失败", ServerKeys.ServerPassportTokenRevokeFailed);
+    }
+
+    [Authorize]
+    [HttpPost("RevokeAllTokens")]
+    public async Task<IActionResult> RevokeAllTokensAsync()
+    {
+        int userId = this.GetUserId();
+        await passportService.RevokeAllUserTokensAsync(userId);
+        return Model.Response.Response.Success("所有令牌已撤销", ServerKeys.ServerPassportTokenRevokeSuccess);
     }
 
     private async Task<IActionResult> PrivateRequestVerifyCodeAsync(PassportRequest request, string normalizedUserName, string userName, bool userExists, string code)
