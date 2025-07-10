@@ -100,10 +100,8 @@ public sealed class DiscordService
         embed.AddField("SpiralAbyss Battle Average", overview.SpiralAbyssBattleTotal / (double)overview.SpiralAbyssTotal, true);
         embed.AddField("Calc Time per Record", overview.TimeAverage, true);
 
-        await hutaoServerBot
-            .SendMessageAsync(discordOptions.KnownChannels.PublicStatus, new LocalMessage().WithEmbeds(embed))
-            .WaitAsync(new CancellationToken(true))
-            .ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
+        Task task = hutaoServerBot.SendMessageAsync(discordOptions.KnownChannels.PublicStatus, new LocalMessage().WithEmbeds(embed));
+        await task.WaitAsync(new CancellationToken(true)).ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
     }
 
     public async ValueTask ReportRoleCombatStatisticsAsync(RoleCombatStatisticsItem statistics)
@@ -114,10 +112,8 @@ public sealed class DiscordService
 
         embed.AddField("Record Total", statistics.RecordTotal, true);
 
-        await hutaoServerBot
-            .SendMessageAsync(discordOptions.KnownChannels.PublicStatus, new LocalMessage().WithEmbeds(embed))
-            .WaitAsync(new CancellationToken(true))
-            .ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
+        Task task = hutaoServerBot.SendMessageAsync(discordOptions.KnownChannels.PublicStatus, new LocalMessage().WithEmbeds(embed));
+        await task.WaitAsync(new CancellationToken(true)).ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
     }
 
     public async ValueTask ReportGithubWebhookAsync(GithubWebhookResult githubMessage)
