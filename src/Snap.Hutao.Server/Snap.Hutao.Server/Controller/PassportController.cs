@@ -88,7 +88,6 @@ public class PassportController : ControllerBase
             : Model.Response.Response.Fail(ReturnCode.RegisterFail, result.Message, result.LocalizationKey!);
     }
 
-    [Authorize]
     [HttpPost("Cancel")]
     public async Task<IActionResult> CancelRegistrationAsync([FromBody] PassportRequest request)
     {
@@ -99,14 +98,9 @@ public class PassportController : ControllerBase
             return Model.Response.Response.Fail(ReturnCode.RegisterFail, "验证失败", ServerKeys.ServerPassportVerifyFailed);
         }
 
-        if (await this.GetUserAsync(appDbContext.Users).ConfigureAwait(false) is not { } user)
-        {
-            return Model.Response.Response.Fail(ReturnCode.CancelFail, "用户名或密码错误", ServerKeys.ServerPassportUserNameOrPasswordIncorrect);
-        }
-
         Passport passport = new()
         {
-            UserName = user.UserName!,
+            UserName = userName,
             Password = passportService.Decrypt(request.Password),
         };
 
