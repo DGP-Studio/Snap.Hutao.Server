@@ -33,10 +33,24 @@ public class GithubService : IOAuthProvider
         appDbContext = serviceProvider.GetRequiredService<AppDbContext>();
     }
 
-    public string CreateStateForUser(HutaoUser user)
+    public Task<string> RequestAuthUrlAsync(string state)
     {
-        UserIdentity identity = new() { UserId = user.Id };
-        return HttpUtility.UrlEncode(EncryptState(JsonSerializer.Serialize(identity)));
+        return Task.FromResult($"https://github.com/login/oauth/authorize?client_id={githubOptions.ClientId}&state={HttpUtility.UrlEncode(state)}");
+    }
+
+    public async Task<bool> RefreshTokenAsync(OAuthBindIdentity identity)
+    {
+        GithubAccessTokenResponse? accessTokenResponse = await githubApiService.GetAccessTokenByRefreshTokenAsync(identity.RefreshToken).ConfigureAwait(false);
+        if (accessTokenResponse is null)
+        {
+            return false;
+        }
+
+        identity.RefreshToken = accessTokenResponse.RefreshToken;
+        identity.ExpiresAt = (DateTimeOffset.Now + TimeSpan.FromSeconds(accessTokenResponse.RefreshTokenExpiresIn)).ToUnixTimeSeconds();
+
+        await this.appDbContext.OAuthBindIdentities.UpdateAndSaveAsync(identity).ConfigureAwait(false);
+        return true;
     }
 
     public async ValueTask<OAuthResult> HandleOAuthCallbackAsync(string code, OAuthBindState state)
@@ -96,7 +110,14 @@ public class GithubService : IOAuthProvider
         return OAuthResult.BindSuccess();
     }
 
-    [Obsolete]
+    [Obsolete("Migrate to new OAuth system")]
+    public string CreateStateForUser(HutaoUser user)
+    {
+        UserIdentity identity = new() { UserId = user.Id };
+        return HttpUtility.UrlEncode(EncryptState(JsonSerializer.Serialize(identity)));
+    }
+
+    [Obsolete("Migrate to new OAuth system")]
     public async ValueTask<AuthorizeResult> HandleAuthorizationCallbackAsync(string code, string state)
     {
         UserIdentity? userIdentity;
@@ -148,6 +169,7 @@ public class GithubService : IOAuthProvider
         return new() { Success = true, Token = passportService.CreateTokenByUserId(identity.UserId) };
     }
 
+    [Obsolete("Migrate to new OAuth system")]
     public async ValueTask<AuthorizationStatus> GetAuthorizationStatusAsync(int userId)
     {
         GithubIdentity? identity = await appDbContext.GithubIdentities.SingleOrDefaultAsync(g => g.UserId == userId).ConfigureAwait(false);
@@ -275,25 +297,5 @@ public class GithubService : IOAuthProvider
                 }
             }
         }
-    }
-
-    public Task<string> RequestAuthUrlAsync(string state)
-    {
-        return Task.FromResult($"https://github.com/login/oauth/authorize?client_id={githubOptions.ClientId}&state={HttpUtility.UrlEncode(state)}");
-    }
-
-    public async Task<bool> RefreshTokenAsync(OAuthBindIdentity identity)
-    {
-        GithubAccessTokenResponse? accessTokenResponse = await githubApiService.GetAccessTokenByRefreshTokenAsync(identity.RefreshToken).ConfigureAwait(false);
-        if (accessTokenResponse is null)
-        {
-            return false;
-        }
-
-        identity.RefreshToken = accessTokenResponse.RefreshToken;
-        identity.ExpiresAt = (DateTimeOffset.Now + TimeSpan.FromSeconds(accessTokenResponse.RefreshTokenExpiresIn)).ToUnixTimeSeconds();
-
-        await this.appDbContext.OAuthBindIdentities.UpdateAndSaveAsync(identity).ConfigureAwait(false);
-        return true;
     }
 }
