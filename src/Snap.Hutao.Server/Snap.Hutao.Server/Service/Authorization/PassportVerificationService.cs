@@ -2,9 +2,8 @@
 // Licensed under the MIT license.
 
 using Snap.Hutao.Server.Core;
-using Snap.Hutao.Server.Extension;
-using Snap.Hutao.Server.Model.Context;
-using Snap.Hutao.Server.Model.Entity.Passport;
+using Snap.Hutao.Server.Option;
+using StackExchange.Redis;
 
 namespace Snap.Hutao.Server.Service.Authorization;
 
@@ -14,88 +13,73 @@ public sealed class PassportVerificationService
     private const int ExpireThresholdSeconds = 15 * 60;
     private const int RegenerateThresholdSeconds = 60;
 
-    private readonly AppDbContext appDbContext;
+    private readonly ConnectionMultiplexer redis;
 
-    public PassportVerificationService(AppDbContext appDbContext)
+    public PassportVerificationService(AppOptions appOptions, ILogger<PassportVerificationService> logger)
     {
-        this.appDbContext = appDbContext;
+        string redisAddress = appOptions.RedisAddress;
+        logger.LogInformation("Using Redis: {config}", redisAddress);
+        this.redis = ConnectionMultiplexer.Connect(redisAddress);
     }
 
     // This method will remove verification code if new one can regenerate.
-    public bool TryGetNonExpiredVerifyCode(string normalizedUserName, out string? code)
+    public bool TryGetNonExpiredVerifyCode(string normalizedUserName, string key, out string? code)
     {
-        PassportVerification? verification = appDbContext.PassportVerifications
-            .SingleOrDefault(x => x.NormalizedUserName == normalizedUserName);
+        IDatabase db = this.redis.GetDatabase(15);
 
-        if (verification is null)
+        string? redisCode = db.StringGet($"{normalizedUserName}.{key}");
+        if (redisCode is null)
         {
             code = default;
             return false;
         }
 
-        if (verification.GeneratedTimestamp + RegenerateThresholdSeconds < DateTimeOffset.UtcNow.ToUnixTimeSeconds())
+        if (db.StringGet($"{normalizedUserName}.{key}.regenerate") != RedisValue.EmptyString)
         {
-            // Remove past code
-            appDbContext.PassportVerifications.RemoveAndSave(verification);
+            db.KeyDelete($"{normalizedUserName}.{key}");
             code = default;
             return false;
         }
 
-        code = verification.VerifyCode;
+        code = redisCode;
         return true;
     }
 
-    public string GenerateVerifyCodeForUserName(string normalizedUserName)
+    public string GenerateVerifyCode(string normalizedUserName, string key)
     {
         string code = RandomHelper.GetUpperAndNumberString(8);
-        long now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-        PassportVerification verification = new()
-        {
-            NormalizedUserName = normalizedUserName,
-            VerifyCode = code,
-            GeneratedTimestamp = now,
-            ExpireTimestamp = now + ExpireThresholdSeconds,
-        };
+        IDatabase db = this.redis.GetDatabase(15);
 
-        appDbContext.PassportVerifications.AddAndSave(verification);
+        db.StringSet($"{normalizedUserName}.{key}", code, TimeSpan.FromSeconds(ExpireThresholdSeconds));
+        db.StringSet($"{normalizedUserName}.{key}.regenerate", RedisValue.EmptyString, TimeSpan.FromSeconds(RegenerateThresholdSeconds));
         return code;
     }
 
-    public void RemoveVerifyCodeForUserName(string normalizedUserName)
+    public void RemoveVerifyCode(string normalizedUserName, string key)
     {
-        PassportVerification? verification = appDbContext.PassportVerifications
-            .SingleOrDefault(x => x.NormalizedUserName == normalizedUserName);
+        IDatabase db = this.redis.GetDatabase(15);
 
-        if (verification is not null)
-        {
-            appDbContext.PassportVerifications.RemoveAndSave(verification);
-        }
+        db.KeyDelete($"{normalizedUserName}.{key}");
+        db.KeyDelete($"{normalizedUserName}.{key}.regenerate");
     }
 
-    public bool TryValidateVerifyCode(string normalizedUserName, string code)
+    public bool TryValidateVerifyCode(string normalizedUserName, string key, string code)
     {
-        PassportVerification? verification = appDbContext.PassportVerifications
-            .SingleOrDefault(x => x.NormalizedUserName == normalizedUserName);
+        IDatabase db = this.redis.GetDatabase(15);
 
-        if (verification is null)
+        string? redisCode = db.StringGet($"{normalizedUserName}.{key}");
+        if (redisCode is null)
         {
             return false;
         }
 
-        if (verification.ExpireTimestamp < DateTimeOffset.UtcNow.ToUnixTimeSeconds())
-        {
-            // Expired, remove
-            appDbContext.PassportVerifications.RemoveAndSave(verification);
-            return false;
-        }
-
-        if (!string.Equals(verification.VerifyCode, code, StringComparison.OrdinalIgnoreCase))
+        if (!string.Equals(redisCode, code, StringComparison.OrdinalIgnoreCase))
         {
             return false;
         }
 
-        // Verified, remove
-        appDbContext.PassportVerifications.RemoveAndSave(verification);
+        db.KeyDelete($"{normalizedUserName}.{key}");
+        db.KeyDelete($"{normalizedUserName}.{key}.regenerate");
         return true;
     }
 }

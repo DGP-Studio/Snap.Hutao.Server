@@ -34,14 +34,22 @@ public class PassportController : ControllerBase
     public async Task<IActionResult> RequestVerifyCodeAsync([FromBody] PassportRequest request)
     {
         string normalizedUserName = passportService.DecryptNormalizedUserName(request, out string userName);
+        string key = request switch
+        {
+            { IsResetPassword: true } => "ResetPassword",
+            { IsResetUsername: true } => "ResetUsername",
+            { IsResetUsernameNew: true } => "ResetUsernameNew",
+            { IsCancelRegistration: true } => "CancelRegistration",
+            _ => "Registration",
+        };
 
-        if (passportVerificationService.TryGetNonExpiredVerifyCode(normalizedUserName, out _))
+        if (passportVerificationService.TryGetNonExpiredVerifyCode(normalizedUserName, key, out _))
         {
             return Model.Response.Response.Fail(ReturnCode.VerifyCodeTooFrequently, "请求过快，请 1 分钟后再试", ServerKeys.ServerPassportVerifyTooFrequent);
         }
 
         bool userExists = appDbContext.Users.Any(u => u.NormalizedUserName == normalizedUserName);
-        string code = passportVerificationService.GenerateVerifyCodeForUserName(normalizedUserName);
+        string code = passportVerificationService.GenerateVerifyCode(normalizedUserName, key);
 
         try
         {
@@ -58,7 +66,7 @@ public class PassportController : ControllerBase
     {
         string normalizedUserName = passportService.DecryptNormalizedUserNameAndVerifyCode(request, out string userName, out string code);
 
-        if (!passportVerificationService.TryValidateVerifyCode(normalizedUserName, code))
+        if (!this.passportVerificationService.TryValidateVerifyCode(normalizedUserName, "Registration", code))
         {
             return Model.Response.Response.Fail(ReturnCode.RegisterFail, "验证失败", ServerKeys.ServerPassportVerifyFailed);
         }
@@ -86,7 +94,7 @@ public class PassportController : ControllerBase
     {
         string normalizedUserName = passportService.DecryptNormalizedUserNameAndVerifyCode(request, out string userName, out string code);
 
-        if (!passportVerificationService.TryValidateVerifyCode(normalizedUserName, code))
+        if (!passportVerificationService.TryValidateVerifyCode(normalizedUserName, "CancelRegistration", code))
         {
             return Model.Response.Response.Fail(ReturnCode.RegisterFail, "验证失败", ServerKeys.ServerPassportVerifyFailed);
         }
@@ -114,7 +122,7 @@ public class PassportController : ControllerBase
     {
         string normalizedUserName = passportService.DecryptNormalizedUserNameAndVerifyCode(request, out string userName, out string code);
 
-        if (!passportVerificationService.TryValidateVerifyCode(normalizedUserName, code))
+        if (!passportVerificationService.TryValidateVerifyCode(normalizedUserName, "ResetPassword", code))
         {
             return Model.Response.Response.Fail(ReturnCode.RegisterFail, "验证失败", ServerKeys.ServerPassportVerifyFailed);
         }
@@ -143,7 +151,7 @@ public class PassportController : ControllerBase
         string normalizedUserName = passportService.DecryptNormalizedUserNameAndVerifyCode(request, out string userName, out string code);
         string newNormalizedUserName = passportService.DecryptNewNormalizedUserNameAndNewVerifyCode(request, out string newUserName, out string newCode);
 
-        if (!passportVerificationService.TryValidateVerifyCode(normalizedUserName, code) || !passportVerificationService.TryValidateVerifyCode(newNormalizedUserName, newCode))
+        if (!passportVerificationService.TryValidateVerifyCode(normalizedUserName, "ResetUsername", code) || !passportVerificationService.TryValidateVerifyCode(newNormalizedUserName, "ResetUsernameNew", newCode))
         {
             return Model.Response.Response.Fail(ReturnCode.RegisterFail, "验证失败", ServerKeys.ServerPassportVerifyFailed);
         }
@@ -208,7 +216,7 @@ public class PassportController : ControllerBase
             {
                 if (!userExists)
                 {
-                    passportVerificationService.RemoveVerifyCodeForUserName(normalizedUserName);
+                    passportVerificationService.RemoveVerifyCode(normalizedUserName, "ResetPassword");
                     return Model.Response.Response.Fail(ReturnCode.VerifyCodeNotAllowed, "请求验证码失败", ServerKeys.ServerPassportVerifyRequestUserNotExisted);
                 }
 
@@ -221,7 +229,7 @@ public class PassportController : ControllerBase
             {
                 if (!userExists)
                 {
-                    passportVerificationService.RemoveVerifyCodeForUserName(normalizedUserName);
+                    passportVerificationService.RemoveVerifyCode(normalizedUserName, "ResetUsername");
                     return Model.Response.Response.Fail(ReturnCode.VerifyCodeNotAllowed, "请求验证码失败", ServerKeys.ServerPassportVerifyRequestUserNotExisted);
                 }
 
@@ -236,7 +244,7 @@ public class PassportController : ControllerBase
                 HutaoUser? user = await this.GetUserAsync(appDbContext.Users).ConfigureAwait(false);
                 if (user is null || !string.Equals(normalizedUserName, user.NormalizedUserName, StringComparison.Ordinal))
                 {
-                    passportVerificationService.RemoveVerifyCodeForUserName(normalizedUserName);
+                    passportVerificationService.RemoveVerifyCode(normalizedUserName, "CancelRegistration");
                     return Model.Response.Response.Fail(ReturnCode.VerifyCodeNotAllowed, "请求验证码失败", ServerKeys.ServerPassportVerifyRequestNotCurrentUser);
                 }
 
@@ -247,7 +255,8 @@ public class PassportController : ControllerBase
             // 注册账号，用户名已存在
             if (userExists)
             {
-                passportVerificationService.RemoveVerifyCodeForUserName(normalizedUserName);
+                passportVerificationService.RemoveVerifyCode(normalizedUserName, "Registration");
+                passportVerificationService.RemoveVerifyCode(normalizedUserName, "ResetUsernameNew");
                 return Model.Response.Response.Fail(ReturnCode.VerifyCodeNotAllowed, "请求验证码失败", ServerKeys.ServerPassportVerifyRequestUserAlreadyExisted);
             }
 
