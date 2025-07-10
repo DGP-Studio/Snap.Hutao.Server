@@ -81,7 +81,7 @@ public class OAuthController : ControllerBase
         OAuthBindState? decryptedState = JsonSerializer.Deserialize<OAuthBindState>(DecryptState(state));
         if (decryptedState is null)
         {
-            return BadRequest("Invalid state.");
+            return BadRequest("无效的状态信息 | Invalid state. ");
         }
 
         GithubService githubService = this.serviceProvider.GetRequiredService<GithubService>();

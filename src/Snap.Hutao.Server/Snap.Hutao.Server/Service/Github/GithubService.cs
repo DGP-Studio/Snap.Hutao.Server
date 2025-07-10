@@ -44,13 +44,13 @@ public class GithubService : IOAuthProvider
         GithubAccessTokenResponse? accessTokenResponse = await githubApiService.GetAccessTokenByCodeAsync(code).ConfigureAwait(false);
         if (accessTokenResponse is null)
         {
-            return OAuthResult.Fail("ServerOAuthInternalException");
+            return OAuthResult.Fail("获取 AccessToken 失败 | Failed to get AccessToken");
         }
 
         GithubUserResponse? userResponse = await githubApiService.GetUserInfoByAccessTokenAsync(accessTokenResponse.AccessToken).ConfigureAwait(false);
         if (userResponse is null)
         {
-            return OAuthResult.Fail("ServerOAuthInternalException");
+            return OAuthResult.Fail("获取 GitHub 用户信息失败 | Failed to get GitHub user information");
         }
 
         OAuthBindIdentity? identity = await this.appDbContext.OAuthBindIdentities.SingleOrDefaultAsync(b => b.ProviderKind == OAuthProviderKind.Github && b.ProviderId == userResponse.NodeId);
@@ -59,7 +59,7 @@ public class GithubService : IOAuthProvider
             // Login mode
             if (identity is null)
             {
-                return OAuthResult.Fail("ServerOAuthNotBound");
+                return OAuthResult.Fail("当前 GitHub 账号未绑定胡桃通行证 | The current GitHub account is not bound to Snap Hutao Passport");
             }
 
             return OAuthResult.LoginSuccess(await this.passportService.CreateTokenResponseAsync(identity.UserId).ConfigureAwait(false));
@@ -70,7 +70,7 @@ public class GithubService : IOAuthProvider
             if (state.UserId != identity.UserId)
             {
                 // Already authorized to another user
-                return OAuthResult.Fail("ServerOAuthAlreadyBound");
+                return OAuthResult.Fail("当前 GitHub 账号已绑定其他的胡桃通行证 | The current GitHub account is already bound to another Snap Hutao Passport");
             }
 
             // Already bound to this user, update access token
