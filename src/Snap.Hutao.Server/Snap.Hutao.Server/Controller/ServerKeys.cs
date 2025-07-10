@@ -22,7 +22,8 @@ public static class ServerKeys
     public const string ServerPassportServiceEmailHasNotRegistered = "ServerPassportServiceEmailHasNotRegistered";
     public const string ServerPassportServiceEmailHasRegistered = "ServerPassportServiceEmailHasRegistered";
     public const string ServerPassportServiceInternalException = "ServerPassportServiceInternalException";
-    public const string ServerPassportServiceUnregisterFailed = "ServerPassportServiceUnregisterFailed";
+    public const string ServerPassportServiceUnregisterPasswordIncorrect = "ServerPassportServiceUnregisterPasswordIncorrect";
+    public const string ServerPassportServiceUnregisterUserNotFound = "ServerPassportServiceUnregisterUserNotFound";
     public const string ServerPassportUnregisterSucceed = "ServerPassportUnregisterSucceed";
     public const string ServerPassportUserInfoNotExist = "ServerPassportUserInfoNotExist";
     public const string ServerPassportUserNameOrPasswordIncorrect = "ServerPassportUserNameOrPasswordIncorrect";

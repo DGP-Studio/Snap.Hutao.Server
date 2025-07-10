@@ -132,9 +132,11 @@ public sealed class PassportService
                 await userManager.DeleteAsync(user).ConfigureAwait(false);
                 return new(true, "用户注销成功", ServerKeys.ServerPassportUnregisterSucceed);
             }
+
+            return new(false, "用户注销失败", ServerKeys.ServerPassportServiceUnregisterPasswordIncorrect);
         }
 
-        return new PassportResult(false, "用户注销失败", ServerKeys.ServerPassportServiceUnregisterFailed);
+        return new PassportResult(false, "用户注销失败", ServerKeys.ServerPassportServiceUnregisterUserNotFound);
     }
 
     public string CreateTokenByUserId(int userId)
