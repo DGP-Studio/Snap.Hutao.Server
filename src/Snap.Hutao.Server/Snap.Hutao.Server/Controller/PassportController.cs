@@ -15,6 +15,9 @@ namespace Snap.Hutao.Server.Controller;
 [ApiController]
 [Route("[controller]")]
 [ApiExplorerSettings(GroupName = "Passport")]
+// TODO: add v2 api versioning which returns full token response instead of just access token
+// DO NOT remove old api versioning due to client compatibility
+// add endpoints with "v2" prefix OR add a new controller (e.g. PassportV2Controller) as v2
 public class PassportController : ControllerBase
 {
     private readonly PassportVerificationService passportVerificationService;
