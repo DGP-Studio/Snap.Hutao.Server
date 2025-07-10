@@ -5,7 +5,6 @@ using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity.Passport;
 using Snap.Hutao.Server.Model.Response;
 using Snap.Hutao.Server.Option;
-using Snap.Hutao.Server.Service.Authorization;
 using Snap.Hutao.Server.Service.Github;
 using Snap.Hutao.Server.Service.OAuth;
 using System.Security.Cryptography;
@@ -29,23 +28,10 @@ public class OAuthController : ControllerBase
     }
 
     [HttpGet("Auth")]
-    public async Task<IActionResult> RequestAuthAsync([FromQuery(Name = "provider")] string providerKind, [FromQuery(Name = "callback")] string callbackUri)
+    public async Task<IActionResult> RequestAuthAsync(
+        [FromQuery(Name = "provider")] OAuthProviderKind kind,
+        [FromQuery(Name = "callback")][Required(AllowEmptyStrings = false)] string callbackUri)
     {
-        if (string.IsNullOrEmpty(providerKind))
-        {
-            return BadRequest("Invalid OAuth provider kind.");
-        }
-
-        if (string.IsNullOrEmpty(callbackUri))
-        {
-            return BadRequest("Callback URL is required.");
-        }
-
-        if (!Enum.TryParse(providerKind, true, out OAuthProviderKind kind))
-        {
-            return BadRequest("Unsupported OAuth provider kind.");
-        }
-
         OAuthBindState state;
         if (this.TryGetUserId(out int userId))
         {
@@ -64,18 +50,8 @@ public class OAuthController : ControllerBase
 
     [Authorize]
     [HttpGet("Unbind")]
-    public async Task<IActionResult> UnbindAsync([FromQuery(Name = "provider")] string providerKind)
+    public async Task<IActionResult> UnbindAsync([FromQuery(Name = "provider")] OAuthProviderKind kind)
     {
-        if (string.IsNullOrEmpty(providerKind))
-        {
-            return BadRequest("Invalid OAuth provider kind.");
-        }
-
-        if (!Enum.TryParse(providerKind, true, out OAuthProviderKind kind))
-        {
-            return BadRequest("Unsupported OAuth provider kind.");
-        }
-
         int userId = this.GetUserId();
         await this.appDbContext.OAuthBindIdentities.Where(b => b.UserId == userId && b.ProviderKind == kind)
             .ExecuteDeleteAsync()
@@ -86,45 +62,22 @@ public class OAuthController : ControllerBase
 
     [Authorize]
     [HttpGet("Status")]
-    public async Task<IActionResult> GetBindStatusAsync([FromQuery(Name = "provider")] string providerKind)
+    public async Task<IActionResult> GetBindStatusAsync([FromQuery(Name = "provider")] OAuthProviderKind kind)
     {
-        if (string.IsNullOrEmpty(providerKind))
-        {
-            return BadRequest("Invalid OAuth provider kind.");
-        }
-
-        if (!Enum.TryParse(providerKind, true, out OAuthProviderKind kind))
-        {
-            return BadRequest("Unsupported OAuth provider kind.");
-        }
-
         int userId = this.GetUserId();
         OAuthBindIdentity? bindIdentity = await this.appDbContext.OAuthBindIdentities
             .Where(b => b.UserId == userId && b.ProviderKind == kind)
             .SingleOrDefaultAsync()
             .ConfigureAwait(false);
 
-        if (bindIdentity is null)
-        {
-            return Response<OAuthBindStatus>.Success("获取成功", OAuthBindStatus.NotBinded());
-        }
-
-        return Response<OAuthBindStatus>.Success("获取成功", OAuthBindStatus.Binded(bindIdentity));
+        return Response<OAuthBindStatus>.Success("获取成功", bindIdentity is null ? OAuthBindStatus.NotBinded() : OAuthBindStatus.Binded(bindIdentity));
     }
 
     [HttpGet("Callback/GitHub")]
-    public async Task<IActionResult> BindGitHubCallbackAsync([FromQuery(Name = "code")] string code, [FromQuery(Name = "state")] string state)
+    public async Task<IActionResult> BindGitHubCallbackAsync(
+        [FromQuery(Name = "code")][Required(AllowEmptyStrings = false)] string code,
+        [FromQuery(Name = "state")][Required(AllowEmptyStrings = false)] string state)
     {
-        if (string.IsNullOrEmpty(code))
-        {
-            return BadRequest("Authorization canceled.");
-        }
-
-        if (string.IsNullOrEmpty(state))
-        {
-            return BadRequest("Authorization failed.");
-        }
-
         OAuthBindState? decryptedState = JsonSerializer.Deserialize<OAuthBindState>(DecryptState(state));
         if (decryptedState is null)
         {

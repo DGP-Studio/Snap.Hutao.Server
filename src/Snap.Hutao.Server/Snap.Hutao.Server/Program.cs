@@ -105,7 +105,6 @@ public static class Program
                 config.ScheduleJob<SpiralAbyssRecordCleanJob>(t => t.StartNow().WithCronSchedule("0 0 4 16 * ?"));
                 config.ScheduleJob<RoleCombatStatisticsRefreshJob>(t => t.StartNow().WithCronSchedule("0 10 */1 * * ?"));
                 config.ScheduleJob<RoleCombatRecordCleanJob>(t => t.StartNow().WithCronSchedule("0 0 4 1 * ?"));
-                config.ScheduleJob<OAuthBindIdentityTokenRefreshJob>(t => t.StartNow().WithCronSchedule("0 0 4 * * ?"));
             })
             .AddQuartzServer(options => options.WaitForJobsToComplete = true)
             .AddResponseCompression()
@@ -148,7 +147,6 @@ public static class Program
             .AddTransient<GachaLogStatisticsService>()
             .AddTransient<GithubApiService>()
             .AddTransient<LegacyStatisticsRefreshJob>()
-            .AddTransient<OAuthBindIdentityTokenRefreshJob>()
             .AddTransient<StatisticsService>()
             .AddTransient<ReCaptchaService>()
             .AddTransient<RoleCombatRecordCleanJob>()

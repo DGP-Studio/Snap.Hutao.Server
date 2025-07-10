@@ -5,7 +5,6 @@ using Snap.Hutao.Server.Extension;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity.Passport;
 using Snap.Hutao.Server.Model.Github;
-using Snap.Hutao.Server.Model.Passport;
 using Snap.Hutao.Server.Model.Response;
 using Snap.Hutao.Server.Option;
 using Snap.Hutao.Server.Service.Authorization;
@@ -60,7 +59,7 @@ public class GithubService : IOAuthProvider
             // Login mode
             if (identity is null)
             {
-                return OAuthResult.Fail("ServerOAuthNotBinded");
+                return OAuthResult.Fail("ServerOAuthNotBound");
             }
 
             return OAuthResult.LoginSuccess(await this.passportService.CreateTokenResponseAsync(identity.UserId).ConfigureAwait(false));
@@ -71,7 +70,7 @@ public class GithubService : IOAuthProvider
             if (state.UserId != identity.UserId)
             {
                 // Already authorized to another user
-                return OAuthResult.Fail("ServerOAuthAlreadyBinded");
+                return OAuthResult.Fail("ServerOAuthAlreadyBound");
             }
 
             // Already bound to this user, update access token
@@ -82,7 +81,7 @@ public class GithubService : IOAuthProvider
         }
 
         // First time to bind
-        identity = new OAuthBindIdentity
+        identity = new()
         {
             UserId = state.UserId,
             ProviderKind = OAuthProviderKind.Github,
@@ -133,7 +132,7 @@ public class GithubService : IOAuthProvider
         }
         else
         {
-            identity = new GithubIdentity
+            identity = new()
             {
                 Id = userResponse.Id,
                 NodeId = userResponse.NodeId,
@@ -167,7 +166,7 @@ public class GithubService : IOAuthProvider
             await appDbContext.GithubIdentities.UpdateAndSaveAsync(identity).ConfigureAwait(false);
         }
 
-        return new AuthorizationStatus { IsAuthorized = true, AccessToken = accessTokenResponse?.AccessToken };
+        return new() { IsAuthorized = true, AccessToken = accessTokenResponse?.AccessToken };
     }
 
     public async ValueTask ProcessWorkflowRunEventAsync(WorkflowRun workflowRun)
@@ -278,9 +277,9 @@ public class GithubService : IOAuthProvider
         }
     }
 
-    public async Task<string> RequestAuthUrlAsync(string state)
+    public Task<string> RequestAuthUrlAsync(string state)
     {
-        return $"https://github.com/login/oauth/authorize?client_id={githubOptions.ClientId}&state={HttpUtility.UrlEncode(state)}";
+        return Task.FromResult($"https://github.com/login/oauth/authorize?client_id={githubOptions.ClientId}&state={HttpUtility.UrlEncode(state)}");
     }
 
     public async Task<bool> RefreshTokenAsync(OAuthBindIdentity identity)
