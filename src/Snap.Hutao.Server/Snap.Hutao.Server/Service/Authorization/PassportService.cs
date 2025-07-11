@@ -163,30 +163,28 @@ public sealed class PassportService
     {
         RefreshToken? refreshToken = await appDbContext.RefreshTokens
             .Include(rt => rt.User)
-            .FirstOrDefaultAsync(rt => rt.Token == refreshTokenValue && !rt.IsRevoked);
+            .FirstOrDefaultAsync(rt => rt.Token == refreshTokenValue);
 
         if (refreshToken is null || refreshToken.ExpiresAt <= DateTime.UtcNow)
         {
-            return null;
+            return default;
         }
 
-        refreshToken.IsRevoked = true;
-        await appDbContext.RefreshTokens.UpdateAndSaveAsync(refreshToken).ConfigureAwait(false);
+        await appDbContext.RefreshTokens.RemoveAndSaveAsync(refreshToken).ConfigureAwait(false);
         return await CreateTokenResponseAsync(refreshToken.User);
     }
 
-    public async Task<bool> RevokeRefreshTokenAsync(string refreshTokenValue)
+    public async Task<bool> RevokeRefreshTokenAsync(string jwtId)
     {
         RefreshToken? refreshToken = await appDbContext.RefreshTokens
-            .FirstOrDefaultAsync(rt => rt.Token == refreshTokenValue);
+            .FirstOrDefaultAsync(rt => rt.JwtId == jwtId);
 
         if (refreshToken == null)
         {
             return false;
         }
 
-        refreshToken.IsRevoked = true;
-        await appDbContext.RefreshTokens.UpdateAndSaveAsync(refreshToken).ConfigureAwait(false);
+        await appDbContext.RefreshTokens.RemoveAndSaveAsync(refreshToken).ConfigureAwait(false);
 
         return true;
     }
@@ -194,8 +192,9 @@ public sealed class PassportService
     public async Task RevokeAllUserTokensAsync(int userId)
     {
         await appDbContext.RefreshTokens
-            .Where(rt => rt.UserId == userId && !rt.IsRevoked)
-            .ExecuteUpdateAsync(rt => rt.SetProperty(r => r.IsRevoked, true));
+            .Where(rt => rt.UserId == userId)
+            .ExecuteDeleteAsync()
+            .ConfigureAwait(false);
     }
 
     public Task<TokenResponse> CreateTokenResponseAsync(HutaoUser user)
@@ -251,7 +250,6 @@ public sealed class PassportService
             ExpiresAt = DateTime.UtcNow.AddDays(RefreshTokenExpirationDays),
             CreatedAt = DateTime.UtcNow,
             JwtId = jwtId,
-            IsRevoked = false,
         };
 
         await appDbContext.RefreshTokens.AddAndSaveAsync(refreshToken);

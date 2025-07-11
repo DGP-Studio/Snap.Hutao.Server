@@ -6,4 +6,6 @@ namespace Snap.Hutao.Server.Model.Passport;
 public class RefreshTokenRequest
 {
     public string RefreshToken { get; set; } = default!;
+
+    public string JwtId { get; set; } = default!;
 }

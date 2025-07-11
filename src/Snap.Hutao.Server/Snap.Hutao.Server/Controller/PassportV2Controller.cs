@@ -15,6 +15,7 @@ namespace Snap.Hutao.Server.Controller;
 [ApiController]
 [Route("Passport/v2")]
 [ApiExplorerSettings(GroupName = "Passport")]
+// TODO: Extract device id from request header, and pass it to the service as the token's jwt_id
 public class PassportV2Controller : ControllerBase
 {
     private readonly PassportVerificationService passportVerificationService;
@@ -222,12 +223,12 @@ public class PassportV2Controller : ControllerBase
     [HttpPost("RevokeToken")]
     public async Task<IActionResult> RevokeTokenAsync([FromBody] RefreshTokenRequest request)
     {
-        if (string.IsNullOrEmpty(request.RefreshToken))
+        if (string.IsNullOrEmpty(request.JwtId))
         {
             return Model.Response.Response.Fail(ReturnCode.InvalidRequestBody, "刷新令牌不能为空", ServerKeys.ServerPassportRefreshTokenEmpty);
         }
 
-        return await passportService.RevokeRefreshTokenAsync(request.RefreshToken).ConfigureAwait(false)
+        return await passportService.RevokeRefreshTokenAsync(request.JwtId).ConfigureAwait(false)
             ? Model.Response.Response.Success("令牌撤销成功", ServerKeys.ServerPassportTokenRevokeSuccess)
             : Model.Response.Response.Fail(ReturnCode.RefreshTokenDbException, "令牌撤销失败", ServerKeys.ServerPassportTokenRevokeFailed);
     }
