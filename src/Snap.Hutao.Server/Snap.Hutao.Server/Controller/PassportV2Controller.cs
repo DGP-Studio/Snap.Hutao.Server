@@ -1,4 +1,4 @@
-﻿// Copyright (c) DGP Studio. All rights reserved.
+// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
 using MailKit.Net.Smtp;
@@ -13,18 +13,16 @@ using Snap.Hutao.Server.Service.Authorization;
 namespace Snap.Hutao.Server.Controller;
 
 [ApiController]
-[Route("[controller]")]
+[Route("Passport/v2")]
 [ApiExplorerSettings(GroupName = "Passport")]
-
-// Legacy v1 controller. Use PassportV2Controller for new clients.
-public class PassportController : ControllerBase
+public class PassportV2Controller : ControllerBase
 {
     private readonly PassportVerificationService passportVerificationService;
     private readonly AppDbContext appDbContext;
     private readonly PassportService passportService;
     private readonly MailService mailService;
 
-    public PassportController(IServiceProvider serviceProvider)
+    public PassportV2Controller(IServiceProvider serviceProvider)
     {
         passportVerificationService = serviceProvider.GetRequiredService<PassportVerificationService>();
         appDbContext = serviceProvider.GetRequiredService<AppDbContext>();
@@ -86,7 +84,7 @@ public class PassportController : ControllerBase
 
         PassportResult result = await passportService.RegisterAsync(passport).ConfigureAwait(false);
         return result.Success
-            ? Response<string>.Success(result.Message, result.LocalizationKey!, result.Token.AccessToken)
+            ? Response<TokenResponse>.Success(result.Message, result.LocalizationKey!, result.Token)
             : Model.Response.Response.Fail(ReturnCode.RegisterFail, result.Message, result.LocalizationKey!);
     }
 
@@ -137,7 +135,7 @@ public class PassportController : ControllerBase
         PassportResult result = await passportService.ResetPasswordAsync(passport).ConfigureAwait(false);
 
         return result.Success
-            ? Response<string>.Success(result.Message, result.LocalizationKey!, result.Token.AccessToken)
+            ? Response<TokenResponse>.Success(result.Message, result.LocalizationKey!, result.Token)
             : Model.Response.Response.Fail(ReturnCode.RegisterFail, result.Message, result.LocalizationKey!);
     }
 
@@ -161,7 +159,7 @@ public class PassportController : ControllerBase
         PassportResult result = await passportService.ResetUsernameAsync(passport).ConfigureAwait(false);
 
         return result.Success
-            ? Response<string>.Success(result.Message, result.LocalizationKey!, result.Token.AccessToken)
+            ? Response<TokenResponse>.Success(result.Message, result.LocalizationKey!, result.Token)
             : Model.Response.Response.Fail(ReturnCode.RegisterFail, result.Message, result.LocalizationKey!);
     }
 
@@ -177,7 +175,7 @@ public class PassportController : ControllerBase
         PassportResult result = await passportService.LoginAsync(passport).ConfigureAwait(false);
 
         return result.Success
-            ? Response<string>.Success(result.Message, result.LocalizationKey!, result.Token.AccessToken)
+            ? Response<TokenResponse>.Success(result.Message, result.LocalizationKey!, result.Token)
             : Model.Response.Response.Fail(ReturnCode.LoginFail, result.Message, result.LocalizationKey!);
     }
 
@@ -247,7 +245,6 @@ public class PassportController : ControllerBase
     {
         try
         {
-            // 重置密码
             if (request.IsResetPassword)
             {
                 if (!userExists)
@@ -260,7 +257,6 @@ public class PassportController : ControllerBase
                 return Model.Response.Response.Success("请求验证码成功", ServerKeys.ServerPassportVerifyRequestSuccess);
             }
 
-            // 重置用户名
             if (request.IsResetUsername)
             {
                 if (!userExists)
@@ -273,10 +269,8 @@ public class PassportController : ControllerBase
                 return Model.Response.Response.Success("请求验证码成功", ServerKeys.ServerPassportVerifyRequestSuccess);
             }
 
-            // 注销账号
             if (request.IsCancelRegistration)
             {
-                // 注销时特判，只能注销当前用户
                 HutaoUser? user = await this.GetUserAsync(appDbContext.Users).ConfigureAwait(false);
                 if (user is null || !string.Equals(normalizedUserName, user.NormalizedUserName, StringComparison.Ordinal))
                 {
@@ -288,7 +282,6 @@ public class PassportController : ControllerBase
                 return Model.Response.Response.Success("请求验证码成功", ServerKeys.ServerPassportVerifyRequestSuccess);
             }
 
-            // 注册账号，用户名已存在
             if (userExists)
             {
                 passportVerificationService.RemoveVerifyCode(normalizedUserName, "Registration");
@@ -302,7 +295,6 @@ public class PassportController : ControllerBase
                 return Model.Response.Response.Success("请求验证码成功", ServerKeys.ServerPassportVerifyRequestSuccess);
             }
 
-            // 默认注册
             await mailService.SendRegistrationVerifyCodeAsync(userName, code).ConfigureAwait(false);
             return Model.Response.Response.Success("请求验证码成功", ServerKeys.ServerPassportVerifyRequestSuccess);
         }
