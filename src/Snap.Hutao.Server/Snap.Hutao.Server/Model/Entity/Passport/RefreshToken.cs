@@ -18,8 +18,6 @@ public class RefreshToken
 
     public DateTimeOffset CreatedAt { get; set; }
 
-    public bool IsRevoked { get; set; }
-
     [StringLength(100)]
     public string? JwtId { get; set; }
 
