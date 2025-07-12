@@ -15,7 +15,7 @@ namespace Snap.Hutao.Server.Service.Authorization;
 // Scoped
 public sealed class PassportService
 {
-    private const int AccessTokenExpirationMinutes = 15;
+    private const int AccessTokenExpirationMinutes = /* 15 */ 3 * 60;
     private const int RefreshTokenExpirationDays = 30;
 
     private readonly UserManager<HutaoUser> userManager;
