@@ -30,16 +30,19 @@ public class OAuthController : ControllerBase
     [HttpGet("Auth")]
     public async Task<IActionResult> RequestAuthAsync(
         [FromQuery(Name = "provider")] OAuthProviderKind kind,
-        [FromQuery(Name = "callback")][Required(AllowEmptyStrings = false)] string callbackUri)
+        [FromQuery(Name = "device_id")][Required] string deviceId,
+        [FromQuery(Name = "device_name")][Required(AllowEmptyStrings = true)] string deviceName,
+        [FromQuery(Name = "device_os")][Required(AllowEmptyStrings = true)] string deviceOs,
+        [FromQuery(Name = "callback")][Required] string callbackUri)
     {
         OAuthBindState state;
         if (this.TryGetUserId(out int userId))
         {
-            state = new(userId, callbackUri);
+            state = new(userId, deviceId, deviceName, deviceOs, callbackUri);
         }
         else
         {
-            state = new(callbackUri);
+            state = new(deviceId, deviceName, deviceOs, callbackUri);
         }
 
         string encryptedState = EncryptState(JsonSerializer.Serialize(state));
@@ -75,8 +78,8 @@ public class OAuthController : ControllerBase
 
     [HttpGet("Callback/GitHub")]
     public async Task<IActionResult> BindGitHubCallbackAsync(
-        [FromQuery(Name = "code")][Required(AllowEmptyStrings = false)] string code,
-        [FromQuery(Name = "state")][Required(AllowEmptyStrings = false)] string state)
+        [FromQuery(Name = "code")][Required] string code,
+        [FromQuery(Name = "state")][Required] string state)
     {
         OAuthBindState? decryptedState = JsonSerializer.Deserialize<OAuthBindState>(DecryptState(state));
         if (decryptedState is null)

@@ -99,5 +99,6 @@ public sealed class AppDbContext : IdentityDbContext<HutaoUser, IdentityRole<int
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfiguration(new EntityFloorConfiguration());
+        modelBuilder.ApplyConfiguration(new RefreshTokenConfiguration());
     }
 }

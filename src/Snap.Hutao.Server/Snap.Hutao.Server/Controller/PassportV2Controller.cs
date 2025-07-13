@@ -1,4 +1,4 @@
-﻿// Copyright (c) DGP Studio. All rights reserved.
+// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
 using MailKit.Net.Smtp;
@@ -13,16 +13,16 @@ using Snap.Hutao.Server.Service.Authorization;
 namespace Snap.Hutao.Server.Controller;
 
 [ApiController]
-[Route("[controller]")]
+[Route("Passport/v2")]
 [ApiExplorerSettings(GroupName = "Passport")]
-public class PassportController : ControllerBase
+public class PassportV2Controller : ControllerBase
 {
     private readonly PassportVerificationService passportVerificationService;
     private readonly AppDbContext appDbContext;
     private readonly PassportService passportService;
     private readonly MailService mailService;
 
-    public PassportController(IServiceProvider serviceProvider)
+    public PassportV2Controller(IServiceProvider serviceProvider)
     {
         passportVerificationService = serviceProvider.GetRequiredService<PassportVerificationService>();
         appDbContext = serviceProvider.GetRequiredService<AppDbContext>();
@@ -64,6 +64,7 @@ public class PassportController : ControllerBase
     [HttpPost("Register")]
     public async Task<IActionResult> RegisterAsync([FromBody] PassportRequest request)
     {
+        DeviceInfo deviceInfo = this.GetDeviceInfo();
         string normalizedUserName = passportService.DecryptNormalizedUserNameAndVerifyCode(request, out string userName, out string code);
 
         if (!this.passportVerificationService.TryValidateVerifyCode(normalizedUserName, "Registration", code))
@@ -82,9 +83,9 @@ public class PassportController : ControllerBase
             return Model.Response.Response.Fail(ReturnCode.TooShortPassword, "密码长度不能小于 8 位", ServerKeys.ServerPassportPasswordTooShort);
         }
 
-        PassportResult result = await passportService.RegisterAsync(passport, default).ConfigureAwait(false);
+        PassportResult result = await passportService.RegisterAsync(passport, deviceInfo).ConfigureAwait(false);
         return result.Success
-            ? Response<string>.Success(result.Message, result.LocalizationKey!, result.Token.AccessToken)
+            ? Response<TokenResponse>.Success(result.Message, result.LocalizationKey!, result.Token)
             : Model.Response.Response.Fail(ReturnCode.RegisterFail, result.Message, result.LocalizationKey!);
     }
 
@@ -114,6 +115,7 @@ public class PassportController : ControllerBase
     [HttpPost("ResetPassword")]
     public async Task<IActionResult> ResetPasswordAsync([FromBody] PassportRequest request)
     {
+        DeviceInfo deviceInfo = this.GetDeviceInfo();
         string normalizedUserName = passportService.DecryptNormalizedUserNameAndVerifyCode(request, out string userName, out string code);
 
         if (!passportVerificationService.TryValidateVerifyCode(normalizedUserName, "ResetPassword", code))
@@ -132,16 +134,17 @@ public class PassportController : ControllerBase
             return Model.Response.Response.Fail(ReturnCode.TooShortPassword, "密码长度不能小于 8 位", ServerKeys.ServerPassportPasswordTooShort);
         }
 
-        PassportResult result = await passportService.ResetPasswordAsync(passport, default).ConfigureAwait(false);
+        PassportResult result = await passportService.ResetPasswordAsync(passport, deviceInfo).ConfigureAwait(false);
 
         return result.Success
-            ? Response<string>.Success(result.Message, result.LocalizationKey!, result.Token.AccessToken)
+            ? Response<TokenResponse>.Success(result.Message, result.LocalizationKey!, result.Token)
             : Model.Response.Response.Fail(ReturnCode.RegisterFail, result.Message, result.LocalizationKey!);
     }
 
     [HttpPost("ResetUsername")]
     public async Task<IActionResult> ResetUsernameAsync([FromBody] PassportRequest request)
     {
+        DeviceInfo deviceInfo = this.GetDeviceInfo();
         string normalizedUserName = passportService.DecryptNormalizedUserNameAndVerifyCode(request, out string userName, out string code);
         string newNormalizedUserName = passportService.DecryptNewNormalizedUserNameAndNewVerifyCode(request, out string newUserName, out string newCode);
 
@@ -156,26 +159,27 @@ public class PassportController : ControllerBase
             NewUserName = newUserName,
         };
 
-        PassportResult result = await passportService.ResetUsernameAsync(passport, default).ConfigureAwait(false);
+        PassportResult result = await passportService.ResetUsernameAsync(passport, deviceInfo).ConfigureAwait(false);
 
         return result.Success
-            ? Response<string>.Success(result.Message, result.LocalizationKey!, result.Token.AccessToken)
+            ? Response<TokenResponse>.Success(result.Message, result.LocalizationKey!, result.Token)
             : Model.Response.Response.Fail(ReturnCode.RegisterFail, result.Message, result.LocalizationKey!);
     }
 
     [HttpPost("Login")]
     public async Task<IActionResult> LoginAsync([FromBody] PassportRequest request)
     {
+        DeviceInfo deviceInfo = this.GetDeviceInfo();
         Passport passport = new()
         {
             UserName = passportService.Decrypt(request.UserName),
             Password = passportService.Decrypt(request.Password),
         };
 
-        PassportResult result = await passportService.LoginAsync(passport, default).ConfigureAwait(false);
+        PassportResult result = await passportService.LoginAsync(passport, deviceInfo).ConfigureAwait(false);
 
         return result.Success
-            ? Response<string>.Success(result.Message, result.LocalizationKey!, result.Token.AccessToken)
+            ? Response<TokenResponse>.Success(result.Message, result.LocalizationKey!, result.Token)
             : Model.Response.Response.Fail(ReturnCode.LoginFail, result.Message, result.LocalizationKey!);
     }
 
@@ -201,11 +205,60 @@ public class PassportController : ControllerBase
         });
     }
 
+    [Authorize]
+    [HttpGet("LoggedInDevices")]
+    public async Task<IActionResult> GetLoggedInDevicesAsync()
+    {
+        DeviceInfo deviceInfo = this.GetDeviceInfo();
+        int userId = this.GetUserId();
+        List<LoggedInDeviceInfo> devices = await passportService.GetLoggedInDevicesAsync(userId, deviceInfo).ConfigureAwait(false);
+        return Response<List<LoggedInDeviceInfo>>.Success("获取已登录设备成功", devices);
+    }
+
+    [HttpPost("RefreshToken")]
+    public async Task<IActionResult> RefreshTokenAsync([FromBody] RefreshTokenRequest request)
+    {
+        if (string.IsNullOrEmpty(request.RefreshToken))
+        {
+            return Model.Response.Response.Fail(ReturnCode.InvalidRequestBody, "刷新令牌不能为空", ServerKeys.ServerPassportRefreshTokenEmpty);
+        }
+
+        TokenResponse? tokenResponse = await passportService.RefreshTokenAsync(request.RefreshToken);
+        if (tokenResponse is null)
+        {
+            return Model.Response.Response.Fail(ReturnCode.LoginFail, "刷新令牌无效或已过期", ServerKeys.ServerPassportRefreshTokenInvalid);
+        }
+
+        return Response<TokenResponse>.Success("令牌刷新成功", tokenResponse);
+    }
+
+    [Authorize]
+    [HttpPost("RevokeToken")]
+    public async Task<IActionResult> RevokeTokenAsync([FromBody] RefreshTokenRequest request)
+    {
+        if (string.IsNullOrEmpty(request.DeviceId))
+        {
+            return Model.Response.Response.Fail(ReturnCode.InvalidRequestBody, "刷新令牌不能为空", ServerKeys.ServerPassportRefreshTokenEmpty);
+        }
+
+        return await passportService.RevokeRefreshTokenAsync(request.DeviceId).ConfigureAwait(false)
+            ? Model.Response.Response.Success("令牌撤销成功", ServerKeys.ServerPassportTokenRevokeSuccess)
+            : Model.Response.Response.Fail(ReturnCode.RefreshTokenDbException, "令牌撤销失败", ServerKeys.ServerPassportTokenRevokeFailed);
+    }
+
+    [Authorize]
+    [HttpPost("RevokeAllTokens")]
+    public async Task<IActionResult> RevokeAllTokensAsync()
+    {
+        int userId = this.GetUserId();
+        await passportService.RevokeAllUserTokensAsync(userId);
+        return Model.Response.Response.Success("所有令牌已撤销", ServerKeys.ServerPassportTokenRevokeSuccess);
+    }
+
     private async Task<IActionResult> PrivateRequestVerifyCodeAsync(PassportRequest request, string normalizedUserName, string userName, bool userExists, string code)
     {
         try
         {
-            // 重置密码
             if (request.IsResetPassword)
             {
                 if (!userExists)
@@ -218,7 +271,6 @@ public class PassportController : ControllerBase
                 return Model.Response.Response.Success("请求验证码成功", ServerKeys.ServerPassportVerifyRequestSuccess);
             }
 
-            // 重置用户名
             if (request.IsResetUsername)
             {
                 if (!userExists)
@@ -231,10 +283,8 @@ public class PassportController : ControllerBase
                 return Model.Response.Response.Success("请求验证码成功", ServerKeys.ServerPassportVerifyRequestSuccess);
             }
 
-            // 注销账号
             if (request.IsCancelRegistration)
             {
-                // 注销时特判，只能注销当前用户
                 HutaoUser? user = await this.GetUserAsync(appDbContext.Users).ConfigureAwait(false);
                 if (user is null || !string.Equals(normalizedUserName, user.NormalizedUserName, StringComparison.Ordinal))
                 {
@@ -246,7 +296,6 @@ public class PassportController : ControllerBase
                 return Model.Response.Response.Success("请求验证码成功", ServerKeys.ServerPassportVerifyRequestSuccess);
             }
 
-            // 注册账号，用户名已存在
             if (userExists)
             {
                 passportVerificationService.RemoveVerifyCode(normalizedUserName, "Registration");
@@ -260,7 +309,6 @@ public class PassportController : ControllerBase
                 return Model.Response.Response.Success("请求验证码成功", ServerKeys.ServerPassportVerifyRequestSuccess);
             }
 
-            // 默认注册
             await mailService.SendRegistrationVerifyCodeAsync(userName, code).ConfigureAwait(false);
             return Model.Response.Response.Success("请求验证码成功", ServerKeys.ServerPassportVerifyRequestSuccess);
         }
