@@ -16,7 +16,8 @@ namespace Snap.Hutao.Server.Service.Authorization;
 // Scoped
 public sealed class PassportService
 {
-    private const int AccessTokenExpirationMinutes = /* 15 */ 3 * 60;
+    private const int LegacyAccessTokenExpirationMinutes = 3 * 60;
+    private const int AccessTokenExpirationMinutes = 15;
     private const int RefreshTokenExpirationDays = 30;
 
     private readonly UserManager<HutaoUser> userManager;
@@ -145,21 +146,6 @@ public sealed class PassportService
         return new PassportResult(false, "用户注销失败", ServerKeys.ServerPassportServiceUnregisterUserNotFound);
     }
 
-    public string CreateTokenByUserId(int userId)
-    {
-        JwtSecurityTokenHandler handler = new();
-        SecurityTokenDescriptor descriptor = new()
-        {
-            Subject = new([new(PassportClaimTypes.UserId, userId.ToString())]),
-            Expires = DateTime.UtcNow.AddHours(3),
-            Issuer = "homa.snapgenshin.com",
-            SigningCredentials = new(jwtSigningKey, SecurityAlgorithms.HmacSha256Signature),
-        };
-
-        SecurityToken token = handler.CreateToken(descriptor);
-        return handler.WriteToken(token);
-    }
-
     public async Task<List<LoggedInDeviceInfo>> GetLoggedInDevicesAsync(int userId, DeviceInfo deviceInfo)
     {
         return await appDbContext.RefreshTokens
@@ -227,13 +213,14 @@ public sealed class PassportService
     public async Task<TokenResponse> CreateTokenResponseAsync(int userId, DeviceInfo? deviceInfo)
     {
         string accessToken = CreateAccessToken(userId, deviceInfo);
+        int expirationMinutes = deviceInfo is null ? LegacyAccessTokenExpirationMinutes : AccessTokenExpirationMinutes;
         if (deviceInfo is null)
         {
             return new()
             {
                 AccessToken = accessToken,
                 RefreshToken = default!,
-                ExpiresIn = AccessTokenExpirationMinutes * 60,
+                ExpiresIn = expirationMinutes * 60,
             };
         }
 
@@ -243,7 +230,7 @@ public sealed class PassportService
         {
             AccessToken = accessToken,
             RefreshToken = refreshToken.Token,
-            ExpiresIn = AccessTokenExpirationMinutes * 60,
+            ExpiresIn = expirationMinutes * 60,
         };
     }
 
@@ -266,10 +253,12 @@ public sealed class PassportService
             claimsIdentity.AddClaim(new(JwtRegisteredClaimNames.Jti, deviceInfo.DeviceId));
         }
 
+        int expirationMinutes = deviceInfo is null ? LegacyAccessTokenExpirationMinutes : AccessTokenExpirationMinutes;
+
         SecurityTokenDescriptor descriptor = new()
         {
             Subject = claimsIdentity,
-            Expires = DateTime.UtcNow.AddMinutes(AccessTokenExpirationMinutes),
+            Expires = DateTime.UtcNow.AddMinutes(expirationMinutes),
             Issuer = "homa.snapgenshin.com",
             SigningCredentials = new(jwtSigningKey, SecurityAlgorithms.HmacSha256Signature),
         };
