@@ -1,0 +1,28 @@
+﻿using Microsoft.EntityFrameworkCore.Migrations;
+
+#nullable disable
+
+namespace Snap.Hutao.Server.Migrations
+{
+    /// <inheritdoc />
+    public partial class FixRefreshTokenConfiguration : Migration
+    {
+        /// <inheritdoc />
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.RenameColumn(
+                name: "longtext",
+                table: "RefreshTokens",
+                newName: "DeviceInfo");
+        }
+
+        /// <inheritdoc />
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.RenameColumn(
+                name: "DeviceInfo",
+                table: "RefreshTokens",
+                newName: "longtext");
+        }
+    }
+}
