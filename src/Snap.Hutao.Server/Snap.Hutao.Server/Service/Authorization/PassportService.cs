@@ -8,6 +8,7 @@ using Snap.Hutao.Server.Model.Entity.Passport;
 using Snap.Hutao.Server.Model.Passport;
 using Snap.Hutao.Server.Option;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Security.Cryptography;
 
 namespace Snap.Hutao.Server.Service.Authorization;
@@ -42,7 +43,7 @@ public sealed class PassportService
         }
     }
 
-    public async Task<PassportResult> RegisterAsync(Passport passport)
+    public async Task<PassportResult> RegisterAsync(Passport passport, DeviceInfo? deviceInfo)
     {
         if (await userManager.FindByNameAsync(passport.UserName).ConfigureAwait(false) is not null)
         {
@@ -73,25 +74,25 @@ public sealed class PassportService
             await userManager.UpdateAsync(newUser).ConfigureAwait(false);
         }
 
-        TokenResponse tokenResponse = await CreateTokenResponseAsync(newUser).ConfigureAwait(false);
+        TokenResponse tokenResponse = await CreateTokenResponseAsync(newUser, deviceInfo).ConfigureAwait(false);
         return new(true, "注册成功", ServerKeys.ServerPassportRegisterSucceed, tokenResponse);
     }
 
-    public async Task<PassportResult> ResetPasswordAsync(Passport passport)
+    public async Task<PassportResult> ResetPasswordAsync(Passport passport, DeviceInfo? deviceInfo)
     {
         if (await userManager.FindByNameAsync(passport.UserName).ConfigureAwait(false) is { } user)
         {
             await userManager.RemovePasswordAsync(user).ConfigureAwait(false);
             await userManager.AddPasswordAsync(user, passport.Password).ConfigureAwait(false);
 
-            TokenResponse tokenResponse = await CreateTokenResponseAsync(user).ConfigureAwait(false);
+            TokenResponse tokenResponse = await CreateTokenResponseAsync(user, deviceInfo).ConfigureAwait(false);
             return new(true, "新密码设置成功", ServerKeys.ServerPassportResetPasswordSucceed, tokenResponse);
         }
 
         return new(false, "该邮箱尚未注册", ServerKeys.ServerPassportServiceEmailHasNotRegistered);
     }
 
-    public async Task<PassportResult> ResetUsernameAsync(Passport passport)
+    public async Task<PassportResult> ResetUsernameAsync(Passport passport, DeviceInfo? deviceInfo)
     {
         if (await userManager.FindByNameAsync(passport.NewUserName).ConfigureAwait(false) is not null)
         {
@@ -107,20 +108,20 @@ public sealed class PassportService
                 await appDbContext.RegistrationRecords.AddAndSaveAsync(new() { UserName = passport.NewUserName }).ConfigureAwait(false);
             }
 
-            TokenResponse tokenResponse = await CreateTokenResponseAsync(user).ConfigureAwait(false);
+            TokenResponse tokenResponse = await CreateTokenResponseAsync(user, deviceInfo).ConfigureAwait(false);
             return new(true, "邮箱修改成功", ServerKeys.ServerPassportResetUserNameSucceed, tokenResponse);
         }
 
         return new(false, "该邮箱尚未注册", ServerKeys.ServerPassportServiceEmailHasNotRegistered);
     }
 
-    public async Task<PassportResult> LoginAsync(Passport passport)
+    public async Task<PassportResult> LoginAsync(Passport passport, DeviceInfo? deviceInfo)
     {
         if (await userManager.FindByNameAsync(passport.UserName).ConfigureAwait(false) is { } user)
         {
             if (await userManager.CheckPasswordAsync(user, passport.Password).ConfigureAwait(false))
             {
-                TokenResponse tokenResponse = await CreateTokenResponseAsync(user).ConfigureAwait(false);
+                TokenResponse tokenResponse = await CreateTokenResponseAsync(user, deviceInfo).ConfigureAwait(false);
                 return new(true, "登录成功", ServerKeys.ServerPassportLoginSucceed, tokenResponse);
             }
         }
@@ -159,6 +160,22 @@ public sealed class PassportService
         return handler.WriteToken(token);
     }
 
+    public async Task<List<LoggedInDeviceInfo>> GetLoggedInDevicesAsync(int userId, DeviceInfo deviceInfo)
+    {
+        return await appDbContext.RefreshTokens
+            .Where(rt => rt.UserId == userId)
+            .Select(rt => new LoggedInDeviceInfo
+            {
+                DeviceId = rt.DeviceInfo.DeviceId,
+                DeviceName = rt.DeviceInfo.DeviceName,
+                LastLoginAt = rt.CreatedAt,
+                ExpiresAt = rt.ExpiresAt,
+                IsCurrentDevice = rt.DeviceInfo.DeviceId == deviceInfo.DeviceId,
+            })
+            .ToListAsync()
+            .ConfigureAwait(false);
+    }
+
     public async Task<TokenResponse?> RefreshTokenAsync(string refreshTokenValue)
     {
         RefreshToken? refreshToken = await appDbContext.RefreshTokens
@@ -171,13 +188,13 @@ public sealed class PassportService
         }
 
         await appDbContext.RefreshTokens.RemoveAndSaveAsync(refreshToken).ConfigureAwait(false);
-        return await CreateTokenResponseAsync(refreshToken.User);
+        return await CreateTokenResponseAsync(refreshToken);
     }
 
-    public async Task<bool> RevokeRefreshTokenAsync(string jwtId)
+    public async Task<bool> RevokeRefreshTokenAsync(string deviceId)
     {
         RefreshToken? refreshToken = await appDbContext.RefreshTokens
-            .FirstOrDefaultAsync(rt => rt.JwtId == jwtId);
+            .FirstOrDefaultAsync(rt => rt.DeviceInfo.DeviceId == deviceId);
 
         if (refreshToken == null)
         {
@@ -197,16 +214,30 @@ public sealed class PassportService
             .ConfigureAwait(false);
     }
 
-    public Task<TokenResponse> CreateTokenResponseAsync(HutaoUser user)
+    public Task<TokenResponse> CreateTokenResponseAsync(RefreshToken refreshToken)
     {
-        return CreateTokenResponseAsync(user.Id);
+        return CreateTokenResponseAsync(refreshToken.UserId, refreshToken.DeviceInfo);
     }
 
-    public async Task<TokenResponse> CreateTokenResponseAsync(int userId)
+    public Task<TokenResponse> CreateTokenResponseAsync(HutaoUser user, DeviceInfo? deviceInfo)
     {
-        string jwtId = Guid.NewGuid().ToString();
-        string accessToken = CreateAccessToken(userId, jwtId);
-        RefreshToken refreshToken = await CreateRefreshTokenAsync(userId, jwtId);
+        return CreateTokenResponseAsync(user.Id, deviceInfo);
+    }
+
+    public async Task<TokenResponse> CreateTokenResponseAsync(int userId, DeviceInfo? deviceInfo)
+    {
+        string accessToken = CreateAccessToken(userId, deviceInfo);
+        if (deviceInfo is null)
+        {
+            return new()
+            {
+                AccessToken = accessToken,
+                RefreshToken = default!,
+                ExpiresIn = AccessTokenExpirationMinutes * 60,
+            };
+        }
+
+        RefreshToken refreshToken = await CreateRefreshTokenAsync(userId, deviceInfo);
 
         return new()
         {
@@ -223,15 +254,21 @@ public sealed class PassportService
         return Convert.ToBase64String(randomBytes);
     }
 
-    private string CreateAccessToken(int userId, string jwtId)
+    private string CreateAccessToken(int userId, DeviceInfo? deviceInfo)
     {
         JwtSecurityTokenHandler handler = new();
+        ClaimsIdentity claimsIdentity = new ClaimsIdentity([
+            new(PassportClaimTypes.UserId, userId.ToString()),
+        ]);
+
+        if (deviceInfo is not null)
+        {
+            claimsIdentity.AddClaim(new(JwtRegisteredClaimNames.Jti, deviceInfo.DeviceId));
+        }
+
         SecurityTokenDescriptor descriptor = new()
         {
-            Subject = new([
-                new(PassportClaimTypes.UserId, userId.ToString()),
-                new(JwtRegisteredClaimNames.Jti, jwtId),
-            ]),
+            Subject = claimsIdentity,
             Expires = DateTime.UtcNow.AddMinutes(AccessTokenExpirationMinutes),
             Issuer = "homa.snapgenshin.com",
             SigningCredentials = new(jwtSigningKey, SecurityAlgorithms.HmacSha256Signature),
@@ -241,7 +278,7 @@ public sealed class PassportService
         return handler.WriteToken(token);
     }
 
-    private async Task<RefreshToken> CreateRefreshTokenAsync(int userId, string jwtId)
+    private async Task<RefreshToken> CreateRefreshTokenAsync(int userId, DeviceInfo deviceInfo)
     {
         RefreshToken refreshToken = new()
         {
@@ -249,7 +286,7 @@ public sealed class PassportService
             Token = GenerateRefreshToken(),
             ExpiresAt = DateTime.UtcNow.AddDays(RefreshTokenExpirationDays),
             CreatedAt = DateTime.UtcNow,
-            JwtId = jwtId,
+            DeviceInfo = deviceInfo,
         };
 
         await appDbContext.RefreshTokens.AddAndSaveAsync(refreshToken);

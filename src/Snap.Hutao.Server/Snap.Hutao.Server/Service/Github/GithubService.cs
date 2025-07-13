@@ -76,7 +76,7 @@ public class GithubService : IOAuthProvider
                 return OAuthResult.Fail("当前 GitHub 账号未绑定胡桃通行证 | The current GitHub account is not bound to Snap Hutao Passport");
             }
 
-            return OAuthResult.LoginSuccess(await this.passportService.CreateTokenResponseAsync(identity.UserId).ConfigureAwait(false));
+            return OAuthResult.LoginSuccess(await this.passportService.CreateTokenResponseAsync(identity.UserId, state.DeviceInfo).ConfigureAwait(false));
         }
 
         if (identity is not null)

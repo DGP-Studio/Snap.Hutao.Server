@@ -82,7 +82,7 @@ public class PassportController : ControllerBase
             return Model.Response.Response.Fail(ReturnCode.TooShortPassword, "密码长度不能小于 8 位", ServerKeys.ServerPassportPasswordTooShort);
         }
 
-        PassportResult result = await passportService.RegisterAsync(passport).ConfigureAwait(false);
+        PassportResult result = await passportService.RegisterAsync(passport, default).ConfigureAwait(false);
         return result.Success
             ? Response<string>.Success(result.Message, result.LocalizationKey!, result.Token.AccessToken)
             : Model.Response.Response.Fail(ReturnCode.RegisterFail, result.Message, result.LocalizationKey!);
@@ -132,7 +132,7 @@ public class PassportController : ControllerBase
             return Model.Response.Response.Fail(ReturnCode.TooShortPassword, "密码长度不能小于 8 位", ServerKeys.ServerPassportPasswordTooShort);
         }
 
-        PassportResult result = await passportService.ResetPasswordAsync(passport).ConfigureAwait(false);
+        PassportResult result = await passportService.ResetPasswordAsync(passport, default).ConfigureAwait(false);
 
         return result.Success
             ? Response<string>.Success(result.Message, result.LocalizationKey!, result.Token.AccessToken)
@@ -156,7 +156,7 @@ public class PassportController : ControllerBase
             NewUserName = newUserName,
         };
 
-        PassportResult result = await passportService.ResetUsernameAsync(passport).ConfigureAwait(false);
+        PassportResult result = await passportService.ResetUsernameAsync(passport, default).ConfigureAwait(false);
 
         return result.Success
             ? Response<string>.Success(result.Message, result.LocalizationKey!, result.Token.AccessToken)
@@ -172,7 +172,7 @@ public class PassportController : ControllerBase
             Password = passportService.Decrypt(request.Password),
         };
 
-        PassportResult result = await passportService.LoginAsync(passport).ConfigureAwait(false);
+        PassportResult result = await passportService.LoginAsync(passport, default).ConfigureAwait(false);
 
         return result.Success
             ? Response<string>.Success(result.Message, result.LocalizationKey!, result.Token.AccessToken)
