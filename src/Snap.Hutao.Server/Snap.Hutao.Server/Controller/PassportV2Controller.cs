@@ -223,7 +223,7 @@ public class PassportV2Controller : ControllerBase
             return Model.Response.Response.Fail(ReturnCode.InvalidRequestBody, "刷新令牌不能为空", ServerKeys.ServerPassportRefreshTokenEmpty);
         }
 
-        TokenResponse? tokenResponse = await passportService.RefreshTokenAsync(request.RefreshToken);
+        TokenResponse? tokenResponse = await passportService.RefreshTokenAsync(passportService.Decrypt(request.RefreshToken));
         if (tokenResponse is null)
         {
             return Model.Response.Response.Fail(ReturnCode.LoginFail, "刷新令牌无效或已过期", ServerKeys.ServerPassportRefreshTokenInvalid);
@@ -238,10 +238,10 @@ public class PassportV2Controller : ControllerBase
     {
         if (string.IsNullOrEmpty(request.DeviceId))
         {
-            return Model.Response.Response.Fail(ReturnCode.InvalidRequestBody, "刷新令牌不能为空", ServerKeys.ServerPassportRefreshTokenEmpty);
+            return Model.Response.Response.Fail(ReturnCode.InvalidRequestBody, "设备 ID 不能为空", ServerKeys.ServerPassportDeviceIdEmpty);
         }
 
-        return await passportService.RevokeRefreshTokenAsync(request.DeviceId).ConfigureAwait(false)
+        return await passportService.RevokeRefreshTokenAsync(passportService.Decrypt(request.DeviceId)).ConfigureAwait(false)
             ? Model.Response.Response.Success("令牌撤销成功", ServerKeys.ServerPassportTokenRevokeSuccess)
             : Model.Response.Response.Fail(ReturnCode.RefreshTokenDbException, "令牌撤销失败", ServerKeys.ServerPassportTokenRevokeFailed);
     }

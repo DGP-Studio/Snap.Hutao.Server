@@ -12,6 +12,7 @@ public static class ServerKeys
     public const string ServerGachaLogServiceInvalidGachaLogData = "ServerGachaLogServiceInvalidGachaLogData";
     public const string ServerGachaLogServiceServerDatabaseError = "ServerGachaLogServiceServerDatabaseError";
     public const string ServerGachaLogServiceUploadEntrySucceed = "ServerGachaLogServiceUploadEntrySucceed";
+    public const string ServerPassportDeviceIdEmpty = "ServerPassportDeviceIdEmpty";
     public const string ServerPassportLoginRequired = "ServerPassportLoginRequired";
     public const string ServerPassportLoginSucceed = "ServerPassportLoginSucceed";
     public const string ServerPassportPasswordTooShort = "ServerPassportPasswordTooShort";
