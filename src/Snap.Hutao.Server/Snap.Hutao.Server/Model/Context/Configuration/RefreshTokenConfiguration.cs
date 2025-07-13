@@ -12,7 +12,7 @@ public class RefreshTokenConfiguration : IEntityTypeConfiguration<RefreshToken>
     public void Configure(EntityTypeBuilder<RefreshToken> builder)
     {
         builder.Property(e => e.DeviceInfo)
-            .HasColumnName("longtext")
+            .HasColumnType("longtext")
             .HasConversion<JsonTextValueConverter<DeviceInfo>>();
     }
 }
