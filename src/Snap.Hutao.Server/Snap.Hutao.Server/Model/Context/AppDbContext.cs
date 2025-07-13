@@ -33,8 +33,6 @@ public sealed class AppDbContext : IdentityDbContext<HutaoUser, IdentityRole<int
 
     public DbSet<PassportVerification> PassportVerifications { get; set; } = default!;
 
-    public DbSet<GithubIdentity> GithubIdentities { get; set; } = default!;
-
     public DbSet<RegistrationRecord> RegistrationRecords { get; set; } = default!;
 
     public DbSet<RedeemCode> RedeemCodes { get; set; } = default!;

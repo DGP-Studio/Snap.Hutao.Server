@@ -19,97 +19,11 @@ namespace Snap.Hutao.Server.Controller;
 [ApiExplorerSettings(GroupName = "Passport")]
 public class GithubController : ControllerBase
 {
-    private readonly AppDbContext appDbContext;
-    private readonly GithubOptions githubOptions;
     private readonly GithubService githubService;
-    private readonly IOptionsMonitor<JwtBearerOptions> jwtBearerOptions;
-    private readonly JwtSecurityTokenHandler jwtSecurityTokenHandler = new();
 
     public GithubController(IServiceProvider serviceProvider)
     {
-        appDbContext = serviceProvider.GetRequiredService<AppDbContext>();
-        githubOptions = serviceProvider.GetRequiredService<AppOptions>().Github;
         githubService = serviceProvider.GetRequiredService<GithubService>();
-        jwtBearerOptions = serviceProvider.GetRequiredService<IOptionsMonitor<JwtBearerOptions>>();
-    }
-
-    [HttpGet("OAuth/RedirectLogin")]
-    public async Task<IActionResult> RedirectLoginAsync([FromQuery(Name = "token")] string token)
-    {
-        if (string.IsNullOrEmpty(token))
-        {
-            return RedirectToError(ReturnCode.InvalidQueryString);
-        }
-
-        JwtBearerOptions options = jwtBearerOptions.Get(JwtBearerDefaults.AuthenticationScheme);
-        jwtSecurityTokenHandler.ValidateToken(token, options.TokenValidationParameters, out SecurityToken validatedToken);
-        if (validatedToken is not JwtSecurityToken jwtSecurityToken)
-        {
-            return RedirectToError(ReturnCode.LoginFail);
-        }
-
-        int userId;
-        try
-        {
-            userId = int.Parse(jwtSecurityToken.Claims.Single(c => c.Type == PassportClaimTypes.UserId).Value);
-        }
-        catch
-        {
-            return RedirectToError(ReturnCode.UserNameNotExists);
-        }
-
-        HutaoUser? user = await appDbContext.Users.SingleOrDefaultAsync(u => u.Id == userId).ConfigureAwait(false);
-
-        if (user is null)
-        {
-            return RedirectToError(ReturnCode.UserNameNotExists);
-        }
-
-        string state = githubService.CreateStateForUser(user);
-        return Redirect($"https://github.com/login/oauth/authorize?client_id={githubOptions.ClientId}&state={state}");
-    }
-
-    [HttpGet("OAuth/Authorize")]
-    public async Task<IActionResult> HandleAuthorizationCallbackAsync([FromQuery(Name = "code")] string code, [FromQuery(Name = "state")] string state)
-    {
-        if (string.IsNullOrEmpty(code))
-        {
-            return RedirectToError(ReturnCode.GithubAuthorizationCanceled);
-        }
-
-        if (string.IsNullOrEmpty(state))
-        {
-            return RedirectToError(ReturnCode.InvalidQueryString);
-        }
-
-        AuthorizeResult result = await githubService.HandleAuthorizationCallbackAsync(code, state).ConfigureAwait(false);
-        if (result.Success)
-        {
-            // Authorized
-            return Redirect($"https://passport.snapgenshin.cn/api/users/login?token={result.Token}");
-        }
-        else
-        {
-            return RedirectToError(result.ReturnCode);
-        }
-    }
-
-    [Authorize]
-    [HttpGet("OAuth/UnAuthorize")]
-    public async Task<IActionResult> UnAuthorizeAsync()
-    {
-        int userId = this.GetUserId();
-        int count = await appDbContext.GithubIdentities.Where(g => g.UserId == userId).ExecuteDeleteAsync().ConfigureAwait(false);
-        return Response<UnAuthorizeResult>.Success("操作完成", new() { Count = count });
-    }
-
-    [Authorize]
-    [HttpGet("OAuth/AuthorizationStatus")]
-    public async Task<IActionResult> GetAuthorizationStatusAsync()
-    {
-        int userId = this.GetUserId();
-        AuthorizationStatus result = await githubService.GetAuthorizationStatusAsync(userId).ConfigureAwait(false);
-        return Response<AuthorizationStatus>.Success("查询成功", result);
     }
 
     [HttpPost("Webhook")]
@@ -128,10 +42,5 @@ public class GithubController : ControllerBase
             default:
                 return new JsonResult(new GithubWebhookResponse { Message = "Skip" });
         }
-    }
-
-    private RedirectResult RedirectToError(ReturnCode errorCode)
-    {
-        return Redirect($"https://passport.snapgenshin.cn/auth/error?code={errorCode:D}");
     }
 }

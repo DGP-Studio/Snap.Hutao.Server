@@ -18,7 +18,6 @@ public sealed class PassportVerificationService
     public PassportVerificationService(AppOptions appOptions, ILogger<PassportVerificationService> logger)
     {
         string redisAddress = appOptions.RedisAddress;
-        logger.LogInformation("Using Redis: {config}", redisAddress);
         this.redis = ConnectionMultiplexer.Connect(redisAddress);
     }
 

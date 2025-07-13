@@ -5,11 +5,6 @@ namespace Snap.Hutao.Server.Model.Passport;
 
 public class DeviceInfo
 {
-    public DeviceInfo(string deviceId)
-    {
-        DeviceId = deviceId;
-    }
-
     public DeviceInfo(string deviceId, string? deviceName, string? operatingSystem)
     {
         DeviceId = deviceId;
