@@ -9,6 +9,8 @@ public class LoggedInDeviceInfo
 
     public string? DeviceName { get; set; }
 
+    public string? OperatingSystem { get; set; }
+
     public DateTimeOffset LastLoginAt { get; set; }
 
     public DateTimeOffset ExpiresAt { get; set; }

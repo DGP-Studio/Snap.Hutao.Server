@@ -154,6 +154,7 @@ public sealed class PassportService
             {
                 DeviceId = rt.DeviceId,
                 DeviceName = rt.DeviceName,
+                OperatingSystem = rt.OperatingSystem,
                 LastLoginAt = rt.CreatedAt,
                 ExpiresAt = rt.ExpiresAt,
                 IsCurrentDevice = rt.DeviceId == deviceInfo.DeviceId,
