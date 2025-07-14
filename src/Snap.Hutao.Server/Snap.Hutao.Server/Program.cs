@@ -5,6 +5,7 @@ using Disqord;
 using Disqord.Bot.Hosting;
 using Disqord.Gateway;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.OpenApi.Models;
 using Quartz;
 using Quartz.AspNetCore;
 using Quartz.Simpl;
@@ -140,6 +141,31 @@ public static class Program
                 options.SwaggerDoc("Services", new() { Version = "1.0", Title = "服务管理", Description = "维护专用管理接口，调用需要维护权限" });
                 options.SwaggerDoc("Redeem", new() { Version = "1.0", Title = "兑换码", Description = "兑换码相关接口" });
                 options.SwaggerDoc("OAuth", new() { Version = "1.0", Title = "OAuth", Description = "OAuth相关接口" });
+
+                // 添加JWT Bearer认证支持
+                options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+                    Name = "Authorization",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "Bearer",
+                });
+
+                options.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer",
+                            },
+                        },
+                        []
+                    },
+                });
 
                 options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "Snap.Hutao.Server.xml"));
             })

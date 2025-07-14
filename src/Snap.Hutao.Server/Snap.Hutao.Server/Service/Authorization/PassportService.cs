@@ -179,8 +179,8 @@ public sealed class PassportService
 
     public async Task<bool> RevokeRefreshTokenAsync(string deviceId)
     {
-        RefreshToken? refreshToken = await appDbContext.RefreshTokens
-            .FirstOrDefaultAsync(rt => rt.DeviceInfo.DeviceId == deviceId);
+        List<RefreshToken> refreshTokens = await appDbContext.RefreshTokens.ToListAsync().ConfigureAwait(false);
+        RefreshToken? refreshToken = refreshTokens.FirstOrDefault(rt => rt.DeviceInfo.DeviceId == deviceId);
 
         if (refreshToken == null)
         {

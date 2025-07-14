@@ -9,11 +9,6 @@ public class PassportResult
 {
     public PassportResult(bool success, string message, string? key, TokenResponse? token = null)
     {
-        if (success)
-        {
-            ArgumentNullException.ThrowIfNull(token);
-        }
-
         Success = success;
         Message = message;
         LocalizationKey = key;
