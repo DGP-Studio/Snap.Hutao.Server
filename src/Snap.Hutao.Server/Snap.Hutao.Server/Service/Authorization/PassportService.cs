@@ -66,6 +66,8 @@ public sealed class PassportService
             return new(false, $"注册失败:{messageBuilder}", ServerKeys.ServerPassportServiceInternalException);
         }
 
+        TokenResponse tokenResponse = await CreateTokenResponseAsync(newUser, deviceInfo).ConfigureAwait(false);
+
         if (!await appDbContext.RegistrationRecords.AnyAsync(r => r.UserName == passport.UserName).ConfigureAwait(false))
         {
             await appDbContext.RegistrationRecords.AddAndSaveAsync(new() { UserName = passport.UserName }).ConfigureAwait(false);
@@ -73,9 +75,9 @@ public sealed class PassportService
             newUser.CdnExpireAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds() + (long)TimeSpan.FromDays(3).TotalSeconds;
             newUser.GachaLogExpireAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds() + (long)TimeSpan.FromDays(3).TotalSeconds;
             await userManager.UpdateAsync(newUser).ConfigureAwait(false);
+            return new(true, "注册成功，首次注册获赠 3 天胡桃云权限", ServerKeys.ServerPassportRegisterSucceedFirstTime, tokenResponse);
         }
 
-        TokenResponse tokenResponse = await CreateTokenResponseAsync(newUser, deviceInfo).ConfigureAwait(false);
         return new(true, "注册成功", ServerKeys.ServerPassportRegisterSucceed, tokenResponse);
     }
 
