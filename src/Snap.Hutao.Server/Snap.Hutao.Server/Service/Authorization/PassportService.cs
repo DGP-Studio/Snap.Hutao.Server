@@ -152,11 +152,11 @@ public sealed class PassportService
             .Where(rt => rt.UserId == userId)
             .Select(rt => new LoggedInDeviceInfo
             {
-                DeviceId = rt.DeviceInfo.DeviceId,
-                DeviceName = rt.DeviceInfo.DeviceName,
+                DeviceId = rt.DeviceId,
+                DeviceName = rt.DeviceName,
                 LastLoginAt = rt.CreatedAt,
                 ExpiresAt = rt.ExpiresAt,
-                IsCurrentDevice = rt.DeviceInfo.DeviceId == deviceInfo.DeviceId,
+                IsCurrentDevice = rt.DeviceId == deviceInfo.DeviceId,
             })
             .ToListAsync()
             .ConfigureAwait(false);
@@ -166,7 +166,8 @@ public sealed class PassportService
     {
         RefreshToken? refreshToken = await appDbContext.RefreshTokens
             .Include(rt => rt.User)
-            .FirstOrDefaultAsync(rt => rt.Token == refreshTokenValue);
+            .FirstOrDefaultAsync(rt => rt.Token == refreshTokenValue)
+            .ConfigureAwait(false);
 
         if (refreshToken is null || refreshToken.ExpiresAt <= DateTime.UtcNow)
         {
@@ -179,8 +180,9 @@ public sealed class PassportService
 
     public async Task<bool> RevokeRefreshTokenAsync(string deviceId)
     {
-        List<RefreshToken> refreshTokens = await appDbContext.RefreshTokens.ToListAsync().ConfigureAwait(false);
-        RefreshToken? refreshToken = refreshTokens.FirstOrDefault(rt => rt.DeviceInfo.DeviceId == deviceId);
+        RefreshToken? refreshToken = await appDbContext.RefreshTokens
+            .FirstOrDefaultAsync(rt => rt.DeviceId == deviceId)
+            .ConfigureAwait(false);
 
         if (refreshToken == null)
         {
@@ -202,7 +204,7 @@ public sealed class PassportService
 
     public Task<TokenResponse> CreateTokenResponseAsync(RefreshToken refreshToken)
     {
-        return CreateTokenResponseAsync(refreshToken.UserId, refreshToken.DeviceInfo);
+        return CreateTokenResponseAsync(refreshToken.UserId, new(refreshToken.DeviceId, refreshToken.DeviceName, refreshToken.OperatingSystem));
     }
 
     public Task<TokenResponse> CreateTokenResponseAsync(HutaoUser user, DeviceInfo? deviceInfo)
@@ -275,7 +277,9 @@ public sealed class PassportService
             Token = GenerateRefreshToken(),
             ExpiresAt = DateTime.UtcNow.AddDays(RefreshTokenExpirationDays),
             CreatedAt = DateTime.UtcNow,
-            DeviceInfo = deviceInfo,
+            DeviceId = deviceInfo.DeviceId,
+            DeviceName = deviceInfo.DeviceName,
+            OperatingSystem = deviceInfo.OperatingSystem,
         };
 
         await appDbContext.RefreshTokens.AddAndSaveAsync(refreshToken);

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
-using Snap.Hutao.Server.Model.Passport;
-
 namespace Snap.Hutao.Server.Model.Entity.Passport;
 
 public class RefreshToken
@@ -20,7 +18,11 @@ public class RefreshToken
 
     public DateTimeOffset CreatedAt { get; set; }
 
-    public DeviceInfo DeviceInfo { get; set; } = default!;
+    public string DeviceId { get; set; } = default!;
+
+    public string? DeviceName { get; set; }
+
+    public string? OperatingSystem { get; set; }
 
     [ForeignKey(nameof(UserId))]
     public HutaoUser User { get; set; } = default!;
