@@ -19,6 +19,7 @@ public static class ServerKeys
     public const string ServerPassportRefreshTokenEmpty = "ServerPassportRefreshTokenEmpty";
     public const string ServerPassportRefreshTokenInvalid = "ServerPassportRefreshTokenInvalid";
     public const string ServerPassportResetPasswordSucceed = "ServerPassportResetPasswordSucceed";
+    public const string ServerPassportResetPasswordTheSamePassword = "ServerPassportResetPasswordTheSamePassword";
     public const string ServerPassportResetUserNameSucceed = "ServerPassportResetUserNameSucceed";
     public const string ServerPassportRegisterSucceed = "ServerPassportRegisterSucceed";
     public const string ServerPassportRegisterSucceedFirstTime = "ServerPassportRegisterSucceedFirstTime";

@@ -85,6 +85,11 @@ public sealed class PassportService
     {
         if (await userManager.FindByNameAsync(passport.UserName).ConfigureAwait(false) is { } user)
         {
+            if (await userManager.CheckPasswordAsync(user, passport.Password).ConfigureAwait(false))
+            {
+                return new(false, "新密码不能与旧密码相同", ServerKeys.ServerPassportResetPasswordTheSamePassword);
+            }
+
             await userManager.RemovePasswordAsync(user).ConfigureAwait(false);
             await userManager.AddPasswordAsync(user, passport.Password).ConfigureAwait(false);
 
