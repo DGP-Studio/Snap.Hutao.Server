@@ -1,10 +1,12 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
+using Snap.Hutao.Server.Core;
 using Snap.Hutao.Server.Extension;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity.Passport;
 using Snap.Hutao.Server.Model.Github;
+using Snap.Hutao.Server.Model.Passport;
 using Snap.Hutao.Server.Option;
 using Snap.Hutao.Server.Service.Authorization;
 using Snap.Hutao.Server.Service.Discord;
@@ -33,7 +35,7 @@ public class GithubService : IOAuthProvider
 
     public Task<string> RequestAuthUrlAsync(string state)
     {
-        return Task.FromResult($"https://github.com/login/oauth/authorize?client_id={githubOptions.ClientId}&state={HttpUtility.UrlEncode(state)}");
+        return Task.FromResult($"https://github.com/login/oauth/authorize?client_id={githubOptions.ClientId}&state={HttpUtility.UrlEncode(state)}&scope=read:user%20user:email");
     }
 
     public async Task<bool> RefreshTokenAsync(OAuthBindIdentity identity)
@@ -65,13 +67,61 @@ public class GithubService : IOAuthProvider
             return OAuthResult.Fail("获取 GitHub 用户信息失败 | Failed to get GitHub user information");
         }
 
+        if (string.IsNullOrEmpty(userResponse.Email))
+        {
+            List<GithubEmail>? emails = await githubApiService.GetEmailsByAccessTokenAsync(accessTokenResponse.AccessToken).ConfigureAwait(false);
+            userResponse.Email = emails?.FirstOrDefault(e => e.Primary)?.Email ?? emails?.FirstOrDefault()?.Email;
+        }
+
         OAuthBindIdentity? identity = await this.appDbContext.OAuthBindIdentities.SingleOrDefaultAsync(b => b.ProviderKind == OAuthProviderKind.Github && b.ProviderId == userResponse.NodeId);
         if (state.UserId is -1)
         {
-            // Login mode
+            // Login or register mode
             if (identity is null)
             {
-                return OAuthResult.Fail("当前 GitHub 账号未绑定胡桃通行证 | The current GitHub account is not bound to Snap Hutao Passport");
+                if (string.IsNullOrEmpty(userResponse.Email))
+                {
+                    return OAuthResult.Fail("无法获取 GitHub 邮箱 | Failed to get GitHub email");
+                }
+
+                string normalizedEmail = userResponse.Email.ToUpperInvariant();
+                HutaoUser? user = await this.appDbContext.Users.SingleOrDefaultAsync(u => u.NormalizedUserName == normalizedEmail).ConfigureAwait(false);
+                TokenResponse tokenResponse;
+                if (user is null)
+                {
+                    Passport passport = new()
+                    {
+                        UserName = userResponse.Email,
+                        Password = RandomHelper.GetUpperAndNumberString(16),
+                    };
+
+                    PassportResult registerResult = await passportService.RegisterAsync(passport, state.DeviceInfo).ConfigureAwait(false);
+                    if (!registerResult.Success)
+                    {
+                        return OAuthResult.Fail(registerResult.Message);
+                    }
+
+                    tokenResponse = registerResult.Token!;
+                    user = await this.appDbContext.Users.SingleAsync(u => u.NormalizedUserName == normalizedEmail).ConfigureAwait(false);
+                }
+                else
+                {
+                    tokenResponse = await passportService.CreateTokenResponseAsync(user.Id, state.DeviceInfo).ConfigureAwait(false);
+                }
+
+                identity = new()
+                {
+                    UserId = user.Id,
+                    ProviderKind = OAuthProviderKind.Github,
+                    ProviderId = userResponse.NodeId,
+                    DisplayName = userResponse.Login,
+                    RefreshToken = accessTokenResponse.RefreshToken,
+                    CreatedAt = DateTimeOffset.Now.ToUnixTimeSeconds(),
+                    ExpiresAt = (DateTimeOffset.Now + TimeSpan.FromSeconds(accessTokenResponse.RefreshTokenExpiresIn)).ToUnixTimeSeconds(),
+                };
+
+                await this.appDbContext.OAuthBindIdentities.AddAndSaveAsync(identity).ConfigureAwait(false);
+                return OAuthResult.LoginSuccess(tokenResponse);
             }
 
             return OAuthResult.LoginSuccess(await this.passportService.CreateTokenResponseAsync(identity.UserId, state.DeviceInfo).ConfigureAwait(false));

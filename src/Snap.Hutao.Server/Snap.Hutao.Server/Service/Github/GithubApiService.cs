@@ -58,6 +58,26 @@ public class GithubApiService
         }
     }
 
+    public async ValueTask<List<GithubEmail>?> GetEmailsByAccessTokenAsync(string accessToken)
+    {
+        using (HttpRequestMessage requestMessage = new(HttpMethod.Get, "https://api.github.com/user/emails"))
+        {
+            requestMessage.Headers.Accept.Add(new("application/vnd.github+json"));
+            requestMessage.Headers.UserAgent.ParseAdd("Snap Hutao Server/1.0");
+            requestMessage.Headers.Authorization = new("Bearer", accessToken);
+
+            using (HttpResponseMessage responseMessage = await httpClient.SendAsync(requestMessage))
+            {
+                if (!responseMessage.IsSuccessStatusCode)
+                {
+                    return default;
+                }
+
+                return await responseMessage.Content.ReadFromJsonAsync<List<GithubEmail>>();
+            }
+        }
+    }
+
     public async ValueTask<GithubAccessTokenResponse?> GetAccessTokenByRefreshTokenAsync(string refreshToken)
     {
         string query = $"client_id={githubOptions.ClientId}&client_secret={githubOptions.ClientSecret}&grant_type=refresh_token&refresh_token={refreshToken}";
