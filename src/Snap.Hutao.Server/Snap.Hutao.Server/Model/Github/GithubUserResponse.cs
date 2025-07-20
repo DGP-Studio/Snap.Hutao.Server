@@ -13,4 +13,7 @@ public sealed class GithubUserResponse
 
     [JsonPropertyName("login")]
     public string Login { get; set; } = default!;
+
+    [JsonPropertyName("email")]
+    public string? Email { get; set; }
 }
