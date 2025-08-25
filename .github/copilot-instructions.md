@@ -1,14 +1,3 @@
-<Goals>
-- Reduce the likelihood of a coding agent pull request getting rejected by the user due to generating code that fails the continuous integration build, fails a validation pipeline, or having misbehavior.
-- Minimize bash command and build failures.
-- Allow the agent to complete its task more quickly by minimizing the need for exploration using grep, find, str_replace_editor, and code search tools.
-</Goals>
-
-<Limitations>
-- Instructions must be no longer than 2 pages.
-- Instructions must not be task specific.
-</Limitations>
-
 <WhatToAdd>
 
 Add the following high level details about the codebase to reduce the amount of searching the agent has to do to understand the codebase each time:
