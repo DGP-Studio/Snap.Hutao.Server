@@ -12,6 +12,7 @@ using Snap.Hutao.Server.Service.Authorization;
 
 namespace Snap.Hutao.Server.Controller;
 
+[Obsolete]
 [ApiController]
 [Route("[controller]")]
 [ApiExplorerSettings(GroupName = "Passport")]
@@ -37,8 +38,8 @@ public class PassportController : ControllerBase
         string key = request switch
         {
             { IsResetPassword: true } => "ResetPassword",
-            { IsResetUsername: true } => "ResetUsername",
-            { IsResetUsernameNew: true } => "ResetUsernameNew",
+            { IsResetUserName: true } => "ResetUsername",
+            { IsResetUserNameNew: true } => "ResetUsernameNew",
             { IsCancelRegistration: true } => "CancelRegistration",
             _ => "Registration",
         };
@@ -219,7 +220,7 @@ public class PassportController : ControllerBase
             }
 
             // 重置用户名
-            if (request.IsResetUsername)
+            if (request.IsResetUserName)
             {
                 if (!userExists)
                 {
@@ -254,7 +255,7 @@ public class PassportController : ControllerBase
                 return Model.Response.Response.Fail(ReturnCode.VerifyCodeNotAllowed, "请求验证码失败", ServerKeys.ServerPassportVerifyRequestUserAlreadyExisted);
             }
 
-            if (request.IsResetUsernameNew)
+            if (request.IsResetUserNameNew)
             {
                 await mailService.SendResetUsernameVerifyCodeAsync(userName, code).ConfigureAwait(false);
                 return Model.Response.Response.Success("请求验证码成功", ServerKeys.ServerPassportVerifyRequestSuccess);

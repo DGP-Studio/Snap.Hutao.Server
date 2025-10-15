@@ -10,6 +10,12 @@ namespace Snap.Hutao.Server.Service.Authorization;
 // Scoped
 public sealed class PassportVerificationService
 {
+    public const string ResetPassword = "ResetPassword";
+    public const string CancelRegistration = "CancelRegistration";
+    public const string Registration = "Registration";
+    public const string ResetUserName = "ResetUsername";
+    public const string ResetUserNameNew = "ResetUsernameNew";
+
     private const int ExpireThresholdSeconds = 15 * 60;
     private const int RegenerateThresholdSeconds = 60;
 
