@@ -286,11 +286,10 @@ public class PassportV2Controller : ControllerBase
 
             if (request.IsCancelRegistration)
             {
-                HutaoUser? user = await this.GetUserAsync(appDbContext.Users).ConfigureAwait(false);
-                if (user is null || !string.Equals(normalizedUserName, user.NormalizedUserName, StringComparison.Ordinal))
+                if (!userExists)
                 {
                     passportVerificationService.RemoveVerifyCode(normalizedUserName, PassportVerificationService.CancelRegistration);
-                    return Model.Response.Response.Fail(ReturnCode.VerifyCodeNotAllowed, "请求验证码失败", ServerKeys.ServerPassportVerifyRequestNotCurrentUser);
+                    return Model.Response.Response.Fail(ReturnCode.VerifyCodeNotAllowed, "请求验证码失败", ServerKeys.ServerPassportVerifyRequestUserNotExisted);
                 }
 
                 await mailService.SendCancelRegistrationVerifyCodeAsync(userName, code).ConfigureAwait(false);
