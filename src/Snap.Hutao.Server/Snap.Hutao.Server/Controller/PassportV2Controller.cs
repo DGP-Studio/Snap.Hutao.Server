@@ -88,7 +88,7 @@ public class PassportV2Controller : ControllerBase
         - VerifyCode：通过“申请验证码”接口获取的 6 位纯数字验证码。
 
         注意事项：
-        - 首次注册会自动发放 3 天胡桃云使用权限，客户端需持久化 TokenResponse 中的刷新令牌。
+        - 请在客户端妥善保存返回的访问令牌与刷新令牌，以便后续调用需要鉴权的接口。
         - 若验证码已失效或被重复使用，将返回 RegisterFail 错误码。
         """)]
     [HttpPost("Register")]
@@ -131,7 +131,7 @@ public class PassportV2Controller : ControllerBase
         - VerifyCode：申请验证码时设置 IsCancelRegistration 标记后收到的验证码。
 
         注意事项：
-        - 注销操作不可逆，一旦成功所有刷新令牌都会失效。
+        - 注销操作不可逆，请在客户端做好二次确认。
         - 验证码必须由当前登录用户申请，以避免误操作风险。
         """)]
     [HttpPost("Cancel")]
@@ -169,7 +169,7 @@ public class PassportV2Controller : ControllerBase
         - VerifyCode：申请验证码时设置 IsResetPassword 标记后收到的验证码。
 
         注意事项：
-        - 若客户端连续三次输入错误验证码，服务器会自动作废验证码，需要重新申请。
+        - 操作成功后会重新签发访问令牌，请同步更新客户端持有的令牌。
         """)]
     [HttpPost("ResetPassword")]
     public async Task<IActionResult> ResetPasswordAsync([FromBody] PassportRequest request)
@@ -215,7 +215,7 @@ public class PassportV2Controller : ControllerBase
     /// </param>
     /// <returns>成功后返回新的访问令牌，失败时返回错误码。</returns>
     /// <remarks>
-    /// <para>为避免验证码串用，旧邮箱与新邮箱需分别申请验证码，两组验证码的有效期互相独立。</para>
+    /// <para>旧邮箱与新邮箱需分别申请验证码，两组验证码应独立提交。</para>
     /// </remarks>
     [HttpPost("ResetUsername")]
     public async Task<IActionResult> ResetUsernameAsync([FromBody] PassportRequest request)
@@ -258,7 +258,7 @@ public class PassportV2Controller : ControllerBase
     /// </param>
     /// <returns>登录成功时返回 <see cref="TokenResponse"/>，失败时附带错误提示。</returns>
     /// <remarks>
-    /// <para>所有登录行为都会记录 <c>DeviceInfo</c>，同一设备重复登录会自动更新刷新令牌。</para>
+    /// <para>登录成功后返回访问令牌与刷新令牌，请在客户端安全存储并在后续请求中使用。</para>
     /// </remarks>
     [HttpPost("Login")]
     public async Task<IActionResult> LoginAsync([FromBody] PassportRequest request)
@@ -282,7 +282,7 @@ public class PassportV2Controller : ControllerBase
     /// </summary>
     /// <returns>成功时返回 <see cref="UserInfo"/> 对象，包含账号标识、权限位以及云服务到期时间。</returns>
     /// <remarks>
-    /// <para>调用前需携带有效的 Bearer Token，推荐在应用启动时用于刷新本地缓存。</para>
+    /// <para>调用前需携带有效的 Bearer Token，可用于刷新客户端缓存。</para>
     /// </remarks>
     [Authorize]
     [HttpGet("UserInfo")]
@@ -329,7 +329,7 @@ public class PassportV2Controller : ControllerBase
     /// <param name="request">
     /// <list type="bullet">
     /// <item>
-    /// <description><c>RefreshToken</c>：Base64 编码的刷新令牌，需要使用 <see cref="PassportService.Decrypt(string)"/> 解密。</description>
+    /// <description><c>RefreshToken</c>：Base64 编码的刷新令牌，由注册或登录接口返回。</description>
     /// </item>
     /// </list>
     /// </param>
