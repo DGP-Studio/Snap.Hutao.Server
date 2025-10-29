@@ -6,17 +6,17 @@ namespace Snap.Hutao.Server.Model.Passport;
 public sealed class PassportRequest
 {
     /// <summary>
-    /// 使用服务端下发的 RSA 公钥加密并 Base64 编码后的登录邮箱。
+    /// 登录或注册时使用的邮箱账号。
     /// </summary>
     public string UserName { get; set; } = default!;
 
     /// <summary>
-    /// 使用 RSA 加密并 Base64 编码后的新邮箱账号（用于账号迁移）。
+    /// 账号迁移时使用的新邮箱账号。
     /// </summary>
     public string NewUserName { get; set; } = default!;
 
     /// <summary>
-    /// 使用 RSA 加密并 Base64 编码后的密码字段。
+    /// 登录或注册使用的密码字段。
     /// </summary>
     public string Password { get; set; } = default!;
 

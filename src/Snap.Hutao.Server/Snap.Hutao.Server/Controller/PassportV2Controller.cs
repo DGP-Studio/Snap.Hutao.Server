@@ -31,14 +31,11 @@ public class PassportV2Controller : ControllerBase
         mailService = serviceProvider.GetRequiredService<MailService>();
     }
 
-    /// <summary>
-    /// 申请邮箱验证码以完成注册、找回密码或账号安全操作。
-    /// </summary>
     [SwaggerOperation(
         Summary = "申请邮箱验证码以完成注册、找回密码或账号安全操作。",
         Description = """
         请求体字段：
-        - UserName：使用服务端提供的 RSA 公钥加密并进行 Base64 编码的邮箱账号。
+        - UserName：申请验证码所对应的邮箱账号。
         - IsResetPassword/IsResetUserName/IsResetUserNameNew/IsCancelRegistration：根据场景设置对应标记，其余保持 false。
 
         注意事项：
@@ -76,15 +73,12 @@ public class PassportV2Controller : ControllerBase
         }
     }
 
-    /// <summary>
-    /// 使用邮箱验证码注册 Snap Hutao 账号并下发一组访问令牌。
-    /// </summary>
     [SwaggerOperation(
         Summary = "使用邮箱验证码注册 Snap Hutao 账号并下发一组访问令牌。",
         Description = """
         请求体字段：
-        - UserName：RSA 加密后 Base64 编码的邮箱账号。
-        - Password：RSA 加密后 Base64 编码的新密码，至少 8 位。
+        - UserName：待注册的邮箱账号。
+        - Password：新密码，至少 8 位。
         - VerifyCode：通过“申请验证码”接口获取的 6 位纯数字验证码。
 
         注意事项：
@@ -119,15 +113,12 @@ public class PassportV2Controller : ControllerBase
             : Model.Response.Response.Fail(ReturnCode.RegisterFail, result.Message, result.LocalizationKey!);
     }
 
-    /// <summary>
-    /// 注销现有账号并删除关联数据。
-    /// </summary>
     [SwaggerOperation(
         Summary = "注销现有账号并删除关联数据。",
         Description = """
         请求体字段：
-        - UserName：RSA 加密后 Base64 编码的邮箱账号。
-        - Password：RSA 加密后 Base64 编码的当前登录密码。
+        - UserName：待注销账号绑定的邮箱。
+        - Password：当前登录密码。
         - VerifyCode：申请验证码时设置 IsCancelRegistration 标记后收到的验证码。
 
         注意事项：
@@ -157,15 +148,12 @@ public class PassportV2Controller : ControllerBase
             : Model.Response.Response.Fail(ReturnCode.CancelFail, result.Message, result.LocalizationKey!);
     }
 
-    /// <summary>
-    /// 通过邮箱验证码设置新的登录密码。
-    /// </summary>
     [SwaggerOperation(
         Summary = "通过邮箱验证码设置新的登录密码。",
         Description = """
         请求体字段：
-        - UserName：RSA 加密后 Base64 编码的邮箱账号。
-        - Password：RSA 加密后 Base64 编码的新密码，必须与旧密码不同。
+        - UserName：需要重置密码的邮箱账号。
+        - Password：新的登录密码，必须与旧密码不同。
         - VerifyCode：申请验证码时设置 IsResetPassword 标记后收到的验证码。
 
         注意事项：
@@ -209,7 +197,7 @@ public class PassportV2Controller : ControllerBase
     /// <description><c>UserName</c> 与 <c>VerifyCode</c>：原邮箱及其验证码。</description>
     /// </item>
     /// <item>
-    /// <description><c>NewUserName</c> 与 <c>NewVerifyCode</c>：新邮箱及其验证码，均需使用 RSA 加密后 Base64 编码。</description>
+    /// <description><c>NewUserName</c> 与 <c>NewVerifyCode</c>：新邮箱及其验证码，需按照客户端约定的安全协议处理。</description>
     /// </item>
     /// </list>
     /// </param>
@@ -249,10 +237,10 @@ public class PassportV2Controller : ControllerBase
     /// <param name="request">
     /// <list type="bullet">
     /// <item>
-    /// <description><c>UserName</c>：RSA 加密后 Base64 编码的邮箱账号。</description>
+    /// <description><c>UserName</c>：登录所使用的邮箱账号。</description>
     /// </item>
     /// <item>
-    /// <description><c>Password</c>：RSA 加密后 Base64 编码的登录密码。</description>
+    /// <description><c>Password</c>：登录密码。</description>
     /// </item>
     /// </list>
     /// </param>
@@ -329,7 +317,7 @@ public class PassportV2Controller : ControllerBase
     /// <param name="request">
     /// <list type="bullet">
     /// <item>
-    /// <description><c>RefreshToken</c>：Base64 编码的刷新令牌，由注册或登录接口返回。</description>
+    /// <description><c>RefreshToken</c>：刷新令牌，由注册或登录接口返回。</description>
     /// </item>
     /// </list>
     /// </param>
@@ -360,7 +348,7 @@ public class PassportV2Controller : ControllerBase
     /// <param name="request">
     /// <list type="bullet">
     /// <item>
-    /// <description><c>DeviceId</c>：RSA 加密后 Base64 编码的设备唯一标识，可从 <see cref="GetLoggedInDevicesAsync"/> 响应中获取。</description>
+    /// <description><c>DeviceId</c>：设备唯一标识，可从 <see cref="GetLoggedInDevicesAsync"/> 响应中获取。</description>
     /// </item>
     /// </list>
     /// </param>
