@@ -46,7 +46,7 @@ public class GithubApiService
             requestMessage.Headers.UserAgent.ParseAdd("Snap Hutao Server/1.0");
             requestMessage.Headers.Authorization = new("Bearer", accessToken);
 
-            using (HttpResponseMessage responseMessage = await httpClient.SendAsync(requestMessage))
+            using (HttpResponseMessage responseMessage = await httpClient.SendAsync(requestMessage).ConfigureAwait(false))
             {
                 if (!responseMessage.IsSuccessStatusCode)
                 {
@@ -54,6 +54,26 @@ public class GithubApiService
                 }
 
                 return await responseMessage.Content.ReadFromJsonAsync<GithubUserResponse>();
+            }
+        }
+    }
+
+    public async ValueTask<List<GithubEmailAddress>?> GetUserEmailsByAccessTokenAsync(string accessToken)
+    {
+        using (HttpRequestMessage requestMessage = new(HttpMethod.Get, "https://api.github.com/user/emails"))
+        {
+            requestMessage.Headers.Accept.Add(new("application/vnd.github+json"));
+            requestMessage.Headers.UserAgent.ParseAdd("Snap Hutao Server/1.0");
+            requestMessage.Headers.Authorization = new("Bearer", accessToken);
+
+            using (HttpResponseMessage responseMessage = await httpClient.SendAsync(requestMessage).ConfigureAwait(false))
+            {
+                if (!responseMessage.IsSuccessStatusCode)
+                {
+                    return default;
+                }
+
+                return await responseMessage.Content.ReadFromJsonAsync<List<GithubEmailAddress>>();
             }
         }
     }
