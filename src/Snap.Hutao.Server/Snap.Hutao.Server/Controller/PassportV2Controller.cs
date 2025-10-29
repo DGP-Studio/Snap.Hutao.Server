@@ -9,6 +9,7 @@ using Snap.Hutao.Server.Model.Passport;
 using Snap.Hutao.Server.Model.Response;
 using Snap.Hutao.Server.Service;
 using Snap.Hutao.Server.Service.Authorization;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Snap.Hutao.Server.Controller;
 
@@ -30,6 +31,17 @@ public class PassportV2Controller : ControllerBase
         mailService = serviceProvider.GetRequiredService<MailService>();
     }
 
+    [SwaggerOperation(
+        Summary = "申请邮箱验证码以完成注册、找回密码或账号安全操作。",
+        Description = """
+        请求体字段：
+        - UserName：申请验证码所对应的邮箱账号。
+        - IsResetPassword/IsResetUserName/IsResetUserNameNew/IsCancelRegistration：根据场景设置对应标记，其余保持 false。
+
+        注意事项：
+        - 同一邮箱同一类型验证码在 60 秒内只能申请一次，请在客户端进行节流处理。
+        - 若需要重置用户名，请分别提交旧邮箱与新邮箱两次请求以获取成对验证码。
+        """)]
     [HttpPost("Verify")]
     public async Task<IActionResult> RequestVerifyCodeAsync([FromBody] PassportRequest request)
     {
@@ -61,6 +73,18 @@ public class PassportV2Controller : ControllerBase
         }
     }
 
+    [SwaggerOperation(
+        Summary = "使用邮箱验证码注册 Snap Hutao 账号并下发一组访问令牌。",
+        Description = """
+        请求体字段：
+        - UserName：待注册的邮箱账号。
+        - Password：新密码，至少 8 位。
+        - VerifyCode：通过“申请验证码”接口获取的 6 位纯数字验证码。
+
+        注意事项：
+        - 请在客户端妥善保存返回的访问令牌与刷新令牌，以便后续调用需要鉴权的接口。
+        - 若验证码已失效或被重复使用，将返回 RegisterFail 错误码。
+        """)]
     [HttpPost("Register")]
     public async Task<IActionResult> RegisterAsync([FromBody] PassportRequest request)
     {
@@ -89,6 +113,18 @@ public class PassportV2Controller : ControllerBase
             : Model.Response.Response.Fail(ReturnCode.RegisterFail, result.Message, result.LocalizationKey!);
     }
 
+    [SwaggerOperation(
+        Summary = "注销现有账号并删除关联数据。",
+        Description = """
+        请求体字段：
+        - UserName：待注销账号绑定的邮箱。
+        - Password：当前登录密码。
+        - VerifyCode：申请验证码时设置 IsCancelRegistration 标记后收到的验证码。
+
+        注意事项：
+        - 注销操作不可逆，请在客户端做好二次确认。
+        - 验证码必须由当前登录用户申请，以避免误操作风险。
+        """)]
     [HttpPost("Cancel")]
     public async Task<IActionResult> CancelRegistrationAsync([FromBody] PassportRequest request)
     {
@@ -112,6 +148,17 @@ public class PassportV2Controller : ControllerBase
             : Model.Response.Response.Fail(ReturnCode.CancelFail, result.Message, result.LocalizationKey!);
     }
 
+    [SwaggerOperation(
+        Summary = "通过邮箱验证码设置新的登录密码。",
+        Description = """
+        请求体字段：
+        - UserName：需要重置密码的邮箱账号。
+        - Password：新的登录密码，必须与旧密码不同。
+        - VerifyCode：申请验证码时设置 IsResetPassword 标记后收到的验证码。
+
+        注意事项：
+        - 操作成功后会重新签发访问令牌，请同步更新客户端持有的令牌。
+        """)]
     [HttpPost("ResetPassword")]
     public async Task<IActionResult> ResetPasswordAsync([FromBody] PassportRequest request)
     {
@@ -141,6 +188,18 @@ public class PassportV2Controller : ControllerBase
             : Model.Response.Response.Fail(ReturnCode.RegisterFail, result.Message, result.LocalizationKey!);
     }
 
+    [SwaggerOperation(
+        Summary = "修改绑定邮箱并重新签发访问令牌。",
+        Description = """
+        请求体字段：
+        - UserName 与 VerifyCode：原邮箱及其验证码。
+        - NewUserName 与 NewVerifyCode：新邮箱及其验证码。
+
+        注意事项：
+        - 请分别为旧邮箱与新邮箱申请验证码，并在同一次请求中提交。
+        - 成功后将返回新的访问令牌与刷新令牌，请替换客户端本地缓存。
+        """
+    )]
     [HttpPost("ResetUsername")]
     public async Task<IActionResult> ResetUsernameAsync([FromBody] PassportRequest request)
     {
@@ -167,6 +226,18 @@ public class PassportV2Controller : ControllerBase
             : Model.Response.Response.Fail(ReturnCode.RegisterFail, result.Message, result.LocalizationKey!);
     }
 
+    [SwaggerOperation(
+        Summary = "使用邮箱与密码登录并颁发访问令牌与刷新令牌。",
+        Description = """
+        请求体字段：
+        - UserName：登录所使用的邮箱账号。
+        - Password：账号密码。
+
+        注意事项：
+        - 登录成功后返回访问令牌与刷新令牌，请在客户端安全保存。
+        - 若账号存在安全风险，可结合设备管理接口执行强制登出。
+        """
+    )]
     [HttpPost("Login")]
     public async Task<IActionResult> LoginAsync([FromBody] PassportRequest request)
     {
@@ -184,6 +255,14 @@ public class PassportV2Controller : ControllerBase
             : Model.Response.Response.Fail(ReturnCode.LoginFail, result.Message, result.LocalizationKey!);
     }
 
+    [SwaggerOperation(
+        Summary = "获取当前登录用户的基础资料与资源到期时间。",
+        Description = """
+        注意事项：
+        - 需携带有效的 Bearer Token 才能访问。
+        - 可用于刷新客户端缓存的账号信息与服务到期时间。
+        """
+    )]
     [Authorize]
     [HttpGet("UserInfo")]
     public async Task<IActionResult> GetUserInfoAsync()
@@ -206,6 +285,14 @@ public class PassportV2Controller : ControllerBase
         });
     }
 
+    [SwaggerOperation(
+        Summary = "查询当前账号所有有效的登录设备。",
+        Description = """
+        注意事项：
+        - 需携带有效的 Bearer Token 才能访问。
+        - 返回数据包含设备标识、名称、系统类型与登录时间，可据此实现设备管理。
+        """
+    )]
     [Authorize]
     [HttpGet("LoggedInDevices")]
     public async Task<IActionResult> GetLoggedInDevicesAsync()
@@ -216,6 +303,17 @@ public class PassportV2Controller : ControllerBase
         return Response<List<LoggedInDeviceInfo>>.Success("获取已登录设备成功", devices);
     }
 
+    [SwaggerOperation(
+        Summary = "使用刷新令牌换取新的访问令牌。",
+        Description = """
+        请求体字段：
+        - RefreshToken：刷新令牌。
+
+        注意事项：
+        - 刷新接口无需登录态，但请求仍需走安全信道。
+        - 若刷新令牌无效或已过期，将返回对应错误码。
+        """
+    )]
     [HttpPost("RefreshToken")]
     public async Task<IActionResult> RefreshTokenAsync([FromBody] RefreshTokenRequest request)
     {
@@ -233,6 +331,17 @@ public class PassportV2Controller : ControllerBase
         return Response<TokenResponse>.Success("令牌刷新成功", tokenResponse);
     }
 
+    [SwaggerOperation(
+        Summary = "撤销指定设备的刷新令牌。",
+        Description = """
+        请求体字段：
+        - DeviceId：设备唯一标识，可从“查询已登录设备”接口获取。
+
+        注意事项：
+        - 需携带有效的 Bearer Token，并仅能操作当前账号的设备。
+        - 撤销后该设备将失去刷新访问令牌的能力。
+        """
+    )]
     [Authorize]
     [HttpPost("RevokeToken")]
     public async Task<IActionResult> RevokeTokenAsync([FromBody] RefreshTokenRequest request)
@@ -247,6 +356,14 @@ public class PassportV2Controller : ControllerBase
             : Model.Response.Response.Fail(ReturnCode.RefreshTokenDbException, "令牌撤销失败", ServerKeys.ServerPassportTokenRevokeFailed);
     }
 
+    [SwaggerOperation(
+        Summary = "撤销当前账号所有刷新令牌并强制登出所有设备。",
+        Description = """
+        注意事项：
+        - 需携带有效的 Bearer Token 才能访问。
+        - 可在账号异常时执行，所有设备将被要求重新登录。
+        """
+    )]
     [Authorize]
     [HttpPost("RevokeAllTokens")]
     public async Task<IActionResult> RevokeAllTokensAsync()

@@ -168,6 +168,7 @@ public static class Program
                 });
 
                 options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "Snap.Hutao.Server.xml"));
+                options.EnableAnnotations();
             })
             .AddTransient<GachaLogStatisticsRefreshJob>()
             .AddTransient<GachaLogStatisticsService>()
