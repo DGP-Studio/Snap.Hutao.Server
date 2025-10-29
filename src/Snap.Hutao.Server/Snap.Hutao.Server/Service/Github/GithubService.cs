@@ -90,6 +90,10 @@ public class GithubService : IOAuthProvider
             }
 
             (string email, bool verified) = emailResult.Value;
+            if (!verified)
+            {
+                return OAuthResult.Fail("GitHub 邮箱未验证，无法完成登录或注册 | The GitHub email address is unverified and cannot be used for login or registration");
+            }
             HutaoUser? user = await userManager.FindByNameAsync(email).ConfigureAwait(false);
             TokenResponse tokenResponse;
 
@@ -161,23 +165,33 @@ public class GithubService : IOAuthProvider
 
     private async ValueTask<(string Email, bool Verified)?> ResolveEmailAsync(GithubAccessTokenResponse accessTokenResponse, GithubUserResponse userResponse)
     {
-        if (!string.IsNullOrEmpty(userResponse.Email))
-        {
-            return (userResponse.Email, true);
-        }
-
         List<GithubEmailAddress>? emailAddresses = await githubApiService.GetUserEmailsByAccessTokenAsync(accessTokenResponse.AccessToken).ConfigureAwait(false);
         if (emailAddresses is null || emailAddresses.Count == 0)
         {
             return null;
         }
 
-        GithubEmailAddress? selectedEmail = emailAddresses.FirstOrDefault(address => address.Primary && address.Verified)
-            ?? emailAddresses.FirstOrDefault(address => address.Primary)
-            ?? emailAddresses.FirstOrDefault(address => address.Verified)
-            ?? emailAddresses.FirstOrDefault();
+        GithubEmailAddress? selectedEmail = emailAddresses
+            .Where(address => address.Verified)
+            .OrderByDescending(address => address.Primary)
+            .ThenBy(address => address.Email, StringComparer.OrdinalIgnoreCase)
+            .FirstOrDefault();
 
-        return selectedEmail is null ? null : (selectedEmail.Email, selectedEmail.Verified);
+        if (selectedEmail is not null)
+        {
+            return (selectedEmail.Email, true);
+        }
+
+        if (!string.IsNullOrEmpty(userResponse.Email))
+        {
+            GithubEmailAddress? matchingEmail = emailAddresses.FirstOrDefault(address => string.Equals(address.Email, userResponse.Email, StringComparison.OrdinalIgnoreCase));
+            if (matchingEmail is not null && matchingEmail.Verified)
+            {
+                return (matchingEmail.Email, true);
+            }
+        }
+
+        return null;
     }
 
     private async ValueTask EnsureUserEmailAsync(HutaoUser user, string email, bool verified)
