@@ -9,6 +9,7 @@ using Snap.Hutao.Server.Model.Passport;
 using Snap.Hutao.Server.Model.Response;
 using Snap.Hutao.Server.Service;
 using Snap.Hutao.Server.Service.Authorization;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Snap.Hutao.Server.Controller;
 
@@ -33,22 +34,17 @@ public class PassportV2Controller : ControllerBase
     /// <summary>
     /// 申请邮箱验证码以完成注册、找回密码或账号安全操作。
     /// </summary>
-    /// <param name="request">
-    /// 请求体字段说明：
-    /// <list type="bullet">
-    /// <item>
-    /// <description><c>UserName</c>：使用服务端提供的 RSA 公钥加密并进行 Base64 编码的邮箱账号。</description>
-    /// </item>
-    /// <item>
-    /// <description><c>IsResetPassword</c>/<c>IsResetUserName</c>/<c>IsResetUserNameNew</c>/<c>IsCancelRegistration</c>：根据场景设置对应标记，其余保持 <c>false</c>。</description>
-    /// </item>
-    /// </list>
-    /// </param>
-    /// <returns>验证码请求结果，失败时会返回对应的错误码和提示文本。</returns>
-    /// <remarks>
-    /// <para>同一邮箱同一类型验证码在 60 秒内只能申请一次，请在客户端进行节流处理。</para>
-    /// <para>若需要重置用户名，请分别提交旧邮箱与新邮箱两次请求以获取成对验证码。</para>
-    /// </remarks>
+    [SwaggerOperation(
+        Summary = "申请邮箱验证码以完成注册、找回密码或账号安全操作。",
+        Description = """
+        请求体字段：
+        - UserName：使用服务端提供的 RSA 公钥加密并进行 Base64 编码的邮箱账号。
+        - IsResetPassword/IsResetUserName/IsResetUserNameNew/IsCancelRegistration：根据场景设置对应标记，其余保持 false。
+
+        注意事项：
+        - 同一邮箱同一类型验证码在 60 秒内只能申请一次，请在客户端进行节流处理。
+        - 若需要重置用户名，请分别提交旧邮箱与新邮箱两次请求以获取成对验证码。
+        """)]
     [HttpPost("Verify")]
     public async Task<IActionResult> RequestVerifyCodeAsync([FromBody] PassportRequest request)
     {
@@ -83,25 +79,18 @@ public class PassportV2Controller : ControllerBase
     /// <summary>
     /// 使用邮箱验证码注册 Snap Hutao 账号并下发一组访问令牌。
     /// </summary>
-    /// <param name="request">
-    /// 请求体字段说明：
-    /// <list type="bullet">
-    /// <item>
-    /// <description><c>UserName</c>：RSA 加密后 Base64 编码的邮箱账号。</description>
-    /// </item>
-    /// <item>
-    /// <description><c>Password</c>：RSA 加密后 Base64 编码的新密码，至少 8 位。</description>
-    /// </item>
-    /// <item>
-    /// <description><c>VerifyCode</c>：前一步 <see cref="RequestVerifyCodeAsync"/> 获取的 6 位纯数字验证码。</description>
-    /// </item>
-    /// </list>
-    /// </param>
-    /// <returns>包含访问令牌与刷新令牌的响应。</returns>
-    /// <remarks>
-    /// <para>首次注册会自动发放 3 天胡桃云使用权限；客户端需持久化 <c>TokenResponse</c> 中的刷新令牌。</para>
-    /// <para>若后端检测到验证码已失效或被重复使用，将返回 <see cref="ReturnCode.RegisterFail"/>。</para>
-    /// </remarks>
+    [SwaggerOperation(
+        Summary = "使用邮箱验证码注册 Snap Hutao 账号并下发一组访问令牌。",
+        Description = """
+        请求体字段：
+        - UserName：RSA 加密后 Base64 编码的邮箱账号。
+        - Password：RSA 加密后 Base64 编码的新密码，至少 8 位。
+        - VerifyCode：通过“申请验证码”接口获取的 6 位纯数字验证码。
+
+        注意事项：
+        - 首次注册会自动发放 3 天胡桃云使用权限，客户端需持久化 TokenResponse 中的刷新令牌。
+        - 若验证码已失效或被重复使用，将返回 RegisterFail 错误码。
+        """)]
     [HttpPost("Register")]
     public async Task<IActionResult> RegisterAsync([FromBody] PassportRequest request)
     {
@@ -133,24 +122,18 @@ public class PassportV2Controller : ControllerBase
     /// <summary>
     /// 注销现有账号并删除关联数据。
     /// </summary>
-    /// <param name="request">
-    /// <list type="bullet">
-    /// <item>
-    /// <description><c>UserName</c>：RSA 加密后 Base64 编码的邮箱账号。</description>
-    /// </item>
-    /// <item>
-    /// <description><c>Password</c>：RSA 加密后 Base64 编码的当前登录密码。</description>
-    /// </item>
-    /// <item>
-    /// <description><c>VerifyCode</c>：通过 <see cref="RequestVerifyCodeAsync"/> 并设置 <c>IsCancelRegistration</c> 获取的验证码。</description>
-    /// </item>
-    /// </list>
-    /// </param>
-    /// <returns>注销结果，成功时返回成功提示。</returns>
-    /// <remarks>
-    /// <para>注销操作不可逆，一旦成功所有刷新令牌都会失效。</para>
-    /// <para>验证码必须由当前登录用户申请，避免误操作风险。</para>
-    /// </remarks>
+    [SwaggerOperation(
+        Summary = "注销现有账号并删除关联数据。",
+        Description = """
+        请求体字段：
+        - UserName：RSA 加密后 Base64 编码的邮箱账号。
+        - Password：RSA 加密后 Base64 编码的当前登录密码。
+        - VerifyCode：申请验证码时设置 IsCancelRegistration 标记后收到的验证码。
+
+        注意事项：
+        - 注销操作不可逆，一旦成功所有刷新令牌都会失效。
+        - 验证码必须由当前登录用户申请，以避免误操作风险。
+        """)]
     [HttpPost("Cancel")]
     public async Task<IActionResult> CancelRegistrationAsync([FromBody] PassportRequest request)
     {
@@ -177,23 +160,17 @@ public class PassportV2Controller : ControllerBase
     /// <summary>
     /// 通过邮箱验证码设置新的登录密码。
     /// </summary>
-    /// <param name="request">
-    /// <list type="bullet">
-    /// <item>
-    /// <description><c>UserName</c>：RSA 加密后 Base64 编码的邮箱账号。</description>
-    /// </item>
-    /// <item>
-    /// <description><c>Password</c>：RSA 加密后 Base64 编码的新密码，必须与旧密码不同。</description>
-    /// </item>
-    /// <item>
-    /// <description><c>VerifyCode</c>：通过 <see cref="RequestVerifyCodeAsync"/> 并设置 <c>IsResetPassword</c> 获取的验证码。</description>
-    /// </item>
-    /// </list>
-    /// </param>
-    /// <returns>重置后的访问令牌集合。</returns>
-    /// <remarks>
-    /// <para>若客户端连续三次输入错误验证码，服务器会自动作废验证码并需要重新申请。</para>
-    /// </remarks>
+    [SwaggerOperation(
+        Summary = "通过邮箱验证码设置新的登录密码。",
+        Description = """
+        请求体字段：
+        - UserName：RSA 加密后 Base64 编码的邮箱账号。
+        - Password：RSA 加密后 Base64 编码的新密码，必须与旧密码不同。
+        - VerifyCode：申请验证码时设置 IsResetPassword 标记后收到的验证码。
+
+        注意事项：
+        - 若客户端连续三次输入错误验证码，服务器会自动作废验证码，需要重新申请。
+        """)]
     [HttpPost("ResetPassword")]
     public async Task<IActionResult> ResetPasswordAsync([FromBody] PassportRequest request)
     {
