@@ -1,14 +1,18 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Snap.Hutao.Server.Extension;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity.Passport;
 using Snap.Hutao.Server.Model.Github;
+using Snap.Hutao.Server.Model.Passport;
 using Snap.Hutao.Server.Option;
 using Snap.Hutao.Server.Service.Authorization;
 using Snap.Hutao.Server.Service.Discord;
 using Snap.Hutao.Server.Service.OAuth;
+using System.Security.Cryptography;
 using System.Web;
 
 namespace Snap.Hutao.Server.Service.Github;
@@ -21,6 +25,7 @@ public class GithubService : IOAuthProvider
     private readonly DiscordService discordService;
     private readonly GithubOptions githubOptions;
     private readonly AppDbContext appDbContext;
+    private readonly UserManager<HutaoUser> userManager;
 
     public GithubService(IServiceProvider serviceProvider)
     {
@@ -29,11 +34,13 @@ public class GithubService : IOAuthProvider
         discordService = serviceProvider.GetRequiredService<DiscordService>();
         githubOptions = serviceProvider.GetRequiredService<AppOptions>().Github;
         appDbContext = serviceProvider.GetRequiredService<AppDbContext>();
+        userManager = serviceProvider.GetRequiredService<UserManager<HutaoUser>>();
     }
 
     public Task<string> RequestAuthUrlAsync(string state)
     {
-        return Task.FromResult($"https://github.com/login/oauth/authorize?client_id={githubOptions.ClientId}&state={HttpUtility.UrlEncode(state)}");
+        string encodedState = HttpUtility.UrlEncode(state);
+        return Task.FromResult($"https://github.com/login/oauth/authorize?client_id={githubOptions.ClientId}&state={encodedState}&scope=read:user%20user:email");
     }
 
     public async Task<bool> RefreshTokenAsync(OAuthBindIdentity identity)
@@ -65,35 +72,101 @@ public class GithubService : IOAuthProvider
             return OAuthResult.Fail("获取 GitHub 用户信息失败 | Failed to get GitHub user information");
         }
 
-        OAuthBindIdentity? identity = await this.appDbContext.OAuthBindIdentities.SingleOrDefaultAsync(b => b.ProviderKind == OAuthProviderKind.Github && b.ProviderId == userResponse.NodeId);
+        OAuthBindIdentity? identity = await appDbContext.OAuthBindIdentities
+            .SingleOrDefaultAsync(b => b.ProviderKind == OAuthProviderKind.Github && b.ProviderId == userResponse.NodeId)
+            .ConfigureAwait(false);
+
         if (state.UserId is -1)
         {
-            // Login mode
-            if (identity is null)
+            if (identity is not null)
             {
-                return OAuthResult.Fail("当前 GitHub 账号未绑定胡桃通行证 | The current GitHub account is not bound to Snap Hutao Passport");
+                await UpdateIdentityAsync(identity, accessTokenResponse, userResponse.Login).ConfigureAwait(false);
+                TokenResponse existingToken = await passportService.CreateTokenResponseAsync(identity.UserId, state.DeviceInfo).ConfigureAwait(false);
+                return OAuthResult.LoginSuccess(existingToken);
             }
 
-            return OAuthResult.LoginSuccess(await this.passportService.CreateTokenResponseAsync(identity.UserId, state.DeviceInfo).ConfigureAwait(false));
+            (string Email, bool Verified)? emailResult = await ResolveEmailAsync(accessTokenResponse, userResponse).ConfigureAwait(false);
+            if (emailResult is null)
+            {
+                return OAuthResult.Fail("无法获取 GitHub 邮箱地址 | Failed to get GitHub email address");
+            }
+
+            (string email, bool verified) = emailResult.Value;
+            if (!verified)
+            {
+                return OAuthResult.Fail("GitHub 邮箱未验证，无法完成登录或注册 | The GitHub email address is unverified and cannot be used for login or registration");
+            }
+
+            HutaoUser? user = await FindUserByNameAsync(email).ConfigureAwait(false);
+            TokenResponse tokenResponse;
+
+            if (user is null)
+            {
+                Passport passport = new()
+                {
+                    UserName = email,
+                    Password = GenerateTemporaryPassword(),
+                };
+
+                PassportResult registerResult = await passportService.RegisterAsync(passport, state.DeviceInfo).ConfigureAwait(false);
+                if (!registerResult.Success)
+                {
+                    return OAuthResult.Fail($"通过 GitHub 注册失败: {registerResult.Message} | Failed to register via GitHub: {registerResult.Message}");
+                }
+
+                user = await FindUserByNameAsync(email).ConfigureAwait(false)
+                    ?? throw new InvalidOperationException("GitHub 注册成功但未找到对应用户 | GitHub registration succeeded but user not found");
+
+                IdentityResult emailSyncResult = await EnsureUserEmailAsync(user, email).ConfigureAwait(false);
+                if (!emailSyncResult.Succeeded)
+                {
+                    string errorMessage = FormatIdentityErrors(emailSyncResult);
+                    await passportService.RevokeAllUserTokensAsync(user.Id).ConfigureAwait(false);
+                    await userManager.DeleteAsync(user).ConfigureAwait(false);
+                    return OAuthResult.Fail($"同步 GitHub 邮箱失败: {errorMessage} | Failed to synchronize GitHub email: {errorMessage}");
+                }
+
+                tokenResponse = registerResult.Token;
+            }
+            else
+            {
+                IdentityResult emailSyncResult = await EnsureUserEmailAsync(user, email).ConfigureAwait(false);
+                if (!emailSyncResult.Succeeded)
+                {
+                    string errorMessage = FormatIdentityErrors(emailSyncResult);
+                    return OAuthResult.Fail($"同步 GitHub 邮箱失败: {errorMessage} | Failed to synchronize GitHub email: {errorMessage}");
+                }
+
+                tokenResponse = await passportService.CreateTokenResponseAsync(user, state.DeviceInfo).ConfigureAwait(false);
+            }
+
+            OAuthBindIdentity newIdentity = new()
+            {
+                UserId = user.Id,
+                ProviderKind = OAuthProviderKind.Github,
+                ProviderId = userResponse.NodeId,
+                DisplayName = userResponse.Login,
+                RefreshToken = accessTokenResponse.RefreshToken,
+                CreatedAt = DateTimeOffset.Now.ToUnixTimeSeconds(),
+                ExpiresAt = CalculateExpiresAt(accessTokenResponse),
+            };
+
+            await appDbContext.OAuthBindIdentities.AddAndSaveAsync(newIdentity).ConfigureAwait(false);
+            return OAuthResult.LoginSuccess(tokenResponse);
         }
 
         if (identity is not null)
         {
             if (state.UserId != identity.UserId)
             {
-                // Already authorized to another user
                 return OAuthResult.Fail("当前 GitHub 账号已绑定其他的胡桃通行证 | The current GitHub account is already bound to another Snap Hutao Passport");
             }
 
-            // Already bound to this user, update access token
-            identity.RefreshToken = accessTokenResponse.RefreshToken;
-            identity.ExpiresAt = (DateTimeOffset.Now + TimeSpan.FromSeconds(accessTokenResponse.RefreshTokenExpiresIn)).ToUnixTimeSeconds();
-            await this.appDbContext.OAuthBindIdentities.UpdateAndSaveAsync(identity).ConfigureAwait(false);
+            await UpdateIdentityAsync(identity, accessTokenResponse, userResponse.Login).ConfigureAwait(false);
             return OAuthResult.BindSuccess();
         }
 
-        // First time to bind
-        identity = new()
+        OAuthBindIdentity bindIdentity = new()
         {
             UserId = state.UserId,
             ProviderKind = OAuthProviderKind.Github,
@@ -101,11 +174,116 @@ public class GithubService : IOAuthProvider
             DisplayName = userResponse.Login,
             RefreshToken = accessTokenResponse.RefreshToken,
             CreatedAt = DateTimeOffset.Now.ToUnixTimeSeconds(),
-            ExpiresAt = (DateTimeOffset.Now + TimeSpan.FromSeconds(accessTokenResponse.RefreshTokenExpiresIn)).ToUnixTimeSeconds(),
+            ExpiresAt = CalculateExpiresAt(accessTokenResponse),
         };
 
-        await this.appDbContext.OAuthBindIdentities.AddAndSaveAsync(identity).ConfigureAwait(false);
+        await appDbContext.OAuthBindIdentities.AddAndSaveAsync(bindIdentity).ConfigureAwait(false);
         return OAuthResult.BindSuccess();
+    }
+
+    private async ValueTask<(string Email, bool Verified)?> ResolveEmailAsync(GithubAccessTokenResponse accessTokenResponse, GithubUserResponse userResponse)
+    {
+        List<GithubEmailAddress>? emailAddresses = await githubApiService.GetUserEmailsByAccessTokenAsync(accessTokenResponse.AccessToken).ConfigureAwait(false);
+        if (emailAddresses is null || emailAddresses.Count == 0)
+        {
+            return null;
+        }
+
+        GithubEmailAddress? selectedEmail = emailAddresses
+            .Where(address => address.Verified)
+            .OrderByDescending(address => address.Primary)
+            .ThenBy(address => address.Email, StringComparer.OrdinalIgnoreCase)
+            .FirstOrDefault();
+
+        if (selectedEmail is not null)
+        {
+            return (selectedEmail.Email, true);
+        }
+
+        if (!string.IsNullOrEmpty(userResponse.Email))
+        {
+            GithubEmailAddress? matchingEmail = emailAddresses.FirstOrDefault(address => string.Equals(address.Email, userResponse.Email, StringComparison.OrdinalIgnoreCase));
+            if (matchingEmail is not null)
+            {
+                return matchingEmail.Verified
+                    ? (matchingEmail.Email, true)
+                    : (matchingEmail.Email, false);
+            }
+        }
+
+        GithubEmailAddress? firstUnverified = emailAddresses
+            .Where(address => !address.Verified)
+            .OrderByDescending(address => address.Primary)
+            .ThenBy(address => address.Email, StringComparer.OrdinalIgnoreCase)
+            .FirstOrDefault();
+
+        if (firstUnverified is not null)
+        {
+            return (firstUnverified.Email, false);
+        }
+
+        return null;
+    }
+
+    private async ValueTask<IdentityResult> EnsureUserEmailAsync(HutaoUser user, string email)
+    {
+        bool shouldUpdate = false;
+
+        if (!string.Equals(user.Email, email, StringComparison.OrdinalIgnoreCase))
+        {
+            user.Email = email;
+            shouldUpdate = true;
+        }
+
+        if (!user.EmailConfirmed)
+        {
+            user.EmailConfirmed = true;
+            shouldUpdate = true;
+        }
+
+        if (!shouldUpdate)
+        {
+            return IdentityResult.Success;
+        }
+
+        return await userManager.UpdateAsync(user).ConfigureAwait(false);
+    }
+
+    private async ValueTask<HutaoUser?> FindUserByNameAsync(string userName)
+    {
+        string? normalizedUserName = userManager.KeyNormalizer?.NormalizeName(userName);
+        if (string.IsNullOrEmpty(normalizedUserName))
+        {
+            return await userManager.FindByNameAsync(userName).ConfigureAwait(false);
+        }
+
+        return await userManager.Users.SingleOrDefaultAsync(user => user.NormalizedUserName == normalizedUserName).ConfigureAwait(false);
+    }
+
+    private static string FormatIdentityErrors(IdentityResult identityResult)
+    {
+        return string.Join("; ", identityResult.Errors.Select(error => $"[{error.Code}] {error.Description}"));
+    }
+
+    private async ValueTask UpdateIdentityAsync(OAuthBindIdentity identity, GithubAccessTokenResponse accessTokenResponse, string displayName)
+    {
+        identity.DisplayName = displayName;
+        identity.RefreshToken = accessTokenResponse.RefreshToken;
+        identity.ExpiresAt = CalculateExpiresAt(accessTokenResponse);
+
+        await appDbContext.OAuthBindIdentities.UpdateAndSaveAsync(identity).ConfigureAwait(false);
+    }
+
+    private static long CalculateExpiresAt(GithubAccessTokenResponse accessTokenResponse)
+    {
+        return (DateTimeOffset.Now + TimeSpan.FromSeconds(accessTokenResponse.RefreshTokenExpiresIn)).ToUnixTimeSeconds();
+    }
+
+    private static string GenerateTemporaryPassword()
+    {
+        Span<byte> buffer = stackalloc byte[48];
+        RandomNumberGenerator.Fill(buffer);
+        return Convert.ToBase64String(buffer);
     }
 
     public async ValueTask ProcessWorkflowRunEventAsync(WorkflowRun workflowRun)
