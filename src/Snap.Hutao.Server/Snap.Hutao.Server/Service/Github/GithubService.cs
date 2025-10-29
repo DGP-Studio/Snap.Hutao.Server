@@ -1,6 +1,8 @@
 ﻿// Copyright (c) DGP Studio. All rights reserved.
 // Licensed under the MIT license.
 
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Snap.Hutao.Server.Extension;
 using Snap.Hutao.Server.Model.Context;
 using Snap.Hutao.Server.Model.Entity.Passport;
@@ -94,7 +96,8 @@ public class GithubService : IOAuthProvider
             {
                 return OAuthResult.Fail("GitHub 邮箱未验证，无法完成登录或注册 | The GitHub email address is unverified and cannot be used for login or registration");
             }
-            HutaoUser? user = await userManager.FindByNameAsync(email).ConfigureAwait(false);
+
+            HutaoUser? user = await FindUserByNameAsync(email).ConfigureAwait(false);
             TokenResponse tokenResponse;
 
             if (user is null)
@@ -111,16 +114,31 @@ public class GithubService : IOAuthProvider
                     return OAuthResult.Fail($"通过 GitHub 注册失败: {registerResult.Message} | Failed to register via GitHub: {registerResult.Message}");
                 }
 
-                tokenResponse = registerResult.Token;
-                user = await userManager.FindByNameAsync(email).ConfigureAwait(false)
+                user = await FindUserByNameAsync(email).ConfigureAwait(false)
                     ?? throw new InvalidOperationException("GitHub 注册成功但未找到对应用户 | GitHub registration succeeded but user not found");
+
+                IdentityResult emailSyncResult = await EnsureUserEmailAsync(user, email).ConfigureAwait(false);
+                if (!emailSyncResult.Succeeded)
+                {
+                    string errorMessage = FormatIdentityErrors(emailSyncResult);
+                    await passportService.RevokeAllUserTokensAsync(user.Id).ConfigureAwait(false);
+                    await userManager.DeleteAsync(user).ConfigureAwait(false);
+                    return OAuthResult.Fail($"同步 GitHub 邮箱失败: {errorMessage} | Failed to synchronize GitHub email: {errorMessage}");
+                }
+
+                tokenResponse = registerResult.Token;
             }
             else
             {
+                IdentityResult emailSyncResult = await EnsureUserEmailAsync(user, email).ConfigureAwait(false);
+                if (!emailSyncResult.Succeeded)
+                {
+                    string errorMessage = FormatIdentityErrors(emailSyncResult);
+                    return OAuthResult.Fail($"同步 GitHub 邮箱失败: {errorMessage} | Failed to synchronize GitHub email: {errorMessage}");
+                }
+
                 tokenResponse = await passportService.CreateTokenResponseAsync(user, state.DeviceInfo).ConfigureAwait(false);
             }
-
-            await EnsureUserEmailAsync(user, email, verified).ConfigureAwait(false);
 
             OAuthBindIdentity newIdentity = new()
             {
@@ -185,16 +203,29 @@ public class GithubService : IOAuthProvider
         if (!string.IsNullOrEmpty(userResponse.Email))
         {
             GithubEmailAddress? matchingEmail = emailAddresses.FirstOrDefault(address => string.Equals(address.Email, userResponse.Email, StringComparison.OrdinalIgnoreCase));
-            if (matchingEmail is not null && matchingEmail.Verified)
+            if (matchingEmail is not null)
             {
-                return (matchingEmail.Email, true);
+                return matchingEmail.Verified
+                    ? (matchingEmail.Email, true)
+                    : (matchingEmail.Email, false);
             }
+        }
+
+        GithubEmailAddress? firstUnverified = emailAddresses
+            .Where(address => !address.Verified)
+            .OrderByDescending(address => address.Primary)
+            .ThenBy(address => address.Email, StringComparer.OrdinalIgnoreCase)
+            .FirstOrDefault();
+
+        if (firstUnverified is not null)
+        {
+            return (firstUnverified.Email, false);
         }
 
         return null;
     }
 
-    private async ValueTask EnsureUserEmailAsync(HutaoUser user, string email, bool verified)
+    private async ValueTask<IdentityResult> EnsureUserEmailAsync(HutaoUser user, string email)
     {
         bool shouldUpdate = false;
 
@@ -204,16 +235,34 @@ public class GithubService : IOAuthProvider
             shouldUpdate = true;
         }
 
-        if (verified && !user.EmailConfirmed)
+        if (!user.EmailConfirmed)
         {
             user.EmailConfirmed = true;
             shouldUpdate = true;
         }
 
-        if (shouldUpdate)
+        if (!shouldUpdate)
         {
-            await userManager.UpdateAsync(user).ConfigureAwait(false);
+            return IdentityResult.Success;
         }
+
+        return await userManager.UpdateAsync(user).ConfigureAwait(false);
+    }
+
+    private async ValueTask<HutaoUser?> FindUserByNameAsync(string userName)
+    {
+        string? normalizedUserName = userManager.KeyNormalizer?.NormalizeName(userName);
+        if (string.IsNullOrEmpty(normalizedUserName))
+        {
+            return await userManager.FindByNameAsync(userName).ConfigureAwait(false);
+        }
+
+        return await userManager.Users.SingleOrDefaultAsync(user => user.NormalizedUserName == normalizedUserName).ConfigureAwait(false);
+    }
+
+    private static string FormatIdentityErrors(IdentityResult identityResult)
+    {
+        return string.Join("; ", identityResult.Errors.Select(error => $"[{error.Code}] {error.Description}"));
     }
 
     private async ValueTask UpdateIdentityAsync(OAuthBindIdentity identity, GithubAccessTokenResponse accessTokenResponse, string displayName)

@@ -33,7 +33,7 @@ public class GithubApiService
                     return default;
                 }
 
-                return await responseMessage.Content.ReadFromJsonAsync<Artifacts>();
+                return await responseMessage.Content.ReadFromJsonAsync<Artifacts>().ConfigureAwait(false);
             }
         }
     }
@@ -53,7 +53,7 @@ public class GithubApiService
                     return default;
                 }
 
-                return await responseMessage.Content.ReadFromJsonAsync<GithubUserResponse>();
+                return await responseMessage.Content.ReadFromJsonAsync<GithubUserResponse>().ConfigureAwait(false);
             }
         }
     }
@@ -73,7 +73,7 @@ public class GithubApiService
                     return default;
                 }
 
-                return await responseMessage.Content.ReadFromJsonAsync<List<GithubEmailAddress>>();
+                return await responseMessage.Content.ReadFromJsonAsync<List<GithubEmailAddress>>().ConfigureAwait(false);
             }
         }
     }
@@ -104,7 +104,7 @@ public class GithubApiService
                     return default;
                 }
 
-                return await responseMessage.Content.ReadFromJsonAsync<GithubAccessTokenResponse>();
+                return await responseMessage.Content.ReadFromJsonAsync<GithubAccessTokenResponse>().ConfigureAwait(false);
             }
         }
     }
