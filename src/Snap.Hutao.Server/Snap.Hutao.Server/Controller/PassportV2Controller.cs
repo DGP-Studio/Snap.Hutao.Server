@@ -188,23 +188,18 @@ public class PassportV2Controller : ControllerBase
             : Model.Response.Response.Fail(ReturnCode.RegisterFail, result.Message, result.LocalizationKey!);
     }
 
-    /// <summary>
-    /// 修改绑定邮箱并重新签发访问令牌。
-    /// </summary>
-    /// <param name="request">
-    /// <list type="bullet">
-    /// <item>
-    /// <description><c>UserName</c> 与 <c>VerifyCode</c>：原邮箱及其验证码。</description>
-    /// </item>
-    /// <item>
-    /// <description><c>NewUserName</c> 与 <c>NewVerifyCode</c>：新邮箱及其验证码，需按照客户端约定的安全协议处理。</description>
-    /// </item>
-    /// </list>
-    /// </param>
-    /// <returns>成功后返回新的访问令牌，失败时返回错误码。</returns>
-    /// <remarks>
-    /// <para>旧邮箱与新邮箱需分别申请验证码，两组验证码应独立提交。</para>
-    /// </remarks>
+    [SwaggerOperation(
+        Summary = "修改绑定邮箱并重新签发访问令牌。",
+        Description = """
+        请求体字段：
+        - UserName 与 VerifyCode：原邮箱及其验证码。
+        - NewUserName 与 NewVerifyCode：新邮箱及其验证码。
+
+        注意事项：
+        - 请分别为旧邮箱与新邮箱申请验证码，并在同一次请求中提交。
+        - 成功后将返回新的访问令牌与刷新令牌，请替换客户端本地缓存。
+        """
+    )]
     [HttpPost("ResetUsername")]
     public async Task<IActionResult> ResetUsernameAsync([FromBody] PassportRequest request)
     {
@@ -231,23 +226,18 @@ public class PassportV2Controller : ControllerBase
             : Model.Response.Response.Fail(ReturnCode.RegisterFail, result.Message, result.LocalizationKey!);
     }
 
-    /// <summary>
-    /// 使用邮箱与密码登录并颁发访问令牌与刷新令牌。
-    /// </summary>
-    /// <param name="request">
-    /// <list type="bullet">
-    /// <item>
-    /// <description><c>UserName</c>：登录所使用的邮箱账号。</description>
-    /// </item>
-    /// <item>
-    /// <description><c>Password</c>：登录密码。</description>
-    /// </item>
-    /// </list>
-    /// </param>
-    /// <returns>登录成功时返回 <see cref="TokenResponse"/>，失败时附带错误提示。</returns>
-    /// <remarks>
-    /// <para>登录成功后返回访问令牌与刷新令牌，请在客户端安全存储并在后续请求中使用。</para>
-    /// </remarks>
+    [SwaggerOperation(
+        Summary = "使用邮箱与密码登录并颁发访问令牌与刷新令牌。",
+        Description = """
+        请求体字段：
+        - UserName：登录所使用的邮箱账号。
+        - Password：账号密码。
+
+        注意事项：
+        - 登录成功后返回访问令牌与刷新令牌，请在客户端安全保存。
+        - 若账号存在安全风险，可结合设备管理接口执行强制登出。
+        """
+    )]
     [HttpPost("Login")]
     public async Task<IActionResult> LoginAsync([FromBody] PassportRequest request)
     {
@@ -265,13 +255,14 @@ public class PassportV2Controller : ControllerBase
             : Model.Response.Response.Fail(ReturnCode.LoginFail, result.Message, result.LocalizationKey!);
     }
 
-    /// <summary>
-    /// 获取当前登录用户的基础资料与资源到期时间。
-    /// </summary>
-    /// <returns>成功时返回 <see cref="UserInfo"/> 对象，包含账号标识、权限位以及云服务到期时间。</returns>
-    /// <remarks>
-    /// <para>调用前需携带有效的 Bearer Token，可用于刷新客户端缓存。</para>
-    /// </remarks>
+    [SwaggerOperation(
+        Summary = "获取当前登录用户的基础资料与资源到期时间。",
+        Description = """
+        注意事项：
+        - 需携带有效的 Bearer Token 才能访问。
+        - 可用于刷新客户端缓存的账号信息与服务到期时间。
+        """
+    )]
     [Authorize]
     [HttpGet("UserInfo")]
     public async Task<IActionResult> GetUserInfoAsync()
@@ -294,13 +285,14 @@ public class PassportV2Controller : ControllerBase
         });
     }
 
-    /// <summary>
-    /// 查询当前账号所有有效的登录设备。
-    /// </summary>
-    /// <returns>成功时返回设备列表，包含设备 ID、设备名称、系统类型与登录时间。</returns>
-    /// <remarks>
-    /// <para>返回数据中的 <c>IsCurrentDevice</c> 字段用于标识调用者自身设备，可据此展示注销按钮。</para>
-    /// </remarks>
+    [SwaggerOperation(
+        Summary = "查询当前账号所有有效的登录设备。",
+        Description = """
+        注意事项：
+        - 需携带有效的 Bearer Token 才能访问。
+        - 返回数据包含设备标识、名称、系统类型与登录时间，可据此实现设备管理。
+        """
+    )]
     [Authorize]
     [HttpGet("LoggedInDevices")]
     public async Task<IActionResult> GetLoggedInDevicesAsync()
@@ -311,20 +303,17 @@ public class PassportV2Controller : ControllerBase
         return Response<List<LoggedInDeviceInfo>>.Success("获取已登录设备成功", devices);
     }
 
-    /// <summary>
-    /// 使用刷新令牌换取新的访问令牌。
-    /// </summary>
-    /// <param name="request">
-    /// <list type="bullet">
-    /// <item>
-    /// <description><c>RefreshToken</c>：刷新令牌，由注册或登录接口返回。</description>
-    /// </item>
-    /// </list>
-    /// </param>
-    /// <returns>成功时返回新的 <see cref="TokenResponse"/>，失败时返回刷新令牌失效提示。</returns>
-    /// <remarks>
-    /// <para>刷新接口无需登录态，但应使用 HTTPS 传输，防止令牌被中间人窃取。</para>
-    /// </remarks>
+    [SwaggerOperation(
+        Summary = "使用刷新令牌换取新的访问令牌。",
+        Description = """
+        请求体字段：
+        - RefreshToken：刷新令牌。
+
+        注意事项：
+        - 刷新接口无需登录态，但请求仍需走安全信道。
+        - 若刷新令牌无效或已过期，将返回对应错误码。
+        """
+    )]
     [HttpPost("RefreshToken")]
     public async Task<IActionResult> RefreshTokenAsync([FromBody] RefreshTokenRequest request)
     {
@@ -342,20 +331,17 @@ public class PassportV2Controller : ControllerBase
         return Response<TokenResponse>.Success("令牌刷新成功", tokenResponse);
     }
 
-    /// <summary>
-    /// 撤销指定设备的刷新令牌。
-    /// </summary>
-    /// <param name="request">
-    /// <list type="bullet">
-    /// <item>
-    /// <description><c>DeviceId</c>：设备唯一标识，可从 <see cref="GetLoggedInDevicesAsync"/> 响应中获取。</description>
-    /// </item>
-    /// </list>
-    /// </param>
-    /// <returns>撤销结果，成功时返回统一的成功提示消息。</returns>
-    /// <remarks>
-    /// <para>需要携带当前用户的 Bearer Token，并且只能撤销属于自己的设备。</para>
-    /// </remarks>
+    [SwaggerOperation(
+        Summary = "撤销指定设备的刷新令牌。",
+        Description = """
+        请求体字段：
+        - DeviceId：设备唯一标识，可从“查询已登录设备”接口获取。
+
+        注意事项：
+        - 需携带有效的 Bearer Token，并仅能操作当前账号的设备。
+        - 撤销后该设备将失去刷新访问令牌的能力。
+        """
+    )]
     [Authorize]
     [HttpPost("RevokeToken")]
     public async Task<IActionResult> RevokeTokenAsync([FromBody] RefreshTokenRequest request)
@@ -370,13 +356,14 @@ public class PassportV2Controller : ControllerBase
             : Model.Response.Response.Fail(ReturnCode.RefreshTokenDbException, "令牌撤销失败", ServerKeys.ServerPassportTokenRevokeFailed);
     }
 
-    /// <summary>
-    /// 撤销当前账号所有刷新令牌并强制登出所有设备。
-    /// </summary>
-    /// <returns>统一的成功提示消息。</returns>
-    /// <remarks>
-    /// <para>该操作可用于账号出现异常登录时的紧急处理。</para>
-    /// </remarks>
+    [SwaggerOperation(
+        Summary = "撤销当前账号所有刷新令牌并强制登出所有设备。",
+        Description = """
+        注意事项：
+        - 需携带有效的 Bearer Token 才能访问。
+        - 可在账号异常时执行，所有设备将被要求重新登录。
+        """
+    )]
     [Authorize]
     [HttpPost("RevokeAllTokens")]
     public async Task<IActionResult> RevokeAllTokensAsync()

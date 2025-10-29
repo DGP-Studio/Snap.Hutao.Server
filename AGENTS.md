@@ -24,5 +24,6 @@
 - 先阅读并遵守子目录的 `AGENTS.md`。
 - 不得移除或修改现有版权头部注释。
 - PR/提交信息需清晰描述改动目的；若引入 Breaking Change，需在说明中明确指出并更新相关文档。
+- **接口文档约定**：所有公开的 Web API 控制器动作（如 `Controller/*.cs` 中的接口函数）必须使用 `SwaggerOperation` 特性编写说明，包含 `Summary` 与以多行字符串形式组织的 `Description`，用于列出请求字段与注意事项；在已有 `SwaggerOperation` 的情况下，不要再编写冗余的 XML 注释。
 
 如需在仓库任意位置新增说明，请补充或更新对应 `AGENTS.md`，确保后续 Agent 能快速接手。祝开发顺利！
