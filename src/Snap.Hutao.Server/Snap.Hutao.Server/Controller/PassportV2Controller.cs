@@ -198,8 +198,7 @@ public class PassportV2Controller : ControllerBase
         注意事项：
         - 请分别为旧邮箱与新邮箱申请验证码，并在同一次请求中提交。
         - 成功后将返回新的访问令牌与刷新令牌，请替换客户端本地缓存。
-        """
-    )]
+        """)]
     [HttpPost("ResetUsername")]
     public async Task<IActionResult> ResetUsernameAsync([FromBody] PassportRequest request)
     {
@@ -236,8 +235,7 @@ public class PassportV2Controller : ControllerBase
         注意事项：
         - 登录成功后返回访问令牌与刷新令牌，请在客户端安全保存。
         - 若账号存在安全风险，可结合设备管理接口执行强制登出。
-        """
-    )]
+        """)]
     [HttpPost("Login")]
     public async Task<IActionResult> LoginAsync([FromBody] PassportRequest request)
     {
@@ -261,8 +259,7 @@ public class PassportV2Controller : ControllerBase
         注意事项：
         - 需携带有效的 Bearer Token 才能访问。
         - 可用于刷新客户端缓存的账号信息与服务到期时间。
-        """
-    )]
+        """)]
     [Authorize]
     [HttpGet("UserInfo")]
     public async Task<IActionResult> GetUserInfoAsync()
@@ -291,8 +288,7 @@ public class PassportV2Controller : ControllerBase
         注意事项：
         - 需携带有效的 Bearer Token 才能访问。
         - 返回数据包含设备标识、名称、系统类型与登录时间，可据此实现设备管理。
-        """
-    )]
+        """)]
     [Authorize]
     [HttpGet("LoggedInDevices")]
     public async Task<IActionResult> GetLoggedInDevicesAsync()
@@ -312,8 +308,7 @@ public class PassportV2Controller : ControllerBase
         注意事项：
         - 刷新接口无需登录态，但请求仍需走安全信道。
         - 若刷新令牌无效或已过期，将返回对应错误码。
-        """
-    )]
+        """)]
     [HttpPost("RefreshToken")]
     public async Task<IActionResult> RefreshTokenAsync([FromBody] RefreshTokenRequest request)
     {
@@ -340,8 +335,7 @@ public class PassportV2Controller : ControllerBase
         注意事项：
         - 需携带有效的 Bearer Token，并仅能操作当前账号的设备。
         - 撤销后该设备将失去刷新访问令牌的能力。
-        """
-    )]
+        """)]
     [Authorize]
     [HttpPost("RevokeToken")]
     public async Task<IActionResult> RevokeTokenAsync([FromBody] RefreshTokenRequest request)
@@ -362,8 +356,7 @@ public class PassportV2Controller : ControllerBase
         注意事项：
         - 需携带有效的 Bearer Token 才能访问。
         - 可在账号异常时执行，所有设备将被要求重新登录。
-        """
-    )]
+        """)]
     [Authorize]
     [HttpPost("RevokeAllTokens")]
     public async Task<IActionResult> RevokeAllTokensAsync()
